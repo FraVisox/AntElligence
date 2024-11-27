@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<MzingaViewer version="0.15.1" date="27/11/2024 15:30:07">
+  <EngineType>Internal</EngineType>
+  <EngineCommandLine />
+  <VisualTheme>Light</VisualTheme>
+  <HexOrientation>PointyTop</HexOrientation>
+  <PieceStyle>Graphical</PieceStyle>
+  <PieceColors>True</PieceColors>
+  <DisablePiecesInHandWithNoMoves>False</DisablePiecesInHandWithNoMoves>
+  <DisablePiecesInPlayWithNoMoves>False</DisablePiecesInPlayWithNoMoves>
+  <HighlightTargetMove>True</HighlightTargetMove>
+  <HighlightValidMoves>True</HighlightValidMoves>
+  <HighlightLastMovePlayed>True</HighlightLastMovePlayed>
+  <BlockInvalidMoves>True</BlockInvalidMoves>
+  <RequireMoveConfirmation>False</RequireMoveConfirmation>
+  <AddPieceNumbers>False</AddPieceNumbers>
+  <StackPiecesInHand>True</StackPiecesInHand>
+  <PlaySoundEffects>True</PlaySoundEffects>
+  <AutoCenterBoard>True</AutoCenterBoard>
+  <AutoZoomBoard>True</AutoZoomBoard>
+  <ShowBoardHistory>False</ShowBoardHistory>
+  <ShowMoveCommentary>False</ShowMoveCommentary>
+  <FirstRun>False</FirstRun>
+  <CheckUpdateOnStart>False</CheckUpdateOnStart>
+  <InternalGameAI>
+    <MaxHelperThreads>Auto</MaxHelperThreads>
+    <PonderDuringIdle>SingleThreaded</PonderDuringIdle>
+    <ReportIntermediateBestMoves>False</ReportIntermediateBestMoves>
+    <TranspositionTableSizeMB>32</TranspositionTableSizeMB>
+  </InternalGameAI>
+</MzingaViewer>

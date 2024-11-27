@@ -19,14 +19,10 @@ Contains everything that has not a version
 
 ## [0.0.1] - 2024-11-27
 
-### Added
+### Project start
 
-- This CHANGELOG file to hopefully serve as an evolving example of a
-  standardized open source project CHANGELOG.
-- CNAME file to enable GitHub Pages custom domain.
-- README now contains answers to common questions about CHANGELOGs.
-- Good examples and basic guidelines, including proper date formatting.
-- Counter-examples: "What makes unicorns cry?".
+- File README.md, src/Engine.md and CHANGELOG.md to explain what we're doing.
+- Completed Hivemind's engine with options, possibility to strange strategy and to find the best move.
 
 [unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v1.1.1...HEAD
 [0.0.1]: https://github.com/olivierlacan/keep-a-changelog/releases/tag/v0.0.1
