@@ -17,7 +17,7 @@ Below is an example of what the file should look like in future.
 
 Contains everything that has not a version
 
-## [0.0.1] - 2024-11-27
+## [1.0.0] - 2024-11-27
 
 ### Project start
 
