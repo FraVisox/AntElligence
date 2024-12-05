@@ -619,3 +619,14 @@ class Board():
     :rtype: Position
     """
     return position + self.NEIGHBOR_DELTAS[direction.delta_index]
+  
+  def _get_number_of_bugs_near_queen(self, color: PlayerColor) -> int:
+    """
+    Returns the number of bugs near the queen of the given color.
+
+    :param color: Color of the queen.
+    :type color: PlayerColor
+    :return: Number of bugs near the queen.
+    :rtype: int
+    """
+    return sum(1 for bug in self._bugs_from_pos(self._pos_from_bug(Bug(color, BugType.QUEEN_BEE))) if self._is_bug_on_top(bug))

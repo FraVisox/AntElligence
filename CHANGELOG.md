@@ -17,6 +17,9 @@ Below is an example of what the file should look like in future.
 
 Contains everything that has not a version
 
+- File tester.py to create insights on what Strategy wins more and in how many turns
+- Started alpha-beta pruning strategy
+
 ## [1.0.0] - 2024-11-27
 
 ### Project start

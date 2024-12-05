@@ -6,7 +6,7 @@ file_results = "results\\game_results.csv"
 files_to_match = {
     "Random": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\AntElligenceEngine.exe",
     "Minimax": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\AntElligenceEngine.exe",
-    "Mzinga": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\MzingaEngine.exe"
+    #"Mzinga": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\MzingaEngine.exe"
 }
 
 options_players = [
@@ -18,7 +18,8 @@ options_players = [
 # Commands to pass to the engine
 game_start = "newgame Base+MLP\n"
 ending_sequence = "ok"
-bestmove = "bestmove time 00:00:01\n"
+#bestmove = "bestmove time 00:00:01\n"
+bestmove = "bestmove depth 10\n"
 
 
 def write_results_to_csv(results, filename):
@@ -67,6 +68,7 @@ def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = No
             player2.stdin.write(options2)
             output = player2.stdout.readline()
             while not output.startswith(ending_sequence):
+                print(output)
                 output = player2.stdout.readline()
 
 
@@ -135,6 +137,8 @@ def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = No
 
                 # Swap moving player
                 moving_player, opponent = opponent, moving_player
+
+                print(turn)
 
 
         # Close subprocesses

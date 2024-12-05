@@ -115,7 +115,7 @@ class Engine():
             print("  See https://github.com/jonthysell/Mzinga/wiki/UniversalHiveProtocol#validmoves.")
           case Command.BESTMOVE:
             print(f"  {Command.BESTMOVE} time MaxTime")
-            print(f"  {Command.BESTMOVE} depth MaxTime")
+            print(f"  {Command.BESTMOVE} depth MaxDepth")
             print("")
             print("  Search for the best move for the current game. Use 'time' to limit the search by time in hh:mm:ss or use 'depth' to limit the number of turns to look into the future.")
             print("  See https://github.com/jonthysell/Mzinga/wiki/UniversalHiveProtocol#bestmove.")
@@ -175,7 +175,7 @@ class Engine():
     Handles 'options set' argument to change AI strategy.
     """
     if option_name in self.OPTIONS and option_value in self.POSSIBLE_VALUES[option_name]: 
-      self.brain = self.BRAINS[self.OPTIONS[option_name]]
+      self.brain = self.BRAINS[option_value]
       self.OPTIONS[option_name] = option_value
       
 
