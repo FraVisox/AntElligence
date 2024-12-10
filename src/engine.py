@@ -16,7 +16,7 @@ class Engine():
   """
   
   OPTIONS: Final[dict[str, str]] = {
-    "Strategy": "Random",
+    "Strategy": "Minimax",
   }
   
     

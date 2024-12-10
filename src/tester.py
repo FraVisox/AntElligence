@@ -10,20 +10,45 @@ files_to_match = {
 }
 
 options_players = [
+    "options set Strategy Random\n",
     None,
-    "options set Strategy Minimax\n",
     None
 ]
 
 # Commands to pass to the engine
 game_start = "newgame Base+MLP\n"
 ending_sequence = "ok"
-#bestmove = "bestmove time 00:00:01\n"
-bestmove = "bestmove depth 10\n"
+#bestmove = "bestmove time 00:00:05\n"
+bestmove = "bestmove depth 2\n" # Empirically, the minimax remains under 5 seconds only if depth <= 2. But this doesn't help at all, too few states
 
 
 def write_results_to_csv(results, filename):
-    """Write results of the matches to a CSV file."""
+    """
+    Writes the results of a game to a CSV file.
+
+    The results are passed as a list of lists, where each sublist contains the results of a single game.
+    The first two elements of each sublist are the names of the two players, in the order they played.
+    The next 8 elements are the results of the game, in the following order:
+
+    - Player 1 wins as white
+    - Average turns for Player 1 to win as white
+    - Player 1 wins as black
+    - Average turns for Player 1 to win as black
+    - Player 2 wins as white
+    - Average turns for Player 2 to win as white
+    - Player 2 wins as black
+    - Average turns for Player 2 to win as black
+    - Draws
+    - Average turns for draws
+
+    The results will be written to the specified file, with the headers written first.
+
+    :param results: The results of the games to be written.
+    :type results: list of lists
+    :param filename: The file to write the results to.
+    :type filename: str
+    """
+
     headers = [
         "Player 1", "Player 2", 
         "Player 1 Wins (White)", "Turns (White)",
@@ -40,7 +65,20 @@ def write_results_to_csv(results, filename):
             writer.writerow(row)
 
 def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = None, options2 = None):
-    """Simulate some matches between two players with a maximum number of turns and return the results as a list."""
+    """
+    Simulates a series of matches between two players and returns a list of results.
+
+    :param pl1_path: The path to the executable of the first player.
+    :param name1: The name of the first player.
+    :param pl2_path: The path to the executable of the second player.
+    :param name2: The name of the second player.
+    :param matches: The number of matches to simulate.
+    :param turns: The maximum number of turns to play in each match. If -1, play until the game ends.
+    :param options1: The options to pass to the first player. If None, no options are passed.
+    :param options2: The options to pass to the second player. If None, no options are passed.
+
+    :return: A list of results, where each result is a list of the form [name1, name2, pl1 wins (white), pl1 turns (white), pl1 wins (black), pl1 turns (black), pl2 wins (white), pl2 turns (white), pl2 wins (black), pl2 turns (black), draws, draw turns].
+    """
     results = []
 
     try:
@@ -162,6 +200,17 @@ def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = No
     return results
 
 def test_players(files_to_match, options, file_results):
+    """
+    Test different player strategies by simulating games between them.
+
+    This function iterates over pairs of players defined in `files_to_match`,
+    simulates a series of matches between each pair using the `play_game` function,
+    and writes the results to a CSV file using `write_results_to_csv`.
+
+    :param files_to_match: A dictionary with player names as keys and file paths to the player executables as values.
+    :param options: A list of strategy options to be set for each player.
+    :param file_results: The file path where the results of the matches will be written in CSV format.
+    """
     results = []
     keys = list(files_to_match.keys())
     for i in range(len(keys)):
@@ -172,4 +221,5 @@ def test_players(files_to_match, options, file_results):
     write_results_to_csv(results, file_results)
 
 # Run the tests
-test_players(files_to_match, options_players, file_results)
+if __name__ == "__main__":
+    test_players(files_to_match, options_players, file_results)

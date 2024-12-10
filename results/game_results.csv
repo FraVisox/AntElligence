@@ -1,2 +1,2 @@
 Player 1,Player 2,Player 1 Wins (White),Turns (White),Player 1 Wins (Black),Turns (Black),Player 2 Wins (White),Turns (White),Player 2 Wins (Black),Turns (Black),Draws,Turns (Draw)
-Random,Minimax,0,0,0,0,0,0,0,0,0,0
+Random,Minimax,0,0,0,0,1,40.0,0,0,0,0
