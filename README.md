@@ -27,6 +27,8 @@ Useful links:
 * [Riccardo's python engine](https://github.com/Crystal-Spider/hivemind)
 * [Construct hexagonal grids](https://www.redblobgames.com/grids/hexagons/)
 
+TODO: remake everything in C++
+
 ### Install Anaconda
 
 Setting up the environment is pretty easy:
@@ -58,3 +60,7 @@ pyinstaller ./src/engine.py --name AntElligenceEngine --noconsole --onefile
 
 * [Reinforcement Learning on Hive](https://research.spec.org/icpe_proceedings/2022/proceedings/p145.pdf)
 * [Monte Carlo strategy for Hive](https://theses.liacs.nl/pdf/NilsOUT.pdf)
+
+HEURISTIC
+MONTE CARLO
+ALPHA ZERO

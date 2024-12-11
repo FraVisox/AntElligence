@@ -5,7 +5,10 @@ from copy import deepcopy
 import time
 
 # TODO: make a better order of moves to make alpha-beta better
-# TODO: Improve heuristic
+# TODO: Improve heuristic:
+#         how many moves we have (wrt to the adversary)
+#         how many pieces we have around my queen (if it's my turn or if it's the other player's)
+#         how deep is the tree
 
 class Minimax(Strategy):
   """
