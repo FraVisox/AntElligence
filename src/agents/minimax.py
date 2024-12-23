@@ -3,6 +3,7 @@ from agents.strategy import Strategy
 from game_logic.enums import *
 from copy import deepcopy
 import time
+from agents.oracle import Oracle
 
 # TODO: make a better order of moves to make alpha-beta better
 # TODO: Improve heuristic:
@@ -10,6 +11,9 @@ import time
 #         how many pieces we have around my queen (if it's my turn or if it's the other player's)
 #         how deep is the tree
 
+
+MIN_EVAL = -10000
+MAX_EVAL =  10000
 class Minimax(Strategy):
   """
   AI agent following a custom minimax with alpha-beta pruning policy.
@@ -65,14 +69,14 @@ class Minimax(Strategy):
     :rtype: str
     """
     #start = time.perf_counter()
-    max_eval = -float('inf')
-    alpha = -float('inf')
+    max_eval = MIN_EVAL
+    alpha = MIN_EVAL
     todo_action = Command.PASS
     # For every action available, play it and calculate the utility (recursively)
     for action in board.valid_moves.split(";"):
       bb = deepcopy(board)
       bb.play(action)
-      eval = self.minmax(state=bb.state, board=board, depth=1, maximizing_player=False, alpha=alpha, beta=float('inf'))
+      eval = self.minmax(state=bb.state, board=board, depth=1, maximizing_player=False, alpha=alpha, beta=MAX_EVAL)
       if (eval > max_eval):
         max_eval = eval
         todo_action = action
@@ -104,11 +108,11 @@ class Minimax(Strategy):
     :return: The utility value of the current game state.
     :rtype: int
     """
-    if state == GameState.DRAW or state == GameState.WHITE_WINS or state == GameState.BLACK_WINS or depth == self.depth_limit:
-        return self.utility(state, board)
+    if state == GameState.DRAW or state == GameState.WHITE_WINS or state == GameState.BLACK_WINS or depth >= self.depth_limit:
+        return Oracle.heuristic_eval_board(state, board,self.color)
     
     if maximizing_player:
-        max_eval = -float('inf')
+        max_eval = MIN_EVAL
         for action in board.valid_moves.split(";"):
             bb = deepcopy(board)
             bb.play(action)
@@ -120,7 +124,7 @@ class Minimax(Strategy):
                 break  
         return max_eval
     else:
-        min_eval = float('inf')
+        min_eval = MAX_EVAL
         for action in board.valid_moves.split(";"):
             bb = deepcopy(board)
             bb.play(action)

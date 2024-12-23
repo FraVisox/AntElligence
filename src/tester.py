@@ -1,13 +1,22 @@
 import csv
 from subprocess import Popen, PIPE
+import platform
+
 
 file_results = "results\\game_results.csv"
 
-files_to_match = {
-    "Random": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\AntElligenceEngine.exe",
-    "Minimax": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\AntElligenceEngine.exe",
-    #"Mzinga": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\MzingaEngine.exe"
-}
+if platform.system()=="Linux":
+    files_to_match = {
+        "Random": "./dist/AntElligenceEngine",
+        "Minimax": "./dist/AntElligenceEngine",
+        #"Mzinga": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\MzingaEngine.exe"
+    }
+else:
+    files_to_match = {
+        "Random": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\AntElligenceEngine.exe",
+        "Minimax": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\AntElligenceEngine.exe",
+        #"Mzinga": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\MzingaEngine.exe"
+    }
 
 options_players = [
     "options set Strategy Random\n",
