@@ -73,6 +73,10 @@ def write_results_to_csv(results, filename):
         for row in results:
             writer.writerow(row)
 
+
+    
+
+
 def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = None, options2 = None):
     """
     Simulates a series of matches between two players and returns a list of results.
@@ -226,7 +230,7 @@ def test_players(files_to_match, options, file_results):
         for j in range(i + 1, len(keys)):
             pl1 = files_to_match[keys[i]]
             pl2 = files_to_match[keys[j]]
-            results.extend(play_game(pl1, keys[i], pl2, keys[j], matches=6, turns=100, options1=options[i], options2=options[j]))
+            results.extend(play_game(pl1, keys[i], pl2, keys[j], matches=6, turns=40, options1=options[i], options2=options[j]))
     write_results_to_csv(results, file_results)
 
 # Run the tests

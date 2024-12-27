@@ -34,16 +34,20 @@ class Oracle:
 					return 0
 			enemy_color = PlayerColor.WHITE if player_color==PlayerColor.BLACK else PlayerColor.BLACK
 
-			if player_color == PlayerColor.WHITE:
-				if state == GameState.WHITE_WINS:
-					return 100
-				if state == GameState.BLACK_WINS:
-					return -100
-				
-			C1 = board._get_number_of_bugs_near_queen(player_color) - board._get_number_of_bugs_near_queen(enemy_color)
-			C2 = sum(Oracle.bugMoveVal[mov.bug.type] for mov in board.moves if mov.bug.color==player_color) -  sum(Oracle.bugMoveVal[mov.bug.type] for mov in board.moves if mov.bug.color==enemy_color)
+			if state == GameState.WHITE_WINS:
+				return 100 if player_color==PlayerColor.WHITE else -100
+			if state == GameState.BLACK_WINS:
+				return 100 if player_color==PlayerColor.BLACK else -100
+			if state == GameState.DRAW:
+				return 0
 			
-			return -C1-C2
+			C1a =0# board._get_number_of_bugs_near_queen(player_color) # minimize
+			C1b = board._get_number_of_bugs_near_queen(enemy_color)  # maximize
+
+			
+			#C2a = sum(Oracle.bugMoveVal[mov.bug.type] for mov in board.moves if mov.bug.color==player_color) #maximize
+			#C2b = sum(Oracle.bugMoveVal[mov.bug.type] for mov in board.moves if mov.bug.color==enemy_color)  # minimize
+			return (C1b)#-(C2a-C2b)
 
 	bugMoveVal={
 		BugType.BEETLE:1,

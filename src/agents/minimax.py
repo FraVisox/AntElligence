@@ -149,7 +149,7 @@ class Minimax(Strategy):
     :rtype: str
     """
     
-    if not self._cache:
+    if not self._cache or self.DISABLE_CACHE:
       self.color = board.current_player_color
       self._cache = self.initiate_minimax(board)
     return self._cache
