@@ -1,185 +1,142 @@
-#include <bits/stdc++.h>
-#include "position.cpp"
-#include "piece.cpp"
 
+#include "gameboard.cpp"
+#include "action.cpp"
 
 class Board {
     public:
     int currentTurn;
-    unordered_map<position, stack<piece>> gameboard;
-    unordered_map<piece, position> placement;
-    vector<piece> bugs;
-    unordered_set<position> occupied_position;
-    unordered_set<piece> not_played; 
-    
+    gameboard G;
+    vector<piece> placedBug;
+    unordered_set<piece> inHandPiece;
+    bool isPlacedWQ=false;
+    bool isPlacedBQ=false;
 
-    Board(){
+    Board():
+        placedBug{},
+        G(&placedBug){ currentTurn=1;};
 
-    };
 
-    void addPiece(piece p){
-        bugs.push_back(p);
-    }
-    PlayerColor currentColor(){
+    PlayerColor currentColor(){  // we start with 1
         if(currentTurn%2==1) return PlayerColor::WHITE;
         return PlayerColor::BLACK;
     }
-
-
-    bool singleHiveWithout(const piece &p){
-        if(placement.count(p)){
-            position pos=placement.at(p);
-            if(gameboard.at(pos).size()>1) return true;
-            if(not_movable_position.count(pos))  return false;
-            
-        }
-        return true;
-    }
     
-    vector<piece> getNeighborPiece(const piece &p){
-        position pos=placement.at(p);
-        vector<piece> piecesNear;
-        for(auto N:pos.neighbor()){
-            if(occupied_position.count(N))
-                piecesNear.push_back(gameboard.at(N).top());
+    bool placedQueen(){
+        if(currentColor()==WHITE)return isPlacedWQ;
+        return isPlacedBQ;
+    }
+
+    vector<action> possibleMoves(){
+        vector<action> res;
+
+        // 1 if turn == 1, then place something that is not the queen
+        if(currentTurn==1){
+            for(piece b:inHandPiece){
+                if(b.col==currentColor() && b.kind!=QUEEN){
+                    res.push_back(placeFirst{b});
+                }
+            }
+            return res;
         }
-        return piecesNear;
-    }
-    
 
-    piece getTopPiece(const position &p){
-        return gameboard.at(p).top();   
-    }
-
-    bool isTopPiece(const piece &p){
-        position pos=placement.at(p);
-        return gameboard.at(pos).top()==p;
-    }
-    bool isPlaced(const piece &p){
-        return placement.count(p);
-    }
-    bool isFree(const position &pos){
-        return !occupied_position.count(pos);
-    }
-    bool isOccupied(const position &pos){
-        return !isFree(pos);
-    }
-
-    bool canPieceMoveFrom(piece p){
-        if(!isPlaced(p)) throw "Asking to move a piece not in the gameboard";
-        if(!isTopPiece(p))return false;
-        position pos=placement.at(p);
-        if(gameboard.at(pos).size()>1) return true;
-        if(singleHiveWithout(p)) return true;
-        return false;
-    }
-
-    bool canPieceMove(piece &p,position &to){
-        if(!canPieceMoveFrom(p)) return false;
-        if(isValidMovement(p,to))return true;
-        return false;
-    }
-
-    unordered_set<position> validPositionPlaceNew(PlayerColor color){
-        unordered_set<position> seen;
-        unordered_set<position> valid;
-        for(auto op :occupied_position){
-            piece p=gameboard.at(op).top();
-            if(p.col==color){
-                for(auto possiblePosition:op.neighbor()){
-                    if(seen.count(possiblePosition)) break;
-                    seen.insert(possiblePosition);
-                    if(isFree(possiblePosition)){
-                        bool hasOtherColor=false;
-                        for(auto n:possiblePosition.neighbor()){
-                            if(isOccupied(n) && gameboard.at(n).top().col!=color){
-                                hasOtherColor=true;
-                                break;
-                            }
-                        }
-                        if(!hasOtherColor){
-                            valid.insert(possiblePosition);
-                        }
+        // 2 if turn ==2 , then place something near white;
+        if(currentTurn==2){
+            for(piece b:inHandPiece){
+                if(b.col==currentColor() && b.kind!=QUEEN){
+                    for(pair<int,int> dir:movementCircleClockwise){
+                        res.push_back(placePiece{b,position{dir.first,dir.second}});
                     }
                 }
             }
+            return res;
         }
-        return valid;
-    }
 
+        // 3 - if i didn't place the queen after turn 5
 
-    bool canSlideTo(piece p,position pos){
+        if(!placedQueen() && currentTurn>8){
+            auto positions=G.validPositionPlaceNew(currentColor());
+            for(position pos:positions){
+                placePiece m(piece{QUEEN,currentColor()},pos);
+                res.push_back(m);
+            }
+            return res;
+        }
         
-    }
-
-    vector<pair<piece,position>> possibleMoves(){
-        vector<pair<piece,position>> res;
-
-        // 0 - if i didn't place the queen after turn 5
-
-        if(currentTurn>8 && currentTurn<=10&& not_played.size()>0){
-            piece Q(BugType::QUEEN,currentColor());
-            if(not_played.count(Q)){
-                for(auto pos:validPositionPlaceNew(currentColor())){
-                    res.push_back(make_pair(Q,pos));
-                }
-            }
-        }
-
-        // 1 - pieces in our hand
-        vector<piece> in_hand;
-
-        for(auto p:not_played){
+        // 4 - pieces in our hand
+        vector<piece> inHandCol;
+        for(auto p:inHandPiece){
             if(p.col==currentColor()){
-                if(currentTurn>2 || p.kind!=QUEEN){  // case first turn queen
-                    in_hand.push_back(p);
-                }
+                inHandCol.push_back(p);
             }
         }
-        if(in_hand.size()>0){
-            auto positions=validPositionPlaceNew(currentColor());
-            for(auto p:in_hand)
+        if(inHandCol.size()>0){
+            auto positions=G.validPositionPlaceNew(currentColor());
+            for(auto p:inHandCol)
                 for(auto pos : positions){
-                    res.push_back(make_pair(p,pos));
+                    res.push_back(placePiece{p,pos});
                 }
         }
 
         // 2- moves
-        for(piece p : bugs){
-            // moves pillpub
-
-            // TODO
-
-
-            // moves other bugs
-            if(not_played.count(p)==0 &&p.col==currentColor() && canPieceMoveFrom(p)){
-                position piecePosition=placement.at(p);
-                vector<position> nearPosition=piecePosition.neighbor();
-                switch(p.kind){
-                    case QUEEN:
-                        for(position pos : nearPosition){
-                            if(isFree(pos) && isConnectedWithout(pos,p)){
-                                res.push_back(make_pair(p,pos));
-                            }
-                        }
+        if(placedQueen()){
+            for(int i=0;i<placedBug.size();i++){
+                piece p=placedBug[i];
+                if(p.col==currentColor() && G.canPieceMove(i,currentTurn)){ // turn is required to make the program efficent
+                    switch(p.kind){
+                        case BEETLE:
+                            possibleMoves_Beetle(i,res);
+                            break;
+                        case QUEEN:
+                            possibleMoves_Queen(i,res);
+                            break;
+                        case SPIDER:
+                        case GRASSHOPPER:
+                            possibleMoves_Grasshopper(i,res);
+                            break;
+                        case SOLDIER_ANT:
+                        case MOSQUITO:
+                        case LADYBUG:
+                        case PILLBUG:
                         break;
-                    case BEETLE:
-                        for(position pos : nearPosition){
-                            res.push_back(make_pair(p,pos));
-                        }
-                    case SPIDER:
-                    case GRASSHOPPER:
-                    case SOLDIER_ANT:
-                    case MOSQUITO:
-                    case LADYBUG:
-                    case PILLBUG:
+                    }
                 }
             }
         }
 
     }
+    void possibleMoves_Queen(int bug,vector<action> &res){
+        for(position dest:placedBug[bug].placed.neighbor()){
+            if(G.canSlideFree(placedBug[bug].placed,dest)){
+                res.push_back(movement{placedBug[bug],dest});
+            }
+        }
+    }
 
+    void possibleMoves_Beetle(int bug,vector<action> &res){
+        for(position dest:placedBug[bug].placed.neighbor()){
+            if(G.canSlideFree(placedBug[bug].placed,dest) || G.isFree(placedBug[bug].placed)){
+                res.push_back(movement{placedBug[bug],dest});
+            }
+        }
+    }
+
+    void possibleMoves_Grasshopper(int bug,vector<action> &res){
+        position from=placedBug[bug].placed;
+        for(Direction dir : allDirections){
+            position next=from.applayMove(dir);
+            if(!G.isFree(next)){
+                do{
+                    next=next.applayMove(dir);
+
+                }while(!G.isFree(next));
+                res.push_back(movement{placedBug[bug],next});
+            }
+        }
+    }
+    
     bool isValidMovement(piece &p, position &dest){ // TODO, not important now
+        return true;
+        /*
         position from = placement.at(p);
 
         // case where the pillbug move our piece
@@ -238,63 +195,8 @@ class Board {
         gameboard.at(end).push(p);
         placement.insert_or_assign(p,end);
         occupied_position.insert(end);
+        */
     }
 
-    void addPiece(piece p, position pos){
-        movePiece(p,pos);
-    }
-
-
-
-    int turnVisitUnmovable=0;
-    int timer=0;
-    unordered_set<position> not_movable_position;
-    unordered_set<position> visited_dfs;
-    unordered_map<position,int> tin,low;
-
-    void update_find_unmovable(){
-        if(currentTurn==1){
-            not_movable_position.clear();
-            return;
-        }
-        if(currentTurn==turnVisitUnmovable) return;
-        turnVisitUnmovable=currentTurn;
-        not_movable_position.clear();
-
-        visited_dfs.clear();
-        for(position e:occupied_position){
-            tin[e]=-1;
-            low[e]=-1;
-        }
-        position startPos=*(occupied_position.begin());
-        dfs(startPos);
-    }
-
-
-    void dfs(position &v, position &p = NULL_POSITION) {
-        visited_dfs.insert(v);
-        tin[v] = low[v] = timer++;
-        int children=0;
-        
-        for (position to : v.neighbor()) {
-            if(occupied_position.count(to)==0)continue;
-            if (visited_dfs.count(to)) {
-                low[v] = min(low[v], tin[to]);
-            } else {
-                dfs(to, v);
-                low[v] = min(low[v], low[to]);
-                if (low[to] >= tin[v] && p!=NULL_POSITION)
-                    not_movable_position.insert(v);
-                ++children;
-            }
-        }
-        if(p == NULL_POSITION && children > 1)
-            not_movable_position.insert(v);
-    }
-
-
-
-
-
-
+    
 };
