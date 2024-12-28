@@ -1,18 +1,19 @@
-#include <bits/stdc++.h>
 #ifndef PIECE_H
 #define PIECE_H
-#include "position.h"
+#include <string>
 #include "enums.h"
 
 class piece{
     public:
-    position placed;
     PlayerColor col;
     int numIncr;
     BugType kind;
-    string name;
-    piece(enum BugType k,PlayerColor c,int n=0);
+    piece(enum BugType k,PlayerColor c,int=0);
     piece(string s);
+    piece(int val);
+    piece(){};
+    string toString() const;
+    int toVal() const;
 };
 
 template<>
@@ -20,7 +21,13 @@ struct std::hash<piece>
 {
     std::size_t operator()(const piece& p) const noexcept
     {
-        return  hash<string>{}(p.name);
+        return  hash<int>{}(p.toVal());
     }
 };
+
+
+bool operator!=(const piece& p1,const piece &p);
+bool operator==(const piece& p1,const piece &p);
+
+#include "piece.cpp"
 #endif

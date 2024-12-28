@@ -1,9 +1,10 @@
 #ifndef POSITION_H
 #define POSITION_H
-#include <bits/stdc++.h>
+#include <string>
+#include <vector>
 using namespace std;
 #include "enums.h"
-
+#include "direction.h"
 class position{
     public:
     int first;
@@ -26,9 +27,6 @@ position NULL_POSITION(10000,10000);
 
 Direction getMovementDirection(position f, position t);
 
-pair<int,int> associedDifference(Direction d);
-int directionToNumber(Direction d);
-Direction numberToDirection(int n);
 bool operator==(const position &p1,const position& p2);
 
 bool operator!=(const position &p1,const position& p2);
@@ -49,16 +47,8 @@ struct std::hash<position>
 };
 
 
-pair<int,int> movementCircleClockwise[]={
-    make_pair(+2,0),
-    make_pair(+1,+1),
-    make_pair(-1,+1),
-    make_pair(-2,-1),
-    make_pair(-1,-1),
-    make_pair(+1,-1)
-};
 
 
-Direction allDirections[]={RIGHT,DOWN_RIGHT,DOWN_LEFT,LEFT,UP_LEFT,UP_RIGHT};
 
+#include "position.cpp"
 #endif

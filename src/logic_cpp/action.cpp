@@ -1,4 +1,4 @@
-#include <bits/stdc++.h>
+#include "position.h"
 #include "piece.h"
 
 using namespace std;
@@ -12,31 +12,34 @@ enum TypeAction{
 
 class action{
     public:
+    piece bug;
+    position pos;
     TypeAction actType;
+    action(piece p,position d):bug(p),pos(d){}
+    action(piece p):bug(p){}
+    action(){}
 };
 
-class movement:public action{
-    public:
-    piece bug;
-    position pos;
-    movement(piece p,position d):bug{p},pos{d} {
-        this->actType=MOVEMENT;
-    };
-};
+action movement(piece p,position d){
+    action a;
+    a.bug=p;
+    a.pos=d;
+    a.actType=MOVEMENT;
+    return a;
+}
 
-class placePiece:public action{
-    public:
-    piece bug;
-    position pos;
-    placePiece(piece p, position d):bug{p},pos{d}{
-        this->actType=PLACE;}
-};
+action placePiece(piece p, position d){
+    action a(p,d);
+    a.actType=PLACE;
+    return a;
+}
 
-class placeFirst:public action{
-    public:
-        piece bug;
-        placeFirst(piece p):bug{p}{
-        this->actType=PLACEFIRST;}
-};
-
-class pass:public action{};
+action placeFirst(piece p){
+    action a(p);
+    a.actType=PLACEFIRST;
+    return a;
+}
+action pass(){
+    action a;
+    return a;
+}

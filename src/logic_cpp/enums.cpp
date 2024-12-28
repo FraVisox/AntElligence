@@ -1,77 +1,10 @@
 #include <string>
+#include "bug.h"
 using namespace std;
 
-
-enum BugType{
-    QUEEN,
-    SPIDER,
-    BEETLE,
-    GRASSHOPPER,
-    SOLDIER_ANT,
-    MOSQUITO,
-    LADYBUG,
-    PILLBUG
-};
-
-
-
-string BugString(BugType t){
-    switch (t)
-    {
-    case QUEEN:
-        return "Q";
-    case SPIDER:
-        return "S";
-    case BEETLE:
-        return "B";
-    case GRASSHOPPER:
-        return "G";
-    case SOLDIER_ANT:
-        return "A";
-    case MOSQUITO:
-        return "M";
-    case LADYBUG:
-        return "L";
-    case PILLBUG:
-        return "P";
-    }
-    throw "Not valid type of bug";
-}
-
-enum BugType StringBug(string s){
-    if(s=="Q")
-        return BugType::QUEEN;
-    if(s=="S")
-        return BugType::SPIDER;
-    if(s=="B")
-        return BugType::BEETLE;
-    if(s=="G")
-        return BugType::GRASSHOPPER;
-    if(s=="A")
-        return BugType::SOLDIER_ANT;
-    if(s=="M")
-        return BugType::MOSQUITO;
-    if(s=="L")
-        return BugType::LADYBUG;
-    if(s=="P")
-        return BugType::PILLBUG;
-    throw "Not valid bug type";
-}
-
-
-enum Direction{
-    RIGHT=0,
-    DOWN_RIGHT=1,
-    DOWN_LEFT=2,
-    LEFT=3,
-    UP_LEFT=4,
-    UP_RIGHT=5
-};
-
-
 enum PlayerColor{
-    WHITE,
-    BLACK
+    WHITE=0,
+    BLACK=1
 };
 
 string ColorString(PlayerColor c){

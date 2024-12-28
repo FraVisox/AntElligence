@@ -1,4 +1,10 @@
-#include <bits/stdc++.h>
+#include <set>
+#include <string>
+#include <vector>
+#include <stack>
+#include <map>
+#include <unordered_map>
+#include <unordered_set>
 #include "piece.h"
 #include "position.h"
 #include "enums.h"
@@ -8,23 +14,22 @@ class gameboard{
     public:
 
 
-    stack<int> gb[100][100];  // stack of where a vector is placed
-    vector<piece> *bugs; 
+    stack<piece> gb[100][100];  // stack of where a vector is placed
+    unordered_map<piece,position> bugPosition; 
     unordered_set<position> occupied;
 
-    gameboard(vector<piece> *v){
-        bugs=v;
-    }
+    gameboard(){}
 
-    stack<int>* at(position pos){
+    stack<piece>* at(position pos){
         return &gb[(100+(pos.first%100))%100][(100+(pos.second%100))%100];
     }
+
     
-    position getPosition(int p){
-        return bugs->at(p).placed;
+    position getPosition(piece p){
+        return bugPosition.at(p);
     }
-    void updatePos(int b, position &pos){
-        bugs->at(b).placed=pos;
+    void updatePos(piece bug,const position &pos){
+        bugPosition.insert_or_assign(bug,pos);
     }
 
 
@@ -38,14 +43,14 @@ class gameboard{
     }
 
 
-    void removePiece(int b){
+    void removePiece(piece b){
         if(isTop(b)){
             popPosition(getPosition(b));
-            updatePos(b,NULL_POSITION);
+            bugPosition.extract(b);
         }
     }
 
-    void addPiece(position pos,int b){
+    void addPiece(position pos,piece b){
         at(pos)->push(b);
         updatePos(b,pos);
         occupied.insert(pos);
@@ -55,12 +60,12 @@ class gameboard{
         return at(pos)->empty();
     }
 
-    bool isTop(int n){
-        position pos=bugs->at(n).placed;
-        return (at(pos)->top()==n);
+    bool isTop(piece bug){
+        position pos=getPosition(bug);
+        return (at(pos)->top()==bug);
     }
 
-    bool canPieceMove(int b,int turn){
+    bool canPieceMove(piece b,int turn){
         return (isTop(b) && hiveRuleWithout(b,turn));
     }
 
@@ -73,12 +78,17 @@ class gameboard{
         return false;
     }
 
-
+    piece topPiece(position pos){
+        if(!isFree(pos)){
+            return at(pos)->top();
+        }
+        throw "Asked piece for empty pos";
+    }
     unordered_set<position> validPositionPlaceNew(PlayerColor color){
         unordered_set<position> seen;
         unordered_set<position> valid;
         for(auto op :occupied){
-            piece p=bugs->at(at(op)->top());
+            piece p=at(op)->top();
             if(p.col==color){
                 for(auto possiblePosition:op.neighbor()){
                     if(seen.count(possiblePosition)) break;
@@ -86,7 +96,7 @@ class gameboard{
                     if(isFree(possiblePosition)){
                         bool hasOtherColor=false;
                         for(auto n:possiblePosition.neighbor()){
-                            if(!isFree(n) && bugs->at(at(n)->top()).col!=color){
+                            if(!isFree(n) && at(n)->top().col!=color){
                                 hasOtherColor=true;
                                 break;
                             }
@@ -113,7 +123,7 @@ class gameboard{
     }
 
     
-    bool hiveRuleWithout(int b,int turn){
+    bool hiveRuleWithout(piece b,int turn){
         if(getPosition(b)==NULL_POSITION)return true;
         if(at(getPosition(b))->size()>2) return true;
         if(turn!=lastUpdateTurn){

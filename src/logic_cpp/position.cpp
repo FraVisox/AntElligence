@@ -1,6 +1,6 @@
-#include <bits/stdc++.h>
+#include <string>
+#include <vector>
 #include "position.h"
-#include "enums.h"
 using namespace std;
 
 /*
@@ -119,34 +119,7 @@ Direction getMovementDirection(position from, position to){
 
 }
 
-pair<int,int> associedDifference(Direction d){
-    return movementCircleClockwise[directionToNumber(d)];
-}
-int directionToNumber(Direction d){
-    switch (d)
-    {
-        case RIGHT: return 0;
-        case DOWN_RIGHT:return 1;
-        case DOWN_LEFT:return   2;
-        case LEFT:return   3;
-        case UP_LEFT: return 4;
-        case UP_RIGHT:return 5;
-    }
-    return 0;
-}
 
-Direction numberToDirection(int n){
-    switch (n)
-    {
-        case 0:return RIGHT;
-        case 1:return DOWN_RIGHT;
-        case 2:return   DOWN_LEFT;
-        case 3:return   LEFT;
-        case 4:return UP_LEFT;
-        case 5:return UP_RIGHT;
-    }
-    return RIGHT;
-}
 
 bool operator==(const position &p1,const position& p2){
     return (p1.first==p2.first && p1.second==p2.second);
@@ -165,7 +138,7 @@ bool isNear(const position &p1, const position &p2){
 
 vector<position> otherWay(position &p1,position &p2){
     Direction dir=getMovementDirection(p1,p2);
-    int n=directionToNumber(dir);
+    int n=dir;
     int m1=(n+1)%6;
     int m2=(n+5)%6;
     vector<position> ris;
@@ -175,8 +148,4 @@ vector<position> otherWay(position &p1,position &p2){
 }
 
 
-
-position NULL_POSITION(10000,10000);
-
-position HAND_POSITION(-10000,10000);
 
