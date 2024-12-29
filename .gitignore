@@ -1,0 +1,4 @@
+.vscode
+build
+src/logic_cpp/out
+**/*.o

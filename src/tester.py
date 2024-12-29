@@ -1,13 +1,22 @@
 import csv
 from subprocess import Popen, PIPE
+import platform
+
 
 file_results = "results\\game_results.csv"
 
-files_to_match = {
-    "Random": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\AntElligenceEngine.exe",
-    "Minimax": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\AntElligenceEngine.exe",
-    #"Mzinga": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\MzingaEngine.exe"
-}
+if platform.system()=="Linux":
+    files_to_match = {
+        "Random": "./dist/AntElligenceEngine",
+        "Minimax": "./dist/AntElligenceEngine",
+        #"Mzinga": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\MzingaEngine.exe"
+    }
+else:
+    files_to_match = {
+        "Random": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\AntElligenceEngine.exe",
+        "Minimax": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\AntElligenceEngine.exe",
+        #"Mzinga": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\MzingaEngine.exe"
+    }
 
 options_players = [
     "options set Strategy Random\n",
@@ -63,6 +72,10 @@ def write_results_to_csv(results, filename):
         writer.writerow(headers)
         for row in results:
             writer.writerow(row)
+
+
+    
+
 
 def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = None, options2 = None):
     """
@@ -217,7 +230,7 @@ def test_players(files_to_match, options, file_results):
         for j in range(i + 1, len(keys)):
             pl1 = files_to_match[keys[i]]
             pl2 = files_to_match[keys[j]]
-            results.extend(play_game(pl1, keys[i], pl2, keys[j], matches=6, turns=100, options1=options[i], options2=options[j]))
+            results.extend(play_game(pl1, keys[i], pl2, keys[j], matches=6, turns=40, options1=options[i], options2=options[j]))
     write_results_to_csv(results, file_results)
 
 # Run the tests
