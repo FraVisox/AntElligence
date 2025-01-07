@@ -8,6 +8,8 @@ class Strategy(ABC):
   """
   time_limit = 0
   depth_limit = 0
+  
+  DISABLE_CACHE = True
 
   def __init__(self) -> None:
     self._cache: Optional[str] = None
@@ -24,3 +26,4 @@ class Strategy(ABC):
     
   def set_depth_limit(self, depth: int):
     self.depth_limit = depth
+
