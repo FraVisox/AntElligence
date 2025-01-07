@@ -1,21 +1,39 @@
 #include "board.cpp"
 
-
-
 Board b;
+/**
+ * Sets up the game based on the given string.
+ *
+ * This function is responsible for setting up the board based on the
+ * given string. It will read the string and interpret it as a game
+ * state. The game state will be passed to the constructor of the Board
+ * class, which will then set up the board correctly.
+ *
+ * @param s A string representing the game state.
+ */
 void startGame(char* s){  // read the string and setup the game
     for(PlayerColor col : {BLACK,WHITE}){
         b.addPieceHand(piece{QUEEN,col,0});
-        for(int i=1;i<=3;i++){
+        for(int i=1;i<=2;i++){
             b.addPieceHand(piece{SPIDER,col,i});
             b.addPieceHand(piece{BEETLE,col,i});
             b.addPieceHand(piece{GRASSHOPPER,col,i});
             b.addPieceHand(piece{SOLDIER_ANT,col,i});
         }
-    }
+        b.addPieceHand(piece{GRASSHOPPER,col,3});
+        b.addPieceHand(piece{SOLDIER_ANT,col,3});
 
-    // TODO : Adapt setup for variants
-    
+        /* TODO:
+            add the remaining pieces based on the string.
+        */
+        b.addPieceHand(piece{MOSQUITO,col,0});
+        b.addPieceHand(piece{LADYBUG,col,0});
+        b.addPieceHand(piece{PILLBUG,col,0});
+    }    
+
+    /* TODO:
+        read the string and play the moves already played.
+    */
 }
 
 

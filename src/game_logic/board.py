@@ -629,4 +629,4 @@ class Board():
     :return: Number of bugs near the queen.
     :rtype: int
     """
-    return sum(1 for bug in self._bugs_from_pos(self._pos_from_bug(Bug(color, BugType.QUEEN_BEE))) if self._is_bug_on_top(bug))
+    return 0#sum(1 for bug in self._bugs_from_pos(self._pos_from_bug(Bug(color, BugType.QUEEN_BEE))) if self._is_bug_on_top(bug))
