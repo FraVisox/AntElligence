@@ -95,4 +95,24 @@ pair<int,int> associatedDifference(Direction d){
     return movementCircleClockwise[d];
 }
 
+/**
+ * \brief Extracts the direction from a string.
+ *
+ * Given a string, this function extracts and returns the direction
+ * associated with the string. If the string does not contain a valid
+ * direction, this function returns `INVALID`.
+ *
+ * \param s The string from which the direction is extracted.
+ * \return The direction associated with the string.
+ */
+Direction ExtractDirection(string s){
+    if(s[0]=='-') return LEFT;
+    if(s[0]=='/') return DOWN_LEFT;
+    if(s[0]=='/') return UP_LEFT;
+    if(s.find("-", 1)) return RIGHT;
+    if(s.find("\\", 1)) return DOWN_RIGHT;
+    if(s.find("/", 1)) return UP_RIGHT;
+    return INVALID;
+}
+
 #endif
