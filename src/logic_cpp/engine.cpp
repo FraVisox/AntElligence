@@ -12,6 +12,9 @@ Board b;
  * @param s A string representing the game state.
  */
 void startGame(char* s){  // read the string and setup the game
+    if (strlen(s) > 4) {
+        s = s+4;
+    }
     for(PlayerColor col : {BLACK,WHITE}){
         b.addPieceHand(piece{QUEEN,col,0});
         for(int i=1;i<=2;i++){
@@ -22,23 +25,89 @@ void startGame(char* s){  // read the string and setup the game
         }
         b.addPieceHand(piece{GRASSHOPPER,col,3});
         b.addPieceHand(piece{SOLDIER_ANT,col,3});
-
-        /* TODO:
-            add the remaining pieces based on the string.
-        */
-        b.addPieceHand(piece{MOSQUITO,col,0});
-        b.addPieceHand(piece{LADYBUG,col,0});
-        b.addPieceHand(piece{PILLBUG,col,0});
-    }    
+    }   
+    if (*s == 'M') {
+        b.addPieceHand(piece{MOSQUITO,BLACK,0});
+        b.addPieceHand(piece{MOSQUITO,WHITE,0});
+        s++;
+    }
+    if (*s == 'L') {
+        b.addPieceHand(piece{LADYBUG,BLACK,0});
+        b.addPieceHand(piece{LADYBUG,WHITE,0});
+        s++;
+    }
+    if (*s == 'P') {
+        b.addPieceHand(piece{PILLBUG,BLACK,0});
+        b.addPieceHand(piece{PILLBUG,WHITE,0});
+        s++;
+    } 
 
     /* TODO:
         read the string and play the moves already played.
     */
+    // If there wasn't any extension, remove 'Base'.
+    if (*s == 'B') { 
+        s = s+4;
+    }
+
+    // The remaining string is of the type: ;InProgress;White[3];wS1;bG1 -wS1;wA1 wS1/;bG2 /bG1
+    // TODO: check if it is the right format
+    if (*s == ';') {
+        //Read state
+        s = s+1;
+        char* state = s;
+        while (*s != ';') {
+            s++;
+        }
+        s = 0;
+        s++;
+
+        //Read turn
+        char* turn = s;
+        while (*s != '[') {
+            s++;
+        }
+        s = 0;
+        int curTurn = 0;
+        if (!strcmp(turn,"White")) {
+            curTurn = 1;
+        } else if (!strcmp(turn,"Black")) {
+            curTurn = 2;
+        }
+        s++;
+        turn = s;
+        while (*s != ']') {
+            s++;
+        }
+        s = 0;
+        curTurn = curTurn + 2*(atoi(turn)-1);
+
+        s++;
+
+        //Read moves and execute
+        while (s == 0) {
+            s++;
+            char* move = s;
+            while (*s != ';' && *s != 0) {
+                s++;
+            }
+            s = 0;
+            b.executeAction(StringToAction(move));
+        }
+
+
+        //Check if the current status is true
+        if (b.currentTurn != curTurn || b.s != StringToState(state)) {
+            // TODO: what to do if the current status is not true
+            return;
+        }
+
+    }
 }
 
 
 void playMove(char* m){   //execute this move
-
+    b.executeAction(StringToAction(m));
 }
 
 char* allMoves(){  // return all the possible moves in the current configuration

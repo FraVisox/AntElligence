@@ -14,6 +14,8 @@ class Board {
     bool isPlacedWQ=false;
     bool isPlacedBQ=false;
 
+    GameState s;
+
     /**
      * Board constructor.
      *
@@ -325,9 +327,9 @@ class Board {
      */
     void possibleMoves_Pillbug(piece bug, vector<action> &res){
 
-        // The pillbug can move as a queen
+        // The pillbug can move as a queen. Check if the move is already present as the pillbug could be moved by the mosquito.
         for(position dest: G.getPosition(bug).neighbor()){
-            if(G.canSlideFree(G.getPosition(bug),dest)){
+            if(G.canSlideFree(G.getPosition(bug),dest) && find(res.begin(), res.end(), movement(bug, dest)) == res.end()){
                 res.push_back(movement(bug,dest));
             }
         }
