@@ -136,3 +136,42 @@ action StringToAction(string s){
     action a = movement(StringToBug(first), StringToBug(second), ExtractDirection(second));
     return a;
 }
+
+
+
+/**
+ * \brief Converts an action object representing a movement action to a string.
+ *
+ * Given an action object, this function converts its details to a string
+ * representation. The string is a concatenation of the bug piece to be moved
+ * and its relative position and direction. The relative position and direction
+ * are represented by a single string, which is the concatenation of the
+ * relative position bug piece and the direction indicator.
+ *
+ * \param a The action object to be converted to a string.
+ * \return A string representation of the action object.
+ */
+char* MovementToString(action a){
+    char* s = new char[8];
+    sprintf(s,"%s %s", a.bug.toString().c_str(), stringNameDir(a.otherBug.toString(), a.relativeDir));
+    return s;
+}
+
+
+char* ActionToString(action a){
+    switch (a.actType)
+    {
+    case PLACE:
+    case MOVEMENT:
+        return MovementToString(a);
+
+    case PLACEFIRST:
+        char* s = new char[3];
+        sprintf(s,"%s", a.bug.toString().c_str());
+        return s;
+    
+    case PASS:
+        char* s = "pass";
+        return s;
+    }
+}

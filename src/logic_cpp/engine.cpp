@@ -42,9 +42,6 @@ void startGame(char* s){  // read the string and setup the game
         s++;
     } 
 
-    /* TODO:
-        read the string and play the moves already played.
-    */
     // If there wasn't any extension, remove 'Base'.
     if (*s == 'B') { 
         s = s+4;
@@ -97,8 +94,8 @@ void startGame(char* s){  // read the string and setup the game
 
 
         //Check if the current status is true
-        if (b.currentTurn != curTurn || b.s != StringToState(state)) {
-            // TODO: what to do if the current status is not true
+        if (b.currentTurn != curTurn || b.state != StringToState(state)) {
+            // TODO: what to do if the current status is not true. Raise an exception
             return;
         }
 
@@ -111,20 +108,29 @@ void playMove(char* m){   //execute this move
 }
 
 char* allMoves(){  // return all the possible moves in the current configuration
-    char c[]="avnifjufrsbin";
-    char *h=new char[20];
-    for(int i=0;i<4;i++){
-        h[i]=c[i];
+    vector<action> moves = b.possibleMoves();
+    
+    char *h = new char[moves.size()*9+1];
+    //TODO: what if no move is possible? How to handle that
+    int i = 0;
+    for(action move : moves){
+        char* item = MovementToString(move);
+        int len = strlen(item);
+        for (int j = 0; j < len; j++) {
+            h[i+j] = item[j];
+        }
+        i += len;
+        h[i] = ';';
+        i++;
     }
-    b.possibleMoves();
     return h;
 }
 
 
+char* getBoard() {
+    return b.toString();
+}
 
-int main(){
-    startGame(0);
-    cout<<"ok";
-    
-    return 0;
+void undo(int amount) {
+    b.undo(amount);
 }

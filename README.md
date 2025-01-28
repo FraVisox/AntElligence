@@ -1,6 +1,9 @@
 # AntElligence
 Hive game engine developed by Francesco Visona' and Matteo Canton.
 
+# TODO:
+- How to pass the moves to the brain
+
 
 ## Useful resources
 

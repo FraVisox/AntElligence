@@ -14,7 +14,11 @@ class Board {
     bool isPlacedWQ=false;
     bool isPlacedBQ=false;
 
-    GameState s;
+    GameState state;
+
+    int type; //Base, BASE+MLP...
+
+    vector<action> moves; //moves made
 
     /**
      * Board constructor.
@@ -28,6 +32,63 @@ class Board {
 
 
     /**
+     * Converts the data of the board to the corresponding GameString.
+     *
+     * The GameString is the most detailed representation of the game state.
+     *
+     * :return: GameString.
+     * :rtype: char*
+     */
+    char* toString() {
+        char* s = new char[1000];
+        sprintf(s, "%d;%s;%s[%d];", type, state, ColorToString(currentColor()), currentPlayerTurn());
+        for (int i = 0; i < moves.size(); i++) {
+            sprintf(s + strlen(s), "%s;", ActionToString(moves[i]));
+        }
+        return s;
+    }
+
+    /**
+     * Undoes the specified amount of moves.
+     *
+     * :param amount: Amount of moves to undo.
+     * :type amount: int
+     * :raises ValueError: If there are not enough moves to undo.
+     * :raises ValueError: If the game has yet to begin.
+     */
+    void undo(int amount) {
+        for (int i = 0; i < amount; i++) {
+            if (moves.size() == 0) {
+                break;
+            }
+            action move = moves.back();
+            moves.pop_back();
+            currentTurn--;
+            if (move.actType == PASS) {
+                continue;
+            }
+            if (move.actType == PLACE || move.actType == PLACEFIRST) {
+                //Placement
+                inHandPiece.insert(move.bug);
+                placedBug.pop_back();
+                if (move.bug == QUEEN) {
+                    if (currentColor() == WHITE) {
+                        isPlacedWQ = false;
+                    } else {
+                        isPlacedBQ = false;
+                    }
+                }
+                G.removePiece(move.bug);
+            } else {
+                //Movement
+                G.removePiece(move.bug);
+                G.addPiece(move.pos, move.bug);
+            }
+        }
+    }
+
+
+    /**
      * Returns the current player color (white if the current turn is odd).
      *
      * @return The current player color.
@@ -36,6 +97,11 @@ class Board {
         if(currentTurn%2==1) return PlayerColor::WHITE;
         return PlayerColor::BLACK;
     }
+
+    int currentPlayerTurn(){
+        return 1+currentTurn%2;
+    }
+
     
     /**
      * Returns whether the current player has placed their queen or not.
@@ -451,11 +517,14 @@ class Board {
      * \param a The action to be executed.
      */
     void executeAction(action a){
+        if (state != IN_PROGRESS) 
+            state = IN_PROGRESS;
         switch (a.actType)
         {
         case MOVEMENT:
             G.removePiece(a.bug);
             G.addPiece(a.pos,a.bug);
+            moves.push_back(a);
             break;
         case PLACE:
             G.addPiece(a.pos,a.bug);
@@ -465,13 +534,16 @@ class Board {
                 if(currentColor()==WHITE)isPlacedWQ=true;
                 if(currentColor()==BLACK)isPlacedWQ=true;
             }
+            moves.push_back(a);
             break;
         case PLACEFIRST:
             G.addPiece(position{0,0},a.bug);
             placedBug.push_back(a.bug);
             inHandPiece.extract(a.bug);
+            moves.push_back(a);
             break;
         case PASS:
+            moves.push_back(a);
             break;
         }
         currentTurn++;

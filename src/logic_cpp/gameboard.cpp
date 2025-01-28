@@ -29,7 +29,6 @@ class gameboard{
     stack<piece>* at(position pos){
         return &gb[(100+(pos.first%100))%100][(100+(pos.second%100))%100];
     }
-
     
     /**
      * \brief Get the position of a bug on the board.
