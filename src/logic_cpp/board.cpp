@@ -517,7 +517,7 @@ class Board {
      * \param a The action to be executed.
      */
     void executeAction(action a){
-        if (state != IN_PROGRESS) 
+        if (state == NOT_STARTED) 
             state = IN_PROGRESS;
         switch (a.actType)
         {
@@ -547,6 +547,7 @@ class Board {
             break;
         }
         currentTurn++;
+        // TODO: check if someone won
     }
                     
     

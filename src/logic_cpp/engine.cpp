@@ -110,8 +110,7 @@ void playMove(char* m){   //execute this move
 char* allMoves(){  // return all the possible moves in the current configuration
     vector<action> moves = b.possibleMoves();
     
-    char *h = new char[moves.size()*9+1];
-    //TODO: what if no move is possible? How to handle that
+    char *h = new char[moves.size()*9+5];
     int i = 0;
     for(action move : moves){
         char* item = MovementToString(move);
@@ -122,6 +121,9 @@ char* allMoves(){  // return all the possible moves in the current configuration
         i += len;
         h[i] = ';';
         i++;
+    }
+    if (i == 0) {
+        h = "pass;";
     }
     return h;
 }

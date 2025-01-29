@@ -9,28 +9,25 @@ import pathlib
 path=pathlib.Path().absolute().joinpath("engine.so")
 Cengine=ctypes.CDLL(path)
 
-Cengine.add.argtypes = (ctypes.c_int, ctypes.c_int)
-Cengine.add.restype = ctypes.c_int
-
-
 # how to call a function: Cengine._[outputType]functionName[inputType](params)
 
 
 # TODO: make it give exceptions if the board is not initialized o qualcosa così
-def startGame(s):
-    Cengine._Z9startGamePc(s)
+startGame = Cengine.startGame
+startGame.argtypes = (ctypes.c_wchar_p)
 
 # TODO: manda eccezione se non e' inizializzato
-def playMove(s):
-    Cengine.Z8playMovePc(s)
+playMove = Cengine.playMove
+playMove.argtypes = (ctypes.c_wchar_p)
 
-def getValidMoves():  # TODO:  learn how to return a string that represents all possible moves
-    return Cengine._Z8allMovesv()
+# TODO: vedi se funzia
+getValidMoves = Cengine.allMoves
+getValidMoves.restype = (ctypes.c_wchar_p)
 
 # TODO: da implementare: deve ritornare la stringa della board
-def getBoard():
-    return Cengine._Z8getBoardv()
+getBoard = Cengine.getBoard
+getBoard.restype = (ctypes.c_wchar_p)
 
 # TODO: manda eccezione se non e' inizializzato
-def undo(amount):
-    Cengine._Z4undov(amount) # TODO: pass the number of moves to undo to the function
+undo = Cengine.undo
+undo.argtypes = (ctypes.c_int)
