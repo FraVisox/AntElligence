@@ -202,7 +202,7 @@ class Board {
      */
     void possibleMoves_Beetle(piece bug,vector<action> &res){
         for(position dest:G.getPosition(bug).neighbor()){
-            //if(G.canSlideFree(G.getPosition(bug),dest) || G.isFree(dest)){        TODO: check
+            //if(G.canSlideFreeLevel(G.getPosition(bug),dest) || G.isFree(dest)){        TODO: check
                 res.push_back(movement(bug,dest));
             //}
         }

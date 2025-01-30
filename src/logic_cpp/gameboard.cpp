@@ -154,10 +154,11 @@ class gameboard{
      * \return true if the bug can slide to the given position for free, false otherwise.
      */
     bool canSlideFree(position from, position to){
+        int currentHight=at(from)->size();
         if(isFree(to) && isNear(to, from)){
             vector<position> v= nearBoth(from,to);
             position p1=v[0], p2=v[1];
-            if(isFree(p1) && isFree(p2)) 
+            if(at(p1)->size()<currentHight || at(p2)->size()<currentHight)   // if one of them has lower hight, it is good (not)
                 return true;
         }
         return false;
