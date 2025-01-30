@@ -1,8 +1,9 @@
-
 #include "gameboard.cpp"
 #include "action.cpp"
 #include <unordered_set>
 #include <queue>
+#include <algorithm>
+#include <string.h>
 
 class Board {
     public:
@@ -529,7 +530,7 @@ class Board {
         // The pillbug can move as a queen. Check if the move is already present as the pillbug could be moved by the mosquito.
         for(position dest: G.getPosition(bug).neighbor()){
             pair<piece,direction> relativeDir = G.getNearNeighbor(dest, G.getPosition(bug), false);
-            if (relativeDir.second != INVALID && find(res.begin(), res.end(), movement(bug, relativeDir.first, relativeDir.second)) == res.end()){
+            if (relativeDir.second != INVALID ) {//&& find(res.begin(), res.end(), movement(bug, relativeDir.first, relativeDir.second)) == res.end()){ todo
                 res.push_back(movement(bug,relativeDir.first,relativeDir.second));
                 
             }
@@ -563,7 +564,7 @@ class Board {
                 for (int l = 0; l < j; l++){
                     piece to_move = bugs_to_move[k];
                     //Check if this movement is already inside of the vector
-                    if (find(res.begin(), res.end(), movement(to_move, bug, places_to_move[l])) == res.end())
+                    //if (find(res.begin(), res.end(), movement(to_move, bug, places_to_move[l])) == res.end()) TODO
                         res.push_back(movement(to_move, bug, places_to_move[l]));
                 }
             }
@@ -618,7 +619,7 @@ class Board {
      * @param res The vector where the possible moves are stored.
      */
     void possibleMoves_Ladybug(piece bug,vector<action> &res){
-        vector<pair<position,int>> queue;
+        vector<pair<position,int>> queue; //TODO: HERE
         for(position dest: G.getPosition(bug).neighbor()){
             if(!G.isFree(dest)){
                 pair<piece,direction> relativeDir = G.getNearNeighbor(dest, G.getPosition(bug), true);
@@ -628,7 +629,7 @@ class Board {
             }
         }
 
-        unordered_set<position> seen;
+        unordered_set<position> seen = unordered_set<position>{};
         seen.insert(G.getPosition(bug));
         while(!queue.empty()){
             pair<position,int> PI = queue.front();
@@ -636,14 +637,14 @@ class Board {
             position f=PI.first;
             int d = PI.second;
             for (position n: f.neighbor()){
-                if (seen.count(n) || find(queue.begin(), queue.end(), n) != queue.end())
+                if (seen.count(n) || (find(queue.begin(), queue.end(), make_pair(n, d)) != queue.end()) || (find(queue.begin(), queue.end(), make_pair(n, d+1)) != queue.end()))
                     continue;
                 seen.insert(n);
 
                 pair<piece,direction> relativeDir = G.getNearNeighbor(n, f, true);
                 if (relativeDir.second != INVALID && G.isAtLevel1(G.getPosition(relativeDir.first).applayMove(relativeDir.second))) {
                     res.push_back(movement(bug, relativeDir.first, relativeDir.second));
-                } else if (relativeDir.second != INVALID &&d == 1) {
+                } else if (relativeDir.second != INVALID && d == 1) {
                     queue.push_back(make_pair(n, d + 1));
                 }
             }

@@ -6,7 +6,9 @@
 
 import ctypes
 import pathlib
-path=pathlib.Path().absolute().joinpath("engine.so")
+import os
+path = os.getcwd() + "\engine.so"
+#path=pathlib.Path().absolute().joinpath("engine.so")
 Cengine=ctypes.CDLL(path)
 
 # how to call a function: Cengine._[outputType]functionName[inputType](params)

@@ -4,7 +4,7 @@ from agents.strategy import Strategy
 from agents.random_strat import Random
 from agents.minimax import Minimax
 from copy import deepcopy
-import logic_cpp.engineInterface as engineInterface
+import engineInterface as engineInterface
 import re
 
 

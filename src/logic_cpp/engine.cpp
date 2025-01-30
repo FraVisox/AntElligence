@@ -1,4 +1,5 @@
 #include "board.cpp"
+#include <string.h>
 
 /* STRINGS
 
@@ -65,6 +66,10 @@ A passing move (made because a side has no other moves) is simply pass
 
 Board b;
 
+void raise_exception() {
+    b.reset();
+    throw std::exception();
+}
 
 void startGame(char* s){  // read the string and setup the game
 
@@ -218,7 +223,7 @@ char* validMoves(){
 
     vector<action> moves = b.possibleMoves();
     
-    char *h = new char[moves.size()*9+4];
+    char *h = new char[moves.size()*9+5];
     int i = 0;
     for(action move : moves){
         string item = MovementToString(move);
@@ -232,7 +237,11 @@ char* validMoves(){
     }
 
     if (i == 0) { //Only if it has no other move
-        h = "pass";
+        h[0] = 'p';
+        h[1] = 'a';
+        h[2] = 's';
+        h[3] = 's';
+        h[4] = 0;
     } else { //Remove the last semicolon
         h[i-1] = 0;
     }
@@ -260,10 +269,4 @@ char* getBoard() {
  */
 void undo(int amount) {
     b.undo(amount);
-}
-
-
-void raise_exception() {
-    b.reset();
-    throw std::exception();
 }

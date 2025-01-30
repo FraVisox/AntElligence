@@ -16,8 +16,8 @@ class gameboard{
     public:
 
     stack<piece> gb[100][100];  // Vector of stacks that contain bugs. One stack at each position. The board is thus 100*100
-    unordered_map<piece,position> bugPosition; 
-    unordered_set<position> occupied;
+    unordered_map<piece,position> bugPosition = unordered_map<piece,position>(); 
+    unordered_set<position> occupied = unordered_set<position>();
 
     gameboard(){}
 
@@ -250,9 +250,9 @@ class gameboard{
      * \param color The color of the player for which to get the valid positions.
      * \return An unordered set of all valid positions to place a new piece.
      */
-    unordered_set<pair<piece,direction>> validPositionPlaceNew(PlayerColor color){
+    vector<pair<piece,direction>> validPositionPlaceNew(PlayerColor color){
         unordered_set<position> seen;
-        unordered_set<pair<piece,direction>> valid;
+        vector<pair<piece,direction>> valid;
         for(position op : occupied){
             piece p = at(op)->top();
             if(p.col == color){
@@ -270,7 +270,7 @@ class gameboard{
                             }
                         }
                         if(!hasOtherColor){
-                            valid.insert(make_pair(p,getMovementDirection(op, possiblePosition)));
+                            valid.push_back(make_pair(p,getMovementDirection(op, possiblePosition)));
                         }
                     }
                 }

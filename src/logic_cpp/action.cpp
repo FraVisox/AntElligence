@@ -162,5 +162,6 @@ string ActionToString(action a){
         case PASS:
             return "pass";
     }
+    return "";
 }
 #endif
