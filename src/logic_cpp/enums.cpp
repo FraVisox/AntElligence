@@ -1,10 +1,4 @@
-#include <string>
-using namespace std;
-
-enum PlayerColor{
-    WHITE=0,
-    BLACK=1
-};
+#include "enums.h"
 
 /**
  * \brief Converts a PlayerColor enum to a string.
@@ -37,14 +31,6 @@ PlayerColor parseColor(string s){
     if(s=="w") return PlayerColor::WHITE;
     throw "Invalid color for string "+s;
 }
-
-enum GameState{
-    NOT_STARTED,
-    IN_PROGRESS,
-    DRAW,
-    WHITE_WIN,
-    BLACK_WIN
-};
 
 /**
  * \brief Converts a GameState enum to a string.
@@ -99,16 +85,6 @@ GameState parseState(string s){
     throw "Invalid game state for string " + s;
 }
 
-enum GameType{
-    Base,
-    Base_M,
-    Base_L,
-    Base_P,
-    Base_ML,
-    Base_MP,
-    Base_LP,
-    Base_MLP
-};
 
 
 
@@ -180,17 +156,6 @@ GameType parseGameType(string s){
     throw "Invalid game type for string " + s;
 }
 
-
-enum BugType{
-    QUEEN=0,
-    SPIDER=1,
-    BEETLE=2,
-    GRASSHOPPER=3,
-    SOLDIER_ANT=4,
-    MOSQUITO=5,
-    LADYBUG=6,
-    PILLBUG=7
-};
 
 char _bug_string[]="QSBGAMLP";
 

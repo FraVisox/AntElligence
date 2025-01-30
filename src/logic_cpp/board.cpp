@@ -1,37 +1,8 @@
-#include "gameboard.cpp"
-#include "action.cpp"
-#include <unordered_set>
-#include <queue>
-#include <algorithm>
-#include <string.h>
+#include "board.h"
 
-class Board {
-    public:
-
-    //Properties of this game
-    int currentTurn;
-    GameState state; //InProgress, Draw, WhiteWins, BlackWins, NotStarted
-    GameType type; //Base, BASE+MLP, ...
-
-    //Moves made
-    vector<action> moves = vector<action>(); 
-
-    //Gameboard and pieces
-    gameboard G = gameboard();
-    vector<piece> placedBug = vector<piece>();
-    unordered_set<piece> inHandPiece = unordered_set<piece>();
-    bool isPlacedWQ=false;
-    bool isPlacedBQ=false;
-
-    /**
-     * Board constructor.
-     *
-     * Initializes the Board with the white player going first.
-     * The turn number is set to 1.
-     */
-    Board(){ 
-        reset();
-    };
+Board::Board(){ 
+    reset();
+};
 
 
     /**
@@ -42,7 +13,7 @@ class Board {
      * Resets the gameboard to its default configuration.
      */
 
-    void reset() {
+    void Board::reset() {
         currentTurn = 1;
         state = NOT_STARTED;
         moves.erase(moves.begin(), moves.end());
@@ -60,7 +31,7 @@ class Board {
      * :return: GameString.
      * :rtype: char*
      */
-    char* toString() {
+    char* Board::toString() {
         char* s = new char[40+moves.size()*9];
         sprintf(s, "%d;%d;%s[%d]", type, state, ColorToString(currentColor()), currentPlayerTurn());
         for (int i = 0; i < moves.size(); i++) {
@@ -75,7 +46,7 @@ class Board {
      *
      * @return The current player color.
      */
-    PlayerColor currentColor(){
+    PlayerColor Board::currentColor(){
         if(currentTurn%2==1) return PlayerColor::WHITE;
         return PlayerColor::BLACK;
     }
@@ -87,7 +58,7 @@ class Board {
      * @return The turn number of the current player.
      * @see currentColor
      */
-    int currentPlayerTurn(){
+    int Board::currentPlayerTurn(){
         return 1+currentTurn/2;
     }
 
@@ -97,7 +68,7 @@ class Board {
      *
      * @return Whether the current player has placed their queen or not.
      */
-    bool placedQueen(){
+    bool Board::placedQueen(){
         if(currentColor()==WHITE) 
             return isPlacedWQ;
         return isPlacedBQ;
@@ -113,7 +84,7 @@ class Board {
      *
      * \param a The action to be executed.
      */
-    bool executeAction(action a){
+    bool Board::executeAction(action a){
 
         //The move is represented as a Movestring (wS1 -wA1) or as "pass"
 
@@ -151,7 +122,7 @@ class Board {
         return checkWin();
     }
 
-    bool checkWin() {
+    bool Board::checkWin() {
         bool white_surrounded = false;
         bool black_surrounded = false;
         if (isPlacedBQ && isPlacedWQ) { //can't win without placing the queens
@@ -178,7 +149,7 @@ class Board {
         return false;
     }
 
-    bool checkSurrounding(piece p) {
+    bool Board::checkSurrounding(piece p) {
         position pos = G.getPosition(p);
         for (position adj: pos.neighbor()) {
             if (G.isFree(adj)) {
@@ -196,7 +167,7 @@ class Board {
      * :raises ValueError: If there are not enough moves to undo.
      * :raises ValueError: If the game has yet to begin.
      */
-    void undo(int amount) {
+    void Board::undo(int amount) {
         if (moves.size() <= amount) {
             reset();
             return;
@@ -242,7 +213,7 @@ class Board {
      *
      * @return A vector of all possible moves for the current player.
      */
-    vector<action> possibleMoves(){
+    vector<action> Board::possibleMoves(){
         vector<action> res;
 
         // 1 if turn == 1, then place something that is not the queen
@@ -322,7 +293,7 @@ class Board {
      * 
      * \param p The piece to add to the player's hand.
      */
-    void addPieceHand(piece p){
+    void Board::addPieceHand(piece p){
         inHandPiece.insert(p);
     }
 
@@ -339,7 +310,7 @@ class Board {
      * \param res The vector to store the resulting actions/moves.
      */
 
-    void possibleMovesBug(piece b, vector<action> &res){
+    void Board::possibleMovesBug(piece b, vector<action> &res){
         if(b.col==currentColor() && G.canPieceMove(b,currentTurn)){ // turn is required to make the program efficent
             switch(b.kind){
                 case BEETLE:
@@ -379,7 +350,7 @@ class Board {
      * \param bug The Queen bug piece for which to generate moves.
      * \param res The vector to store the resulting actions/moves.
      */
-    void possibleMoves_Queen(piece bug,vector<action> &res){
+    void Board::possibleMoves_Queen(piece bug,vector<action> &res){
         for(position dest: G.getPosition(bug).neighbor()){
             pair<piece,direction> relativeDir = G.getNearNeighbor(dest, G.getPosition(bug), false);
             if (relativeDir.second != INVALID) {
@@ -397,7 +368,7 @@ class Board {
      * \param bug The Beetle bug piece for which to generate moves.
      * \param res The vector to store the resulting actions/moves.
      */
-    void possibleMoves_Beetle(piece bug,vector<action> &res){
+    void Board::possibleMoves_Beetle(piece bug,vector<action> &res){
         for(position dest:G.getPosition(bug).neighbor()){
             pair<piece,direction> relativeDir = G.getNearNeighbor(dest, G.getPosition(bug), true);
             if (relativeDir.second != INVALID) {
@@ -414,7 +385,7 @@ class Board {
      * \param bug The Grasshopper bug piece for which to generate moves.
      * \param res The vector to store the resulting actions/moves.
      */
-    void possibleMoves_Grasshopper(piece bug,vector<action> &res){
+    void Board::possibleMoves_Grasshopper(piece bug,vector<action> &res){
         position from=G.getPosition(bug);
         for(direction dir : allDirections){
             position next = from.applayMove(dir);
@@ -440,7 +411,7 @@ class Board {
      * \param bug The Soldier Ant bug piece for which to generate moves.
      * \param res The vector to store the resulting actions/moves.
      */
-    void possibleMoves_SoldierAnt(piece bug, vector<action> & res){
+    void Board::possibleMoves_SoldierAnt(piece bug, vector<action> & res){
         unordered_set<position> inQueue;
         queue<position> q;
 
@@ -476,7 +447,7 @@ class Board {
      * \param bug The Spider bug piece for which to generate moves.
      * \param res The vector to store the resulting actions/moves.
      */
-    void possibleMoves_Spider(piece bug, vector<action> & res){
+    void Board::possibleMoves_Spider(piece bug, vector<action> & res){
         unordered_set<position> inQueue;
         queue<pair<position,int>> q;
 
@@ -525,7 +496,7 @@ class Board {
      * @param bug The piece to move.
      * @param res The vector where the possible moves are stored.
      */
-    void possibleMoves_Pillbug(piece bug, vector<action> &res){
+    void Board::possibleMoves_Pillbug(piece bug, vector<action> &res){
 
         // The pillbug can move as a queen. Check if the move is already present as the pillbug could be moved by the mosquito.
         for(position dest: G.getPosition(bug).neighbor()){
@@ -582,7 +553,7 @@ class Board {
      * @param bug The Mosquito bug piece for which to generate moves.
      * @param res The vector to store the resulting actions/moves.
      */
-    void possibleMoves_Mosquito(piece bug, vector<action> &res){
+    void Board::possibleMoves_Mosquito(piece bug, vector<action> &res){
         if (!G.isAtLevel1(G.getPosition(bug))){
             //It can only move like a beetle
             possibleMoves_Beetle(bug,res);
@@ -618,7 +589,7 @@ class Board {
      * @param bug The piece to move.
      * @param res The vector where the possible moves are stored.
      */
-    void possibleMoves_Ladybug(piece bug,vector<action> &res){
+    void Board::possibleMoves_Ladybug(piece bug,vector<action> &res){
         vector<pair<position,int>> queue; //TODO: HERE
         for(position dest: G.getPosition(bug).neighbor()){
             if(!G.isFree(dest)){
@@ -651,4 +622,3 @@ class Board {
             seen.insert(f);
         }
     }
-};

@@ -20,7 +20,7 @@ class position{
     position applayMove(direction d);
 };
 
-position NULL_POSITION(10000,10000);
+extern position NULL_POSITION;
 
 direction getMovementDirection(position f, position t);
 
@@ -52,8 +52,4 @@ struct std::hash<position>
 };
 
 
-
-
-
-#include "position.cpp"
 #endif

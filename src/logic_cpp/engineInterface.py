@@ -1,36 +1,85 @@
-
-#https://docs.python.org/3.5/library/ctypes.html#fundamental-data-types
-# to compile: g++ -fPIC -shared -o engine.so engine.cpp
-
-# or use https://github.com/pybind/pybind11
-
 import ctypes
-import pathlib
 import os
-path = os.getcwd() + "\engine.so"
-#path=pathlib.Path().absolute().joinpath("engine.so")
-Cengine=ctypes.CDLL(path)
+import sys
 
-# how to call a function: Cengine._[outputType]functionName[inputType](params)
+# compile with  g++ -shared -o engine.dll *.cpp -static -static-libgcc -static-libstdc++ -I. -O2 -Wall -DBUILDING_DLL
 
+def load_dll():
+    path = os.path.join(os.getcwd(), "engine.dll")
+    return ctypes.CDLL(path)
 
-# TODO: make it give exceptions if the board is not initialized o qualcosa così
-startGame = Cengine.startGame
-startGame.argtypes = (ctypes.c_wchar_p)
+try:
+    Cengine = load_dll()
+    
+    # Configure function signatures with proper string encoding
+    sin = Cengine._sin
+    sin.argtypes = [ctypes.c_double]
+    sin.restype = ctypes.c_double
 
-# TODO: manda eccezione se non e' inizializzato
-playMove = Cengine.playMove
-playMove.argtypes = (ctypes.c_wchar_p)
-playMove.restype = (ctypes.c_int)
+    start_Game = Cengine.startGame
+    start_Game.argtypes = [ctypes.c_char_p]  # Expects bytes, not string
+    start_Game.restype = None
 
-# TODO: vedi se funzia
-getValidMoves = Cengine.validMoves
-getValidMoves.restype = (ctypes.c_wchar_p)
+    play_Move = Cengine.playMove
+    play_Move.argtypes = [ctypes.c_char_p]
+    play_Move.restype = ctypes.c_int
 
-# TODO: da implementare: deve ritornare la stringa della board
-getBoard = Cengine.getBoard
-getBoard.restype = (ctypes.c_wchar_p)
+    getValid_Moves = Cengine.validMoves
+    getValid_Moves.restype = ctypes.c_char_p
+    
+    get_Board = Cengine.getBoard
+    get_Board.restype = ctypes.c_char_p
 
-# TODO: manda eccezione se non e' inizializzato
-undo = Cengine.undo
-undo.argtypes = (ctypes.c_int)
+    undo = Cengine.undo
+    undo.argtypes = [ctypes.c_int]
+    
+    # Wrapper functions to handle string encoding/decoding
+    def startGame(game_string):
+        """
+        Wrapper for startGame that handles string encoding
+        """
+        if not isinstance(game_string, str):
+            raise TypeError("game_string must be a string")
+        encoded_string = game_string.encode('utf-8')
+        return start_Game(encoded_string)
+    
+    def playMove(move_string):
+        """
+        Wrapper for playMove that handles string encoding
+        """
+        if not isinstance(move_string, str):
+            raise TypeError("move_string must be a string")
+        encoded_string = move_string.encode('utf-8')
+        return play_Move(encoded_string)
+    
+    def getValidMoves():
+        """
+        Wrapper for getValidMoves that handles string decoding
+        """
+        result = getValid_Moves()
+        return result.decode('utf-8') if result else ""
+    
+    def getBoard():
+        """
+        Wrapper for getBoard that handles string decoding
+        """
+        result = get_Board()
+        return result.decode('utf-8') if result else ""
+
+except Exception as e:
+    print(f"Failed to initialize engine interface: {e}")
+    raise
+
+try:
+    print(startGame("Base+MLP"))
+    print("Game started successfully!")
+    
+    # Test other functions
+    moves = getValidMoves()
+    print("Valid moves:", moves)
+    
+    board = getBoard()
+    print("Current board:", board)
+    
+except Exception as e:
+    print(f"Error: {e}")

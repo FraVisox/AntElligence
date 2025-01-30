@@ -26,6 +26,8 @@ USING THIS GRID:
 
 */
 
+position NULL_POSITION(10000, 10000);
+
 
 /**
  * \brief Creates a position with the given coordinates.

@@ -17,7 +17,7 @@ class piece{
         int toVal() const;
 };
 
-piece INVALID_PIECE(-1);
+extern piece INVALID_PIECE;
 
 template<>
 struct std::hash<piece>
@@ -41,5 +41,4 @@ struct std::hash<piece>
 bool operator!=(const piece& p1,const piece &p);
 bool operator==(const piece& p1,const piece &p);
 
-#include "piece.cpp"
 #endif

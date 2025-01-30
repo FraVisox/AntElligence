@@ -1,25 +1,5 @@
-#include <set>
-#include <string>
-#include <vector>
-#include <stack>
-#include <map>
-#include <unordered_map>
-#include <unordered_set>
-#include "piece.h"
-#include "position.h"
-#include "enums.h"
-#include "action.cpp"
-#include "direction.h"
-using namespace  std;
+#include "gameboard.h"
 
-class gameboard{
-    public:
-
-    stack<piece> gb[100][100];  // Vector of stacks that contain bugs. One stack at each position. The board is thus 100*100
-    unordered_map<piece,position> bugPosition = unordered_map<piece,position>(); 
-    unordered_set<position> occupied = unordered_set<position>();
-
-    gameboard(){}
 
     /**
      * Resets the gameboard to its initial state.
@@ -27,7 +7,7 @@ class gameboard{
      * All positions on the board are cleared, and all the data structures are cleared.
      * This should be called at the start of each game.
      */
-    void reset() {
+    void gameboard::reset() {
         for (int i = 0; i < 100; i++) {
             for (int j = 0; j < 100; j++) {
                 gb[i][j] = stack<piece>();
@@ -43,7 +23,7 @@ class gameboard{
      * \param pos The position to get the stack of pieces from.
      * \return A pointer to the stack of pieces at pos.
      */
-    stack<piece>* at(position pos){
+    stack<piece>* gameboard::at(position pos){
         return &gb[(100+(pos.first%100))%100][(100+(pos.second%100))%100];
     }
     
@@ -53,7 +33,7 @@ class gameboard{
      * \param p The bug to get the position of.
      * \return The position of bug p.
      */
-    position getPosition(piece p){
+    position gameboard::getPosition(piece p){
         return bugPosition.at(p);
     }
     
@@ -63,7 +43,7 @@ class gameboard{
      * \param bug The bug to update the position of.
      * \param pos The new position of bug.
      */
-    void updatePos(piece bug, const position &pos){
+    void gameboard::updatePos(piece bug, const position &pos){
         bugPosition.insert_or_assign(bug,pos);
     }
 
@@ -79,7 +59,7 @@ class gameboard{
      *
      * \param pos The position to pop the top piece from.
      */
-    void popPosition(position pos){
+    void gameboard::popPosition(position pos){
         if(!isFree(pos)){
             updatePos(at(pos)->top(),NULL_POSITION);
             at(pos)->pop();
@@ -99,7 +79,7 @@ class gameboard{
      *
      * \param b The bug to remove from the board.
      */
-    void removePiece(piece b){
+    void gameboard::removePiece(piece b){
         if(isTop(b)){
             popPosition(getPosition(b));
             bugPosition.extract(b);
@@ -116,7 +96,7 @@ class gameboard{
      * \param pos The position to add the piece to.
      * \param b The bug to add to the board.
      */
-    void addPiece(action a){
+    void gameboard::addPiece(action a){
         position pos;
         switch (a.actType)
         {
@@ -135,7 +115,7 @@ class gameboard{
     }
 
 
-    void addPiece(position pos, piece b){
+    void gameboard::addPiece(position pos, piece b){
         at(pos)->push(b);
         updatePos(b,pos);
         occupied.insert(pos);
@@ -147,7 +127,7 @@ class gameboard{
      * \param pos The position to check.
      * \return true if the position is free, false otherwise.
      */
-    bool isFree(position &pos){
+    bool gameboard::isFree(position &pos){
         return at(pos)->empty();
     }
 
@@ -157,7 +137,7 @@ class gameboard{
      * \param bug The bug to check.
      * \return true if the bug is the top piece at its position, false otherwise.
      */
-    bool isTop(piece bug){
+    bool gameboard::isTop(piece bug){
         position pos=getPosition(bug);
         return (at(pos)->top()==bug);
     }
@@ -172,7 +152,7 @@ class gameboard{
      * \param turn The turn to check.
      * \return true if the bug can move on the given turn, false otherwise.
      */
-    bool canPieceMove(piece b,int turn){
+    bool gameboard::canPieceMove(piece b,int turn){
         return (isTop(b) && canMoveWithoutBreakingHiveRule(b,turn));
     }
 
@@ -188,7 +168,7 @@ class gameboard{
      * \param to The position the bug would like to slide to.
      * \return true if the bug can slide to the given position for free, false otherwise.
      */
-    bool canSlideFree(position from, position to){
+    bool gameboard::canSlideFree(position from, position to){
         //I can slide if 
         //  1. the position is free, 
         //  2. the bug is at a position adjacent to the given position, 
@@ -204,7 +184,7 @@ class gameboard{
 
 
     //Use it only after canSlideFree
-    pair<piece, direction> getNearNeighbor(position to, position from, bool canOver){
+    pair<piece, direction> gameboard::getNearNeighbor(position to, position from, bool canOver){
         if(canSlideFree(from,to)){
             if (at(from)->size() > 1) { //If I'm over, I simply go over the other piece
                 return {at(to)->top(), OVER};
@@ -233,7 +213,7 @@ class gameboard{
      *
      * \throws std::string if the given position is empty.
      */
-    piece topPiece(position pos){
+    piece gameboard::topPiece(position pos){
         if(!isFree(pos)){
             return at(pos)->top();
         }
@@ -250,7 +230,7 @@ class gameboard{
      * \param color The color of the player for which to get the valid positions.
      * \return An unordered set of all valid positions to place a new piece.
      */
-    vector<pair<piece,direction>> validPositionPlaceNew(PlayerColor color){
+    vector<pair<piece,direction>> gameboard::validPositionPlaceNew(PlayerColor color){
         unordered_set<position> seen;
         vector<pair<piece,direction>> valid;
         for(position op : occupied){
@@ -290,7 +270,7 @@ class gameboard{
      * \return A vector containing the positions of all occupied neighbors.
      */
 
-    vector<position> occupiedEdge(position pos){
+    vector<position> gameboard::occupiedEdge(position pos){
         vector<position> ris;
         for(auto n:pos.neighbor()){
             if(!isFree(n)){
@@ -308,7 +288,7 @@ class gameboard{
      * \param pos The position to check.
      * \return true if the position is at level 1, false otherwise.
      */
-    bool isAtLevel1(position pos){
+    bool gameboard::isAtLevel1(position pos){
         return at(pos)->size()==1;
     }
     
@@ -322,7 +302,7 @@ class gameboard{
      * \param turn The current turn.
      * \return true if the bug is part of the hive, false otherwise.
      */
-    bool canMoveWithoutBreakingHiveRule(piece b,int turn){
+    bool gameboard::canMoveWithoutBreakingHiveRule(piece b,int turn){
         if(getPosition(b)==NULL_POSITION)
             return true;
         //If there is a bug under this one
@@ -335,96 +315,3 @@ class gameboard{
         }
         return not_movable_position.count(getPosition(b));
     }
-
-    //PRIVATE FUNCTIONS TO FIND ARTICULATION POINTS (HIVE RULE) AND CALCULATE POSITION
-
-    private:
-    int timer=0;
-    int lastUpdateTurn=-1;
-    unordered_set<position> not_movable_position;
-    unordered_set<position> visited_dfs;
-    unordered_map<position,int> disc,low;
-
-    /**
-     * \brief Calculate the position of a bug given its current position and a direction.
-     *
-     * Given a bug and a direction, this function returns the position that the
-     * bug would be at if it were moved in the given direction. Used to calculate
-     * the position of a bug after a move.
-     *
-     * \param b The bug to calculate the new position of.
-     * \param d The direction to move the bug in.
-     * \return The new position of the bug after moving in the given direction.
-     */
-    position calcPosition(piece b, direction d){
-        position pos = getPosition(b);
-        pos = pos.applayMove(d);
-        return pos;
-    }
-
-    /**
-     * \brief Find the articulation points of the occupied positions.
-     *
-     * Runs a depth-first search to find the articulation points of the
-     * occupied positions. The articulation points are the positions that,
-     * if removed, increase the number of connected components.
-     * The articulation points are used to check if a
-     * bug can be moved without breaking the hive rule.
-     */
-    void find_articulation(){
-        if(occupied.empty())
-            return;
-
-        not_movable_position.clear();
-        visited_dfs.clear();
-
-        for(position e: occupied){
-            disc[e]=-1; //discovered time
-            low[e]=-1; //lowest discovered time
-        }
-
-        position startPos=*(occupied.begin());
-        dfs(startPos);
-    }
-
-
-    /**
-     * \brief Depth-first search to find articulation points.
-     *
-     * Runs a depth-first search on the graph of occupied positions to find
-     * the articulation points.
-     *
-     * \param v The current position.
-     * \param p The parent position, defaults to NULL_POSITION.
-     */
-    void dfs(position &v, position &p = NULL_POSITION) {
-
-        //Mark this as visited
-        visited_dfs.insert(v);
-
-        //Set the discovery time and low time as current time
-        disc[v] = low[v] = timer++;
-
-        int children=0;
-        for (position to : occupiedEdge(v)) {
-            //If this is a back edge, update low
-            if (visited_dfs.count(to)) {
-                low[v] = min(low[v], disc[to]);
-            } else {
-                //Make it a children of this node and visit it
-                dfs(to, v);
-                //Check if the subtree rooted at v has a connection to one of the ancestors of u
-                low[v] = min(low[v], low[to]);
-                
-                //If the subtree rooted at to has not a connection to one of the ancestors of u, this is an articulation point
-                if (low[to] >= disc[v] && p!=NULL_POSITION)
-                    not_movable_position.insert(v);
-                
-                ++children;
-            }
-        }
-        if(p == NULL_POSITION && children > 1)
-            not_movable_position.insert(v);
-    }
-
-};

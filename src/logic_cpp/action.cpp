@@ -1,31 +1,4 @@
-#ifndef ACTION_H
-#define ACTION_H
-#include "position.h"
-#include "piece.h"
-
-using namespace std;
-
-enum TypeAction{
-    MOVEMENT,
-    PLACE,
-    PLACEFIRST,
-    PASS
-};
-
-class action{
-    public:
-        piece bug;
-        position startingPos;
-        TypeAction actType;
-
-        piece otherBug;
-        direction relativeDir;
-
-        action(piece p,position d):bug(p),startingPos(d){}
-        action(piece p):bug(p){}
-        action(){}
-};
-
+#include "action.h"
 
 /**
  * \brief Constructs a movement action given a piece to move, another piece to which the moved piece is relative, and a direction.
@@ -164,4 +137,3 @@ string ActionToString(action a){
     }
     return "";
 }
-#endif

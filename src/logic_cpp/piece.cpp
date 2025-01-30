@@ -1,7 +1,8 @@
 #include <string>
 #include "piece.h"
-#include <iostream>
 using namespace std;
+
+piece INVALID_PIECE(-1);
 
 /*
     Explaining the value of a piece:
