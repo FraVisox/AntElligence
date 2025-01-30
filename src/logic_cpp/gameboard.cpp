@@ -8,17 +8,34 @@
 #include "piece.h"
 #include "position.h"
 #include "enums.h"
+#include "action.cpp"
+#include "direction.h"
 using namespace  std;
 
 class gameboard{
     public:
-
 
     stack<piece> gb[100][100];  // Vector of stacks that contain bugs. One stack at each position. The board is thus 100*100
     unordered_map<piece,position> bugPosition; 
     unordered_set<position> occupied;
 
     gameboard(){}
+
+    /**
+     * Resets the gameboard to its initial state.
+     *
+     * All positions on the board are cleared, and all the data structures are cleared.
+     * This should be called at the start of each game.
+     */
+    void reset() {
+        for (int i = 0; i < 100; i++) {
+            for (int j = 0; j < 100; j++) {
+                gb[i][j] = stack<piece>();
+            }
+        }
+        bugPosition.clear();
+        occupied.clear();
+    }
 
     /**
      * \brief Get the stack of pieces at a given position.
@@ -99,7 +116,26 @@ class gameboard{
      * \param pos The position to add the piece to.
      * \param b The bug to add to the board.
      */
-    void addPiece(position pos,piece b){
+    void addPiece(action a){
+        position pos;
+        switch (a.actType)
+        {
+        case PLACEFIRST:
+            pos = position{0,0};
+            break;
+        case PLACE:
+        case MOVEMENT:
+            pos = calcPosition(a.otherBug, a.relativeDir);
+            break;
+        }
+        piece b = a.bug;
+        at(pos)->push(b);
+        updatePos(b,pos);
+        occupied.insert(pos);
+    }
+
+
+    void addPiece(position pos, piece b){
         at(pos)->push(b);
         updatePos(b,pos);
         occupied.insert(pos);
@@ -153,13 +189,40 @@ class gameboard{
      * \return true if the bug can slide to the given position for free, false otherwise.
      */
     bool canSlideFree(position from, position to){
-        if(isFree(to) && isNear(to, from)){
+        //I can slide if 
+        //  1. the position is free, 
+        //  2. the bug is at a position adjacent to the given position, 
+        //  3. One of the two positions near to both is at a level lower than the one I currently am
+        if(at(to)->size() < at(from)->size() && isNear(to, from)){
             vector<position> v= nearBoth(from,to);
             position p1=v[0], p2=v[1];
-            if(isFree(p1) && isFree(p2)) 
+            if(at(p1)->size() < at(from)->size() || at(p2)->size() < at(from)->size())
                 return true;
         }
         return false;
+    }
+
+
+    //Use it only after canSlideFree
+    pair<piece, direction> getNearNeighbor(position to, position from, bool canOver){
+        if(canSlideFree(from,to)){
+            if (at(from)->size() > 1) { //If I'm over, I simply go over the other piece
+                return {at(to)->top(), OVER};
+            }
+            vector<position> v = nearBoth(to,from);
+            position p1 = v[0], p2 = v[1];
+            if(isFree(p1) && !isFree(p2)) //I slide around p2
+                return {at(p2)->top(), getMovementDirection(p2, to)};
+            else if(!isFree(p1) && isFree(p2)) //I slide around p1
+                return {at(p1)->top(), getMovementDirection(p1, to)};
+        } else if (canOver && at(to)->size() >= at(from)->size() && isNear(to, from)) {
+            vector<position> v= nearBoth(from,to);
+            position p1=v[0], p2=v[1];
+            if(at(p1)->size() < at(from)->size() || at(p2)->size() < at(from)->size()) {
+                return {at(to)->top(), OVER};
+            }
+        }
+        return {INVALID_PIECE, INVALID};
     }
 
     /**
@@ -187,13 +250,13 @@ class gameboard{
      * \param color The color of the player for which to get the valid positions.
      * \return An unordered set of all valid positions to place a new piece.
      */
-    unordered_set<position> validPositionPlaceNew(PlayerColor color){
+    unordered_set<pair<piece,direction>> validPositionPlaceNew(PlayerColor color){
         unordered_set<position> seen;
-        unordered_set<position> valid;
-        for(auto op : occupied){
+        unordered_set<pair<piece,direction>> valid;
+        for(position op : occupied){
             piece p = at(op)->top();
             if(p.col == color){
-                for(auto possiblePosition:op.neighbor()){
+                for(position possiblePosition:op.neighbor()){
                     if(seen.count(possiblePosition)) 
                         continue;
 
@@ -207,7 +270,7 @@ class gameboard{
                             }
                         }
                         if(!hasOtherColor){
-                            valid.insert(possiblePosition);
+                            valid.insert(make_pair(p,getMovementDirection(op, possiblePosition)));
                         }
                     }
                 }
@@ -237,6 +300,14 @@ class gameboard{
         return ris;
     }
 
+    /**
+     * \brief Check if a position is at level 1.
+     *
+     * A position is at level 1 if there is only one piece at that position.
+     *
+     * \param pos The position to check.
+     * \return true if the position is at level 1, false otherwise.
+     */
     bool isAtLevel1(position pos){
         return at(pos)->size()==1;
     }
@@ -265,6 +336,7 @@ class gameboard{
         return not_movable_position.count(getPosition(b));
     }
 
+    //PRIVATE FUNCTIONS TO FIND ARTICULATION POINTS (HIVE RULE) AND CALCULATE POSITION
 
     private:
     int timer=0;
@@ -272,6 +344,23 @@ class gameboard{
     unordered_set<position> not_movable_position;
     unordered_set<position> visited_dfs;
     unordered_map<position,int> disc,low;
+
+    /**
+     * \brief Calculate the position of a bug given its current position and a direction.
+     *
+     * Given a bug and a direction, this function returns the position that the
+     * bug would be at if it were moved in the given direction. Used to calculate
+     * the position of a bug after a move.
+     *
+     * \param b The bug to calculate the new position of.
+     * \param d The direction to move the bug in.
+     * \return The new position of the bug after moving in the given direction.
+     */
+    position calcPosition(piece b, direction d){
+        position pos = getPosition(b);
+        pos = pos.applayMove(d);
+        return pos;
+    }
 
     /**
      * \brief Find the articulation points of the occupied positions.

@@ -17,6 +17,8 @@ class piece{
         int toVal() const;
 };
 
+piece INVALID_PIECE(-1);
+
 template<>
 struct std::hash<piece>
 {

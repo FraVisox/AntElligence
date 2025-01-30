@@ -4,7 +4,7 @@ Hive game engine developed by Francesco Visona' and Matteo Canton.
 # TODO:
 - How to pass the moves to the brain
 - Check logic of all functions and check if the corresponding rules on https://github.com/jonthysell/Mzinga/wiki/UniversalHiveProtocol are respected
-
+- How to delete the memory we don't need when we pass a string from C++ to py (every time we do "new")
 
 ## Useful resources
 

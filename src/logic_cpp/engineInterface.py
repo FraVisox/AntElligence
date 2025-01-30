@@ -19,9 +19,10 @@ startGame.argtypes = (ctypes.c_wchar_p)
 # TODO: manda eccezione se non e' inizializzato
 playMove = Cengine.playMove
 playMove.argtypes = (ctypes.c_wchar_p)
+playMove.restype = (ctypes.c_int)
 
 # TODO: vedi se funzia
-getValidMoves = Cengine.allMoves
+getValidMoves = Cengine.validMoves
 getValidMoves.restype = (ctypes.c_wchar_p)
 
 # TODO: da implementare: deve ritornare la stringa della board

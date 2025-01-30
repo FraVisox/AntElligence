@@ -1,3 +1,5 @@
+#ifndef ACTION_H
+#define ACTION_H
 #include "position.h"
 #include "piece.h"
 
@@ -12,37 +14,17 @@ enum TypeAction{
 
 class action{
     public:
-    piece bug;
-    position pos;
-    TypeAction actType;
+        piece bug;
+        position startingPos;
+        TypeAction actType;
 
-    piece otherBug;
-    Direction relativeDir;
+        piece otherBug;
+        direction relativeDir;
 
-    action(piece p,position d):bug(p),pos(d){}
-    action(piece p):bug(p){}
-    action(){}
+        action(piece p,position d):bug(p),startingPos(d){}
+        action(piece p):bug(p){}
+        action(){}
 };
-
-/**
- * \brief Constructs a movement action.
- *
- * Given a piece and a destination position, this function returns an action
- * object which represents a movement action. The action object contains the
- * piece to move, the destination position, and the type of action, which is a
- * MOVEMENT action.
- *
- * \param p The piece to move.
- * \param d The destination position.
- * \return An action object representing a movement action.
- */
-action movement(piece p,position d){
-    action a;
-    a.bug=p;
-    a.pos=d;
-    a.actType=MOVEMENT;
-    return a;
-}
 
 
 /**
@@ -57,9 +39,10 @@ action movement(piece p,position d){
  * \param dir The direction of movement relative to the other bug piece.
  * \return An action object representing a movement action.
  */
-action movement(piece p, piece other, Direction dir){
+action movement(piece p, piece other, direction dir){
     action a;
     a.bug=p;
+
     a.otherBug = other;
     a.relativeDir = dir;
     a.actType=MOVEMENT;
@@ -77,9 +60,12 @@ action movement(piece p, piece other, Direction dir){
  * \param d The destination position.
  * \return An action object representing a place action.
  */
-action placePiece(piece p, position d){
-    action a(p,d);
-    a.actType = PLACE;
+action placePiece(piece p, piece other, direction d){
+    action a;
+    a.bug=p;
+    a.otherBug = other;
+    a.relativeDir = d;
+    a.actType=PLACE;
     return a;
 }
 
@@ -111,7 +97,7 @@ action placeFirst(piece p){
  */
 action pass(){
     action a;
-    a.actType = PASS; //TODO: does it work?
+    a.actType = PASS;
     return a;
 }
 
@@ -129,11 +115,17 @@ action pass(){
  * \return An action object constructed from the string details.
  */
 
-action StringToAction(string s){
+action parseAction(string s){
+    if (s == "pass") {
+        return pass();
+    }
     int end = s.find(' ');
+    if (end == string::npos) {
+        return placeFirst(piece(s));
+    }
     string first = s.substr(0, end);
     string second = s.substr(end + 1);
-    action a = movement(StringToBug(first), StringToBug(second), ExtractDirection(second));
+    action a = movement(piece(first), piece(second), extractDirection(second));
     return a;
 }
 
@@ -151,27 +143,24 @@ action StringToAction(string s){
  * \param a The action object to be converted to a string.
  * \return A string representation of the action object.
  */
-char* MovementToString(action a){
-    char* s = new char[8];
-    sprintf(s,"%s %s", a.bug.toString().c_str(), stringNameDir(a.otherBug.toString(), a.relativeDir));
+string MovementToString(action a){
+    string s = a.bug.toString()+nameDirToString(a.otherBug.toString(), a.relativeDir);
     return s;
 }
 
 
-char* ActionToString(action a){
+string ActionToString(action a){
     switch (a.actType)
     {
-    case PLACE:
-    case MOVEMENT:
-        return MovementToString(a);
+        case PLACE:
+        case MOVEMENT:
+            return MovementToString(a);
 
-    case PLACEFIRST:
-        char* s = new char[3];
-        sprintf(s,"%s", a.bug.toString().c_str());
-        return s;
-    
-    case PASS:
-        char* s = "pass";
-        return s;
+        case PLACEFIRST:
+            return a.bug.toString();
+        
+        case PASS:
+            return "pass";
     }
 }
+#endif

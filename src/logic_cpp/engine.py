@@ -165,7 +165,7 @@ class Engine():
     """
     Handles 'options get' argument to display AI strategy. As this is the only option, there is no need to make it more general.
     """
-    if option_name in self.OPTIONS: 
+    if option_name in self.OPTIONS:
       return "{};enum;{};{};{}".format(option_name, self.OPTIONS[option_name], self.POSSIBLE_VALUES[option_name][0], ";".join(map(str, self.POSSIBLE_VALUES[option_name])))
     
   def set_option(self, option_name, option_value):
@@ -233,7 +233,7 @@ class Engine():
         return
       self.brain.set_depth_limit(int(value))
 
-    # TODO: how to pass the board to the brain???
+    # TODO: how to pass the board to the brain??? This should return a MoveString
     print(self.brain.calculate_best_move(deepcopy(self.board)))
 
   def play(self, move: str) -> None:
@@ -250,7 +250,7 @@ class Engine():
       self.brain.empty_cache()
       print(engineInterface.getBoard())
     except ValueError as e:
-      self.error(e)
+      self.invalidmove(e)
 
   def undo(self, arguments: list[str]) -> None:
     """
@@ -285,6 +285,16 @@ class Engine():
     :type message: str | Exception
     """
     print(f"err {error}.")
+
+
+  def invalidmove(self, error: str | Exception) -> None:
+    """
+    Outputs the invalid move error.
+
+    :param message: Message or exception.
+    :type message: str | Exception
+    """
+    print(f"invalidmove {error}.")
 
 if __name__ == "__main__":
   Engine().start()

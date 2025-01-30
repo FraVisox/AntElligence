@@ -4,52 +4,6 @@
 using namespace std;
 
 /*
-implement as orizontal rectangualr with base 0,0:
--------------------------------------
-|           |           |
-| 0,0   1,0 | 2,0   3,0 | 4,0   5,0
-|           |           |     
--------------------------------------
-      |           |           |        
-  0,1 | 1,1   2,1 | 3,1   4,1 | 5,1
-      |           |           |    
--------------------------------------   
-|           |           |
-| 0,2   1,2 | 2,2   3,2 | 4,2   5,2
-|           |           | 
--------------------------------------
-      |           |           |        
-  0,3 | 1,3   2,3 | 3,3   4,3 | 5,3
-      |           |           |    
--------------------------------------   
-|           |           |
-| 0,4   1,4 | 2,4   3,4 | 4,4   5,4
-|           |           | 
--------------------------------------
-      |           |           |        
-  0,5 | 1,5   2,5 | 3,5   4,5 | 5,5
-      |           |           |    
--------------------------------------   
-
-
-
- |       |       |
- | -1,-1 | +1,-1 |
- |   UL  |   UR  |
-  \     / \     /
-   \   /   \   /
-    \ /     \ /
-     |       |
--2,0 |  0,0  | +2,0
- L   |       |   R
-    / \     / \
-   /   \   /   \
-  /     \ /     \
- |       |       |
- | -1,+1 | +1,+1 |
-    DL       DR
-
-
 USING THIS GRID:
 
 
@@ -136,7 +90,7 @@ vector<position> position::neighbor(){
  * \param d The direction in which to move.
  * \return A new position resulting from the movement.
  */
-position position::applayMove(Direction d){
+position position::applayMove(direction d){
     pair<int,int> delta = associatedDifference(d);
     position p(first+delta.first,second+delta.second);
     return p;
@@ -154,7 +108,7 @@ position position::applayMove(Direction d){
  * \param to The destination position.
  * \return The direction of movement from `from` to `to`.
  */
-Direction getMovementDirection(position from, position to){
+direction getMovementDirection(position from, position to){
     pair<int,int> diff(to.first-from.first,to.second-from.second);
 
     for (int i = 0; i<6; i++){
@@ -230,7 +184,7 @@ bool isNear(const position &p1, const position &p2){
  */
 
 vector<position> nearBoth(position &p1,position &p2){
-    Direction dir = getMovementDirection(p1,p2);
+    direction dir = getMovementDirection(p1,p2);
     int n=dir;
     int m1=(n+1)%6;
     int m2=(n+5)%6;

@@ -1,27 +1,4 @@
-# What is a UHP compliant engine
-
-A UHP-compliant engine is responsible for all of the logic necessary to play a complete game of Hive.
-
-This means knowing the current state of the game, including:
-
-- What the hive currently looks like (what pieces are where)
-- Whose turn it is
-- What moves are valid
-- What is the history of moves already played
-- Whether or not the game is over
-
-An engine must also be able to have actions taken upon it, including:
-
-- Starting a new game
-- Playing moves
-- Undoing moves
-- Lastly, a UHP-compliant engine must be able to recommend a "best" move to be played, given the current state of the game.
-
-In total, a user should be able to play a complete game of Hive with nothing but a UHP-compliant engine. More specifically, an engine is UHP-compliant if it implements all of the responsibilities listed above (and a little bit more) by accepting specific textual Engine Commands as input and returning the correct textual output.
-
-Typically (but not necessarily), a UHP-compliant engine is provided as simple command-line application that takes in the commands from the standard input and outputs the correct result to the standard output.
-
-## Engine commands
+# Engine commands
 Engine commands are formatted as a single command keyword followed by zero or more command parameters. To be fully UHP-compliant, a engine must implement all of the commands as specified in this section.
 
 Most commands output one or more lines of result text, but all must output ok on a new line after completion to signal that completion back to the viewer.

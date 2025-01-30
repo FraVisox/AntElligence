@@ -3,18 +3,19 @@
 #include <utility>
 using namespace std;
 
-enum Direction{
+enum direction{
     RIGHT=0,
     DOWN_RIGHT=1,
     DOWN_LEFT=2,
     LEFT=3,
     UP_LEFT=4,
     UP_RIGHT=5,
-    INVALID=-1
+    OVER=6,
+    INVALID = -1
 };
 
 
-Direction allDirections[] = {RIGHT,DOWN_RIGHT,DOWN_LEFT,LEFT,UP_LEFT,UP_RIGHT};
+direction allDirections[] = {RIGHT,DOWN_RIGHT,DOWN_LEFT,LEFT,UP_LEFT,UP_RIGHT};
 
 pair<int,int> movementCircleClockwise[]={
     make_pair(+1,0),
@@ -38,15 +39,15 @@ pair<int,int> movementCircleClockwise[]={
  * \return A new string with the direction symbol added to the original name.
  */
 
-string stringNameDir(string name,Direction dir){
-    switch (dir)
-    {
+string nameDirToString(string name, direction dir){
+    switch (dir) {
         case RIGHT: return name+"-";
         case DOWN_RIGHT: return name+"\\";
         case DOWN_LEFT: return "/"+name;
         case LEFT: return "-"+name;
         case UP_LEFT: return "\\"+name;
         case UP_RIGHT: return name+"/";
+        case OVER: return name;
     }
     return "";
 }
@@ -62,7 +63,7 @@ string stringNameDir(string name,Direction dir){
  * \param n The number representing the direction.
  * \return The direction corresponding to the number.
  */
-Direction numberToDirection(int n){
+direction numberToDirection(int n){
     return allDirections[n];
 }
 
@@ -77,7 +78,7 @@ Direction numberToDirection(int n){
  * \return The direction that is opposite to the given direction.
  */
 
-Direction oppositeDir(Direction d){
+direction oppositeDir(direction d){
     return numberToDirection((d+3)%6);
 }
 
@@ -91,7 +92,7 @@ Direction oppositeDir(Direction d){
  * \param d The direction for which the difference of coordinates is calculated.
  * \return The difference of coordinates associated with the given direction.
  */
-pair<int,int> associatedDifference(Direction d){
+pair<int,int> associatedDifference(direction d){
     return movementCircleClockwise[d];
 }
 
@@ -100,19 +101,19 @@ pair<int,int> associatedDifference(Direction d){
  *
  * Given a string, this function extracts and returns the direction
  * associated with the string. If the string does not contain a valid
- * direction, this function returns `INVALID`.
+ * direction, this function returns OVER.
  *
  * \param s The string from which the direction is extracted.
  * \return The direction associated with the string.
  */
-Direction ExtractDirection(string s){
+direction extractDirection(string s){
     if(s[0]=='-') return LEFT;
     if(s[0]=='/') return DOWN_LEFT;
     if(s[0]=='/') return UP_LEFT;
     if(s.find("-", 1)) return RIGHT;
     if(s.find("\\", 1)) return DOWN_RIGHT;
     if(s.find("/", 1)) return UP_RIGHT;
-    return INVALID;
+    return OVER;
 }
 
 #endif

@@ -43,8 +43,8 @@ piece::piece(BugType k,PlayerColor c,int n){
  */
 
 piece::piece(string s){
-    col=StringToColor(s.substr(0,1));
-    kind=StringToBug(s.substr(1,1));
+    col=parseColor(s.substr(0,1));
+    kind=parseBugType(s.substr(1,1));
     if(s.size()==3){
         numIncr=stoi(s.substr(2,1));
     } else{
@@ -80,7 +80,7 @@ piece::piece(int eqVal){
  * @return The string representation of the piece.
  */
 string piece::toString() const{
-    return ColorToString(col)+BugToString(kind)+(numIncr==0?(""):(""+numIncr));
+    return ColorToString(col)+BugTypeToString(kind)+(numIncr==0?(""):(""+numIncr));
 }
 
 /**

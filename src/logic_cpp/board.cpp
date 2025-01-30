@@ -6,19 +6,21 @@
 
 class Board {
     public:
-    
+
+    //Properties of this game
     int currentTurn;
-    gameboard G;
-    vector<piece> placedBug;
-    unordered_set<piece> inHandPiece;
+    GameState state; //InProgress, Draw, WhiteWins, BlackWins, NotStarted
+    GameType type; //Base, BASE+MLP, ...
+
+    //Moves made
+    vector<action> moves = vector<action>(); 
+
+    //Gameboard and pieces
+    gameboard G = gameboard();
+    vector<piece> placedBug = vector<piece>();
+    unordered_set<piece> inHandPiece = unordered_set<piece>();
     bool isPlacedWQ=false;
     bool isPlacedBQ=false;
-
-    GameState state;
-
-    int type; //Base, BASE+MLP...
-
-    vector<action> moves; //moves made
 
     /**
      * Board constructor.
@@ -27,8 +29,26 @@ class Board {
      * The turn number is set to 1.
      */
     Board(){ 
-        currentTurn=1;
+        reset();
     };
+
+
+    /**
+     * Resets the board to its initial state.
+     *
+     * Sets the turn number to 1, game type to Base, and game state to NOT_STARTED.
+     * Clears all recorded moves, placed bugs, and pieces in hand.
+     * Resets the gameboard to its default configuration.
+     */
+
+    void reset() {
+        currentTurn = 1;
+        state = NOT_STARTED;
+        moves.erase(moves.begin(), moves.end());
+        G.reset();
+        placedBug.erase(placedBug.begin(), placedBug.end());
+        inHandPiece.clear();
+    }
 
 
     /**
@@ -40,12 +60,131 @@ class Board {
      * :rtype: char*
      */
     char* toString() {
-        char* s = new char[1000];
-        sprintf(s, "%d;%s;%s[%d];", type, state, ColorToString(currentColor()), currentPlayerTurn());
+        char* s = new char[40+moves.size()*9];
+        sprintf(s, "%d;%d;%s[%d]", type, state, ColorToString(currentColor()), currentPlayerTurn());
         for (int i = 0; i < moves.size(); i++) {
-            sprintf(s + strlen(s), "%s;", ActionToString(moves[i]));
+            sprintf(s + strlen(s), ";%s", ActionToString(moves[i]));
         }
         return s;
+    }
+
+    
+    /**
+     * Returns the current player color (white if the current turn is odd).
+     *
+     * @return The current player color.
+     */
+    PlayerColor currentColor(){
+        if(currentTurn%2==1) return PlayerColor::WHITE;
+        return PlayerColor::BLACK;
+    }
+
+    /**
+     * Returns the turn number of the current player.
+     *
+     *
+     * @return The turn number of the current player.
+     * @see currentColor
+     */
+    int currentPlayerTurn(){
+        return 1+currentTurn/2;
+    }
+
+    
+    /**
+     * Returns whether the current player has placed their queen or not.
+     *
+     * @return Whether the current player has placed their queen or not.
+     */
+    bool placedQueen(){
+        if(currentColor()==WHITE) 
+            return isPlacedWQ;
+        return isPlacedBQ;
+    }
+
+
+    /**
+     * Executes an action. The action can be of type MOVEMENT, PLACE, PLACEFIRST
+     * or PASS. Depending on the type of the action, the bug is moved, placed
+     * or removed from the board, the turn is incremented, and the
+     * placed/available bug pieces are updated. If the action is a PASS, nothing
+     * is done.
+     *
+     * \param a The action to be executed.
+     */
+    bool executeAction(action a){
+
+        //The move is represented as a Movestring (wS1 -wA1) or as "pass"
+
+        if (state == NOT_STARTED) 
+            state = IN_PROGRESS;
+        switch (a.actType) {
+            case MOVEMENT:
+                a.startingPos = G.getPosition(a.bug);
+                G.addPiece(a);
+                G.removePiece(a.bug);
+                moves.push_back(a);
+                break;
+            case PLACE:
+                G.addPiece(a);
+                placedBug.push_back(a.bug);
+                inHandPiece.extract(a.bug);
+                if(a.bug.kind==QUEEN){
+                    if(currentColor()==WHITE)isPlacedWQ=true;
+                    if(currentColor()==BLACK)isPlacedWQ=true;
+                }
+                moves.push_back(a);
+                break;
+            case PLACEFIRST:
+                G.addPiece(a);
+                placedBug.push_back(a.bug);
+                inHandPiece.extract(a.bug);
+                moves.push_back(a);
+                break;
+            case PASS:
+                moves.push_back(a);
+                break;
+        }
+        currentTurn++;
+
+        return checkWin();
+    }
+
+    bool checkWin() {
+        bool white_surrounded = false;
+        bool black_surrounded = false;
+        if (isPlacedBQ && isPlacedWQ) { //can't win without placing the queens
+            for (piece p: placedBug) {
+                if (p.kind == QUEEN) {
+                    if (p.col == WHITE && checkSurrounding(p)) {
+                        white_surrounded = true;
+                    } else if (p.col == BLACK && checkSurrounding(p)) {
+                        black_surrounded = true;
+                    }
+                }
+            }
+        }
+        if (black_surrounded && white_surrounded) {
+            state = DRAW;
+            return true;
+        } else if (black_surrounded) {
+            state = WHITE_WIN;
+            return true;
+        } else if (white_surrounded) {
+            state = BLACK_WIN;
+            return true;
+        }
+        return false;
+    }
+
+    bool checkSurrounding(piece p) {
+        position pos = G.getPosition(p);
+        for (position adj: pos.neighbor()) {
+            if (G.isFree(adj)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -57,18 +196,20 @@ class Board {
      * :raises ValueError: If the game has yet to begin.
      */
     void undo(int amount) {
+        if (moves.size() <= amount) {
+            reset();
+            return;
+        }
         for (int i = 0; i < amount; i++) {
-            if (moves.size() == 0) {
-                break;
-            }
             action move = moves.back();
             moves.pop_back();
             currentTurn--;
+            //Pass
             if (move.actType == PASS) {
                 continue;
             }
+            //Placement
             if (move.actType == PLACE || move.actType == PLACEFIRST) {
-                //Placement
                 inHandPiece.insert(move.bug);
                 placedBug.pop_back();
                 if (move.bug == QUEEN) {
@@ -82,36 +223,9 @@ class Board {
             } else {
                 //Movement
                 G.removePiece(move.bug);
-                G.addPiece(move.pos, move.bug);
+                G.addPiece(move.startingPos, move.bug);
             }
         }
-    }
-
-
-    /**
-     * Returns the current player color (white if the current turn is odd).
-     *
-     * @return The current player color.
-     */
-    PlayerColor currentColor(){
-        if(currentTurn%2==1) return PlayerColor::WHITE;
-        return PlayerColor::BLACK;
-    }
-
-    int currentPlayerTurn(){
-        return 1+currentTurn%2;
-    }
-
-    
-    /**
-     * Returns whether the current player has placed their queen or not.
-     *
-     * @return Whether the current player has placed their queen or not.
-     */
-    bool placedQueen(){
-        if(currentColor()==WHITE) 
-            return isPlacedWQ;
-        return isPlacedBQ;
     }
 
     /**
@@ -144,8 +258,8 @@ class Board {
         if(currentTurn == 2){
             for(piece b: inHandPiece){
                 if(b.col==currentColor() && b.kind != QUEEN){
-                    for(pair<int,int> dir:movementCircleClockwise){
-                        res.push_back(placePiece(b,position{dir.first,dir.second}));
+                    for(direction dir : allDirections){
+                        res.push_back(placePiece(b, placedBug[0], dir));
                     }
                 }
             }
@@ -153,28 +267,28 @@ class Board {
         }
 
         // 3 - if i didn't place the queen after turn 3
-
-        if(!placedQueen() && currentTurn>6){
+        if(!placedQueen() && currentPlayerTurn()>3){
             auto positions = G.validPositionPlaceNew(currentColor());
-            for(position pos:positions){
-                res.push_back(placePiece(piece{QUEEN,currentColor()},pos));
+            for(auto pos: positions){
+                res.push_back(placePiece(piece{QUEEN,currentColor()},pos.first, pos.second));
             }
             return res;
         }
         
         // 4 - pieces in our hand
         vector<piece> inHandCol;
-        for(auto p:inHandPiece){
+        for(auto p : inHandPiece){
             if(p.col==currentColor()){
                 inHandCol.push_back(p);
             }
         }
         if(inHandCol.size()>0){
             auto positions=G.validPositionPlaceNew(currentColor());
-            for(auto p:inHandCol)
+            for(auto p:inHandCol) {
                 for(auto pos : positions){
-                    res.push_back(placePiece(p,pos));
+                    res.push_back(placePiece(p,pos.first, pos.second));
                 }
+            }
         }
 
         // 5- moves
@@ -196,6 +310,19 @@ class Board {
         }
         return res;
     
+    }
+
+    
+    /**
+     * \brief Adds a piece to the player's hand.
+     *
+     * Inserts the given piece into the in-hand piece set, indicating that the
+     * piece is available for the player to use in future actions.
+     * 
+     * \param p The piece to add to the player's hand.
+     */
+    void addPieceHand(piece p){
+        inHandPiece.insert(p);
     }
 
     /**
@@ -253,8 +380,9 @@ class Board {
      */
     void possibleMoves_Queen(piece bug,vector<action> &res){
         for(position dest: G.getPosition(bug).neighbor()){
-            if(G.canSlideFree(G.getPosition(bug),dest)){
-                res.push_back(movement(bug,dest));
+            pair<piece,direction> relativeDir = G.getNearNeighbor(dest, G.getPosition(bug), false);
+            if (relativeDir.second != INVALID) {
+                res.push_back(movement(bug,relativeDir.first,relativeDir.second));
             }
         }
     }
@@ -270,9 +398,10 @@ class Board {
      */
     void possibleMoves_Beetle(piece bug,vector<action> &res){
         for(position dest:G.getPosition(bug).neighbor()){
-            //if(G.canSlideFree(G.getPosition(bug),dest) || G.isFree(dest)){        TODO: check
-                res.push_back(movement(bug,dest));
-            //}
+            pair<piece,direction> relativeDir = G.getNearNeighbor(dest, G.getPosition(bug), true);
+            if (relativeDir.second != INVALID) {
+                res.push_back(movement(bug,relativeDir.first,relativeDir.second));
+            }
         }
     }
 
@@ -286,13 +415,15 @@ class Board {
      */
     void possibleMoves_Grasshopper(piece bug,vector<action> &res){
         position from=G.getPosition(bug);
-        for(Direction dir : allDirections){
+        for(direction dir : allDirections){
             position next = from.applayMove(dir);
+            position old_next = next;
             if(!G.isFree(next)){
                 do{
+                    old_next = next;
                     next=next.applayMove(dir);
                 } while(!G.isFree(next));
-                res.push_back(movement(bug,next));
+                res.push_back(movement(bug, G.at(old_next)->top(), getMovementDirection(old_next, next)));
             }
         }
     }
@@ -323,8 +454,9 @@ class Board {
             for(auto n:f.neighbor()){
                 if(inQueue.count(n)) 
                     continue;
-                if(G.canSlideFree(f,n)){
-                    res.push_back(movement(bug,n));
+                pair<piece,direction> relativeDir = G.getNearNeighbor(n, f, false);
+                if (relativeDir.second != INVALID) {
+                    res.push_back(movement(bug,relativeDir.first,relativeDir.second));
                     q.push(n);
                     inQueue.insert(n);
                 }
@@ -360,9 +492,10 @@ class Board {
             for(auto n:f.neighbor()){
                 if(inQueue.count(n)) 
                     continue;
-                if(G.canSlideFree(f,n)){
+                pair<piece,direction> relativeDir = G.getNearNeighbor(n, f, false);
+                if (relativeDir.second != INVALID) {
                     if(d==3)
-                        res.push_back(movement(bug,n));
+                        res.push_back(movement(bug,relativeDir.first,relativeDir.second));
                     else{
                         q.push(make_pair(n,d+1));
                         inQueue.insert(n);
@@ -395,26 +528,34 @@ class Board {
 
         // The pillbug can move as a queen. Check if the move is already present as the pillbug could be moved by the mosquito.
         for(position dest: G.getPosition(bug).neighbor()){
-            if(G.canSlideFree(G.getPosition(bug),dest) && find(res.begin(), res.end(), movement(bug, dest)) == res.end()){
-                res.push_back(movement(bug,dest));
+            pair<piece,direction> relativeDir = G.getNearNeighbor(dest, G.getPosition(bug), false);
+            if (relativeDir.second != INVALID && find(res.begin(), res.end(), movement(bug, relativeDir.first, relativeDir.second)) == res.end()){
+                res.push_back(movement(bug,relativeDir.first,relativeDir.second));
+                
             }
         }
 
         // Or it makes other adjacent pieces (even of the opponent) move
         piece bugs_to_move[6];
-        position places_to_move[6];
+        direction places_to_move[6];
         int i = 0;
         int j = 0;
         for(position dest: G.getPosition(bug).neighbor()){
             if(!G.isFree(dest) && G.isAtLevel1(dest)){
                 piece possible_piece = G.topPiece(dest);
                 if (G.canMoveWithoutBreakingHiveRule(possible_piece, currentTurn)){
-                    bugs_to_move[i] = possible_piece;
-                    i++;
+                    pair<piece,direction> relativeDir = G.getNearNeighbor(G.getPosition(bug), dest, true);
+                    if (relativeDir.second != INVALID) {
+                        bugs_to_move[i] = possible_piece;
+                        i++;
+                    }
                 }
             } else if (G.isFree(dest)){
-                places_to_move[j] = dest;
-                j++;
+                pair<piece,direction> relativeDir = G.getNearNeighbor(dest, G.getPosition(bug), true);
+                if (relativeDir.second != INVALID) {
+                    places_to_move[j] = getMovementDirection(G.getPosition(bug), dest);
+                    j++;
+                }
             }
         }
         if (i > 0 && j > 0){
@@ -422,8 +563,8 @@ class Board {
                 for (int l = 0; l < j; l++){
                     piece to_move = bugs_to_move[k];
                     //Check if this movement is already inside of the vector
-                    if (find(res.begin(), res.end(), movement(to_move, places_to_move[l])) == res.end())
-                        res.push_back(movement(to_move, places_to_move[l]));
+                    if (find(res.begin(), res.end(), movement(to_move, bug, places_to_move[l])) == res.end())
+                        res.push_back(movement(to_move, bug, places_to_move[l]));
                 }
             }
         }
@@ -480,7 +621,10 @@ class Board {
         vector<pair<position,int>> queue;
         for(position dest: G.getPosition(bug).neighbor()){
             if(!G.isFree(dest)){
-                queue.push_back(make_pair(dest, 1));
+                pair<piece,direction> relativeDir = G.getNearNeighbor(dest, G.getPosition(bug), true);
+                if (relativeDir.second != INVALID) {
+                    queue.push_back(make_pair(dest, 1));
+                }
             }
         }
 
@@ -496,150 +640,14 @@ class Board {
                     continue;
                 seen.insert(n);
 
-                if (G.isFree(n)) {
-                    res.push_back(movement(bug, n));
-                } else if (d == 1) {
+                pair<piece,direction> relativeDir = G.getNearNeighbor(n, f, true);
+                if (relativeDir.second != INVALID && G.isAtLevel1(G.getPosition(relativeDir.first).applayMove(relativeDir.second))) {
+                    res.push_back(movement(bug, relativeDir.first, relativeDir.second));
+                } else if (relativeDir.second != INVALID &&d == 1) {
                     queue.push_back(make_pair(n, d + 1));
                 }
             }
             seen.insert(f);
         }
     }
-
-
-    /**
-     * Executes an action. The action can be of type MOVEMENT, PLACE, PLACEFIRST
-     * or PASS. Depending on the type of the action, the bug is moved, placed
-     * or removed from the board, the turn is incremented, and the
-     * placed/available bug pieces are updated. If the action is a PASS, nothing
-     * is done.
-     *
-     * \param a The action to be executed.
-     */
-    void executeAction(action a){
-        if (state == NOT_STARTED) 
-            state = IN_PROGRESS;
-        switch (a.actType)
-        {
-        case MOVEMENT:
-            G.removePiece(a.bug);
-            G.addPiece(a.pos,a.bug);
-            moves.push_back(a);
-            break;
-        case PLACE:
-            G.addPiece(a.pos,a.bug);
-            placedBug.push_back(a.bug);
-            inHandPiece.extract(a.bug);
-            if(a.bug.kind==QUEEN){
-                if(currentColor()==WHITE)isPlacedWQ=true;
-                if(currentColor()==BLACK)isPlacedWQ=true;
-            }
-            moves.push_back(a);
-            break;
-        case PLACEFIRST:
-            G.addPiece(position{0,0},a.bug);
-            placedBug.push_back(a.bug);
-            inHandPiece.extract(a.bug);
-            moves.push_back(a);
-            break;
-        case PASS:
-            moves.push_back(a);
-            break;
-        }
-        currentTurn++;
-        // TODO: check if someone won
-    }
-                    
-    
-
-
-    bool isValidMovement(piece &p, position &dest){ // TODO, not important now
-        return true;
-        /*
-        position from = placement.at(p);
-
-        // case where the pillbug move our piece
-        vector<piece> near=getNeighborPiece(p);
-        for(auto b:near){
-            if(b.kind==PILLBUG && b.col==currentTurn){
-                if(isFree(dest) && 
-                    (isNear(from,dest)) && 
-                    gameboard.at(from).size()==1)
-                    return true;
-                else
-                    break;
-            }
-        }
-
-        if(p.col!=currentTurn)return false;
-        
-
-
-        switch (p.kind)
-        {
-            case QUEEN:
-                if(!isFree(dest)) return false;
-                if(isNear(from,dest)) return true;
-                return false;
-            case BEETLE:
-                if(isNear(from,dest)) return true;
-                return false;
-            case SPIDER:
-                return "S";
-            case GRASSHOPPER:
-                return "G";
-            case SOLDIER_ANT:
-                return "A";
-            case MOSQUITO:
-                return "M";
-            case LADYBUG:
-                return "L";
-            case PILLBUG:
-                return "P";
-        }
-    }
-    */
-    }
-
-    /**
-     * \brief Get the attachment position of a piece on the board.
-     *
-     * Determines the position relative to other pieces on the board where 
-     * a given piece is attached. If the given position is free, it checks 
-     * all directions for an adjacent occupied position and returns a 
-     * string representation of the attachment direction. If the position 
-     * is not connected to any other piece, it throws an exception.
-     *
-     * \param pos The position to check.
-     * \return A string representing the attachment direction of the piece.
-     * \throws std::string if the given position is disconnected from the graph.
-     */
-    string getAttachPosition(position pos){
-        if(G.isFree(pos)){
-            for(Direction d:allDirections){
-                position n=pos.applayMove(oppositeDir(d));
-                if(!G.isFree(n)){
-                    return stringNameDir(G.topPiece(pos).toString(),d);
-                }
-            }
-            throw "Not valid position: disconnected from graph";
-        }
-
-        return G.topPiece(pos).toString();
-    }
-
-    /**
-     * \brief Adds a piece to the player's hand.
-     *
-     * Inserts the given piece into the in-hand piece set, indicating that the
-     * piece is available for the player to use in future actions.
-     * 
-     * \param p The piece to add to the player's hand.
-     */
-    void addPieceHand(piece p){
-        inHandPiece.insert(p);
-    }
-
-
-    
 };

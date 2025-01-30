@@ -17,12 +17,12 @@ class position{
 
     vector<position> neighbor();
 
-    position applayMove(Direction d);
+    position applayMove(direction d);
 };
 
 position NULL_POSITION(10000,10000);
 
-Direction getMovementDirection(position f, position t);
+direction getMovementDirection(position f, position t);
 
 bool operator==(const position &p1,const position& p2);
 
