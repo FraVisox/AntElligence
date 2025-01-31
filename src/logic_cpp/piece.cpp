@@ -83,7 +83,7 @@ piece::piece(int eqVal){
  */
 string piece::toString() const{
     stringstream ss; 
-    ss << ColorToString(col) << BugTypeToString(kind) << (numIncr==0?(""):(""+numIncr));
+    ss << ColorToString(col) << BugTypeToString(kind) << (numIncr==0?(""):(to_string(numIncr)));
     return ss.str();
 }
 

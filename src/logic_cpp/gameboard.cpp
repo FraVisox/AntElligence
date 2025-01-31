@@ -107,6 +107,8 @@
         case MOVEMENT:
             pos = calcPosition(a.otherBug, a.relativeDir);
             break;
+        case PASS:
+            return;
         }
         piece b = a.bug;
         at(pos)->push(b);

@@ -32,8 +32,8 @@ string nameDirToString(string name, direction dir){
         case UP_LEFT: return "\\"+name;
         case UP_RIGHT: return name+"/";
         case OVER: return name;
+        default: return "";
     }
-    return "";
 }
 
 

@@ -95,7 +95,7 @@ action parseAction(string s){
         return pass();
     }
     int end = s.find(' ');
-    if (end == string::npos) {
+    if ( (long long unsigned int) end == string::npos) {
         return placeFirst(piece(s));
     }
     string first = s.substr(0, end);
@@ -121,7 +121,8 @@ action parseAction(string s){
 string MovementToString(action a){
     stringstream ss;
     ss << a.bug.toString();
-    //ss << nameDirToString(a.otherBug.toString(), a.relativeDir);
+    ss << " ";
+    ss << nameDirToString(a.otherBug.toString(), a.relativeDir);
     return ss.str();
 }
 

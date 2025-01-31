@@ -34,12 +34,16 @@ Board::Board(){
     string Board::toString() {
         try {
             stringstream ss;
-            ss << state << ";" 
-            << currentTurn << ";"
+            ss << GameTypeToString(type) << ";";
+            ss << GameStateToString(state) << ";" 
             << (currentTurn % 2 == 1 ? "White[" : "Black[")
             << (currentTurn / 2 + 1) << "]";
+
+            for (action move : moves) {
+                ss << ";";
+                ss << ActionToString(move);
+            }
             
-            // Add other board state information...
             
             return ss.str();
         }   
@@ -176,7 +180,7 @@ Board::Board(){
      * :raises ValueError: If the game has yet to begin.
      */
     void Board::undo(int amount) {
-        if (moves.size() <= amount) {
+        if (moves.size() <= (long long unsigned int) amount) {
             reset();
             return;
         }
@@ -221,10 +225,11 @@ Board::Board(){
      *
      * @return A vector of all possible moves for the current player.
      */
-    vector<action> Board::possibleMoves(){
+    vector<action> Board::possibleMoves(){ //TODO: sbagliato il posizionamento, si ripete molte volte lo stesso
         vector<action> res;
 
         // 1 if turn == 1, then place something that is not the queen
+        vector<piece> canBePlaced = vector<piece>();
         if(currentTurn==1){
             for(piece b:inHandPiece){
                 if(b.col==currentColor() && b.kind != QUEEN) {

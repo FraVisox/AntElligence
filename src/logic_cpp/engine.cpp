@@ -38,6 +38,7 @@ EXPORT int startGame(char* s) {
         raise_exception();
         return 1;
     }
+    s += 4;
 
     for(PlayerColor col : {BLACK,WHITE}){
         b.addPieceHand(piece{QUEEN,col,0});
@@ -57,18 +58,34 @@ EXPORT int startGame(char* s) {
             b.addPieceHand(piece{MOSQUITO,BLACK,0});
             b.addPieceHand(piece{MOSQUITO,WHITE,0});
             s++;
+            b.type = Base_M;
         }
         if (*s == 'L') {
             b.addPieceHand(piece{LADYBUG,BLACK,0});
             b.addPieceHand(piece{LADYBUG,WHITE,0});
             s++;
+            if (b.type == Base_M) {
+                b.type = Base_ML;
+            } else {
+                b.type = Base_L;
+            }
         }
         if (*s == 'P') {
             b.addPieceHand(piece{PILLBUG,BLACK,0});
             b.addPieceHand(piece{PILLBUG,WHITE,0});
             s++;
+            if (b.type == Base_M) {
+                b.type = Base_MP;
+            } else if (b.type == Base_L) {
+                b.type = Base_LP;
+            } else if (b.type == Base_ML) {
+                b.type = Base_MLP;
+            } else {
+                b.type = Base_P;
+            }
         } 
     }
+
 
 
     //GameString
@@ -176,10 +193,10 @@ EXPORT char* validMoves() {
         
         int i = 0;
         for(const action& move : moves) {
-            string item = MovementToString(move);
+            string item = ActionToString(move);
             int len = item.size();
             // Check buffer bounds
-            if (i + len + 1 >= sizeof(BUFFER)) {
+            if ( (long long unsigned int) i + len + 1 >= sizeof(BUFFER)) {
                 // Buffer overflow protection
                 BUFFER[0] = '\0';
                 return BUFFER;

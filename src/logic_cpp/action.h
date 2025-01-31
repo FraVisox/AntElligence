@@ -37,8 +37,6 @@ action pass();
 
 action parseAction(string s);
 
-string MovementToString(action a);
-
 string ActionToString(action a);
 
 #endif
