@@ -141,6 +141,9 @@ class gameboard{
     //Use it only after canSlideFree
     pair<piece, direction> getRelativePositionIfCanMove(position to, position from, bool canOver);
 
+    //Only for ant and spider
+    pair<piece, direction> getSlidingMoveAtLevel1(position to, position from);
+
     /**
      * \brief Get the top piece at a given position.
      *

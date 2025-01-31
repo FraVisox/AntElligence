@@ -102,10 +102,6 @@ playMove("wQ -wP")
 
 playMove("bQ bP-")
 
-playMove("wB1 wQ/")
+playMove("wS1 wQ/")
 
-playMove("bB1 bQ-")
-
-playMove("wB1 wP")
-
-playMove("bB1 bQ")
+playMove("bA1 bQ-")

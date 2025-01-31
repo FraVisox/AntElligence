@@ -450,7 +450,7 @@ void Board::possibleMoves_Grasshopper(piece bug,vector<action> &res){
  * \param bug The Soldier Ant bug piece for which to generate moves.
  * \param res The vector to store the resulting actions/moves.
  */
-void Board::possibleMoves_SoldierAnt(piece bug, vector<action> & res){
+void Board::possibleMoves_SoldierAnt(piece bug, vector<action> & res){ //TODO: bug
     if (G.canPieceMove(bug,currentTurn)) {
 
         unordered_set<position> inQueue;
@@ -467,7 +467,7 @@ void Board::possibleMoves_SoldierAnt(piece bug, vector<action> & res){
             for(auto n:f.neighbor()){
                 if(inQueue.count(n)) 
                     continue;
-                pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(n, f, false);
+                pair<piece,direction> relativeDir = G.getSlidingMoveAtLevel1(n, f);
                 if (relativeDir.second != INVALID) {
                     res.push_back(movement(bug,relativeDir.first,relativeDir.second));
                     q.push(n);
@@ -503,14 +503,17 @@ void Board::possibleMoves_Spider(piece bug, vector<action> & res){ //TODO: bug
             pair<position,int> PI = q.front();
             q.pop();
             position f=PI.first;
+            cout << "Current position: " << f.first << " " << f.second << " and d=" << PI.second << endl;
             int d = PI.second;
             for(auto n:f.neighbor()){
                 if(inQueue.count(n)) 
                     continue;
-                pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(n, f, false);
+                pair<piece,direction> relativeDir = G.getSlidingMoveAtLevel1(n, f);
                 if (relativeDir.second != INVALID) {
-                    if(d==3)
+                    if(d==2) {
+                        cout << "Added to the moves the position " << relativeDir.first.toString() << relativeDir.second << endl;
                         res.push_back(movement(bug,relativeDir.first,relativeDir.second));
+                    }
                     else{
                         q.push(make_pair(n,d+1));
                         inQueue.insert(n);

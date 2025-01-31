@@ -97,10 +97,6 @@ void gameboard::removePiece(piece b){
  * \param a The action containing the info to add the piece.
  */
 void gameboard::addPiece(action a){
-    cout << "Bug positions: " << endl;
-    for (pair<piece, position> pair : bugPosition) {
-        cout << pair.first.toString() << " at " << pair.second.first << " " << pair.second.second << endl;
-    }
     position pos;
     switch (a.actType) {
         case PLACEFIRST:
@@ -113,14 +109,8 @@ void gameboard::addPiece(action a){
         case PASS:
             return;
     }
-    cout << "Adding " << a.bug.toString() << " at " << pos.first << " " << pos.second << endl;
     piece b = a.bug;
     addPiece(pos, b);
-    cout << "Bug positions: " << endl;
-    for (pair<piece, position> pair : bugPosition) {
-        cout << pair.first.toString() << " at " << pair.second.first << " " << pair.second.second << endl;
-    }
-    cout << "Stack at 0 0 : " << at(position{0,0})->size() << endl;
 }
 
 
@@ -173,7 +163,6 @@ bool gameboard::isTop(piece bug){
  * \return true if the bug can move on the given turn, false otherwise.
  */
 bool gameboard::canPieceMove(piece b,int turn){
-    cout << isTop(b) << " " << isAtLevel1(getPosition(b)) << " " << " " << canMoveWithoutBreakingHiveRule(b,turn) << endl;
     return (isTop(b) && (!isAtLevel1(getPosition(b)) || canMoveWithoutBreakingHiveRule(b,turn)));
 }
 
@@ -259,6 +248,20 @@ pair<piece, direction> gameboard::getRelativePositionIfCanMove(position to, posi
     }
     return {INVALID_PIECE, INVALID};
 }
+
+pair<piece, direction> gameboard::getSlidingMoveAtLevel1(position to, position from) {
+    if(isFree(to) && isNear(from, to)){
+        vector<position> v= nearBoth(from,to);
+        position p1=v[0], p2=v[1];
+        //If both are at an higher level than this one, we can't move
+        if(isFree(p1) && !isFree(p2)) //I slide around p2
+            return {at(p2)->top(), getMovementDirection(p2, to)};
+        else if(!isFree(p1) && isFree(p2)) //I slide around p1
+            return {at(p1)->top(), getMovementDirection(p1, to)};
+    }
+    return {INVALID_PIECE, INVALID};
+}
+
 
 /**
  * \brief Get the occupied neighboring positions.
