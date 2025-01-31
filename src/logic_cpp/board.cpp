@@ -102,6 +102,8 @@ bool Board::executeAction(string s){
 
     action a = parseAction(s, inHandPiece);
 
+    cout << "Action: " << ActionToString(a) << " of type " << a.actType << endl;
+
     //The move is represented as a Movestring (wS1 -wA1) or as "pass"
 
     if (state == STARTED)
@@ -138,6 +140,7 @@ bool Board::executeAction(string s){
     }
     currentTurn++;
 
+    cout << "-------------------" << endl;
     return checkWin();
 }
 
@@ -291,7 +294,6 @@ vector<action> Board::possibleMoves(){
 
     // 5- moves
     if(placedQueen()){
-        cout << "Placed queen, searching between moves: " << endl;
         piece mosq = INVALID_PIECE;
         piece pillb = INVALID_PIECE;
         for(piece b:placedBug){
@@ -383,7 +385,7 @@ void Board::possibleMovesBug(piece b, vector<action> &res){
 void Board::possibleMoves_Queen(piece bug, vector<action> &res){
     if (G.canPieceMove(bug,currentTurn)) {
         for(position dest: G.getPosition(bug).neighbor()){
-            pair<piece,direction> relativeDir = G.getNearNeighbor(dest, G.getPosition(bug), false);
+            pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(dest, G.getPosition(bug), false);
             if (relativeDir.second != INVALID) {
                 res.push_back(movement(bug,relativeDir.first,relativeDir.second));
             }
@@ -403,7 +405,7 @@ void Board::possibleMoves_Queen(piece bug, vector<action> &res){
 void Board::possibleMoves_Beetle(piece bug,vector<action> &res){
     if (G.canPieceMove(bug,currentTurn)) {
         for(position dest:G.getPosition(bug).neighbor()){
-            pair<piece,direction> relativeDir = G.getNearNeighbor(dest, G.getPosition(bug), true);
+            pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(dest, G.getPosition(bug), true);
             if (relativeDir.second != INVALID) {
                 res.push_back(movement(bug,relativeDir.first,relativeDir.second));
             }
@@ -464,7 +466,7 @@ void Board::possibleMoves_SoldierAnt(piece bug, vector<action> & res){
             for(auto n:f.neighbor()){
                 if(inQueue.count(n)) 
                     continue;
-                pair<piece,direction> relativeDir = G.getNearNeighbor(n, f, false);
+                pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(n, f, false);
                 if (relativeDir.second != INVALID) {
                     res.push_back(movement(bug,relativeDir.first,relativeDir.second));
                     q.push(n);
@@ -504,7 +506,7 @@ void Board::possibleMoves_Spider(piece bug, vector<action> & res){ //TODO: bug
             for(auto n:f.neighbor()){
                 if(inQueue.count(n)) 
                     continue;
-                pair<piece,direction> relativeDir = G.getNearNeighbor(n, f, false);
+                pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(n, f, false);
                 if (relativeDir.second != INVALID) {
                     if(d==3)
                         res.push_back(movement(bug,relativeDir.first,relativeDir.second));
@@ -548,7 +550,7 @@ void Board::possibleMoves_Pillbug(piece bug, vector<action> &res){
     // The pillbug can move as a queen. Check if the move is already present as the pillbug could be moved by the mosquito.
     if (G.canPieceMove(bug,currentTurn)) {
         for(position dest: G.getPosition(bug).neighbor()){
-            pair<piece,direction> relativeDir = G.getNearNeighbor(dest, G.getPosition(bug), false);
+            pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(dest, G.getPosition(bug), false);
             if (relativeDir.second != INVALID ) {//&& find(res.begin(), res.end(), movement(bug, relativeDir.first, relativeDir.second)) == res.end()){ todo
                 res.push_back(movement(bug,relativeDir.first,relativeDir.second));
             }
@@ -557,35 +559,42 @@ void Board::possibleMoves_Pillbug(piece bug, vector<action> &res){
 
     // Or it makes other adjacent pieces (even of the opponent) move //TODO: bug, for some reason not all free positions are checked
     piece bugs_to_move[6];
-    direction places_to_move[6];
+    position places_to_move[6];
     int i = 0;
     int j = 0;
     for(position dest: G.getPosition(bug).neighbor()){
         if(!G.isFree(dest) && G.isAtLevel1(dest)){
             piece possible_piece = G.topPiece(dest);
             if (G.canMoveWithoutBreakingHiveRule(possible_piece, currentTurn)){
-                pair<piece,direction> relativeDir = G.getNearNeighbor(G.getPosition(bug), dest, true);
+                //If valid, this piece can be moved over the pillbug
+                pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(G.getPosition(bug), dest, true);
                 if (relativeDir.second != INVALID) {
                     bugs_to_move[i] = possible_piece;
                     i++;
                 }
             }
         } else if (G.isFree(dest)){
-            pair<piece,direction> relativeDir = G.getNearNeighbor(dest, G.getPosition(bug), true, 0);
-            if (relativeDir.second != INVALID) {
-                places_to_move[j] = getMovementDirection(G.getPosition(bug), dest);
-                j++;
-            }
+            places_to_move[j] = dest;
+            j++;
         }
     }
     if (i > 0 && j > 0){
         for(int k = 0; k < i; k++){
+            piece to_move = bugs_to_move[k];
+            position old = G.getPosition(to_move);
+            G.removePiece(to_move);
+            G.addPiece(G.getPosition(bug), to_move); //already checked this can be done
             for (int l = 0; l < j; l++){
-                piece to_move = bugs_to_move[k];
+                pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(places_to_move[l], G.getPosition(bug), false);
+                if (relativeDir.second != INVALID) {
+                    res.push_back(movement(to_move, relativeDir.first, relativeDir.second));
+                }
                 //Check if this movement is already inside of the vector
                 //if (find(res.begin(), res.end(), movement(to_move, bug, places_to_move[l])) == res.end()) TODO
-                    res.push_back(movement(to_move, bug, places_to_move[l]));
             }
+            G.removePiece(to_move);
+            G.addPiece(old, to_move);
+
         }
     }
 }
@@ -643,7 +652,7 @@ void Board::possibleMoves_Ladybug(piece bug,vector<action> &res){
         vector<pair<position,int>> queue; 
         for(position dest: G.getPosition(bug).neighbor()){
             if(!G.isFree(dest)){
-                pair<piece,direction> relativeDir = G.getNearNeighbor(dest, G.getPosition(bug), true);
+                pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(dest, G.getPosition(bug), true);
                 if (relativeDir.second != INVALID) {
                     queue.push_back(make_pair(dest, 1));
                 }
@@ -662,7 +671,7 @@ void Board::possibleMoves_Ladybug(piece bug,vector<action> &res){
                     continue;
                 seen.insert(n);
 
-                pair<piece,direction> relativeDir = G.getNearNeighbor(n, f, true);
+                pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(n, f, true);
                 if (relativeDir.second != INVALID && G.isAtLevel1(G.getPosition(relativeDir.first).applayMove(relativeDir.second))) {
                     res.push_back(movement(bug, relativeDir.first, relativeDir.second));
                 } else if (relativeDir.second != INVALID && d == 1) {

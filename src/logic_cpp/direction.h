@@ -18,7 +18,7 @@ enum direction{
 
 extern direction allDirections[6];
 
-extern pair<int,int> movementCircleClockwise[6];
+extern pair<int,int> movementCircleClockwise[7];
 
 
 /**

@@ -136,10 +136,10 @@ class gameboard{
      * \param to The position the bug would like to slide to.
      * \return true if the bug can slide to the given position for free, false otherwise.
      */
-    bool canSlideFree(position from, position to);
+    bool canHorizontalSlide(position from, position to);
 
     //Use it only after canSlideFree
-    pair<piece, direction> getNearNeighbor(position to, position from, bool canOver, int howMuchOverFrom = 0);
+    pair<piece, direction> getRelativePositionIfCanMove(position to, position from, bool canOver);
 
     /**
      * \brief Get the top piece at a given position.
