@@ -39,6 +39,15 @@ class EngineDLL:
 
     def play_move(self, move_string):
         """Play a move in the current game"""
+
+
+
+        #Bug_REGEX = f"({"|".join(COLORS.keys())})({"|".join(BugType)})(1|2|3)?"
+
+
+        # TODO: make a regex to check the string passed
+        #Move_REGEX = f"({Bug.REGEX})( ?({"|".join(f"\\{d}" for d in Direction.flat_left())})?({Bug.REGEX})({"|".join(f"\\{d}" for d in Direction.flat_right())})?)?"
+
         encoded_string = move_string.encode("utf-8")
         return self.dll.playMove(encoded_string)
 
@@ -80,3 +89,19 @@ playMove = engine.play_move
 getValidMoves = engine.get_valid_moves
 getBoard = engine.get_board
 undo = engine.undo
+
+startGame("Base+MLP")
+
+print(getBoard())
+
+playMove("wP")
+
+playMove("bP wP-")
+
+playMove("wQ -wP")
+
+playMove("bQ bP-")
+
+playMove("wS1 wQ/")
+
+playMove("bA1 bQ-")

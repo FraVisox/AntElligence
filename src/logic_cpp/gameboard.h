@@ -139,7 +139,7 @@ class gameboard{
     bool canSlideFree(position from, position to);
 
     //Use it only after canSlideFree
-    pair<piece, direction> getNearNeighbor(position to, position from, bool canOver);
+    pair<piece, direction> getNearNeighbor(position to, position from, bool canOver, int howMuchOverFrom = 0);
 
     /**
      * \brief Get the top piece at a given position.

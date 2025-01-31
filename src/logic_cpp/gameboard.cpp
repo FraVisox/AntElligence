@@ -1,4 +1,5 @@
 #include "gameboard.h"
+#include <iostream>
 
 
     /**
@@ -155,7 +156,7 @@
      * \return true if the bug can move on the given turn, false otherwise.
      */
     bool gameboard::canPieceMove(piece b,int turn){
-        return (isTop(b) && canMoveWithoutBreakingHiveRule(b,turn));
+        return (isTop(b) && canMoveWithoutBreakingHiveRule(b,turn) == 0);
     }
 
     /**
@@ -186,7 +187,7 @@
 
 
     //Use it only after canSlideFree
-    pair<piece, direction> gameboard::getNearNeighbor(position to, position from, bool canOver){
+    pair<piece, direction> gameboard::getNearNeighbor(position to, position from, bool canOver, int howMuchOverFrom){
         if(canSlideFree(from,to)){
             if (at(from)->size() > 1) { //If I'm over, I simply go over the other piece
                 return {at(to)->top(), OVER};
@@ -197,10 +198,10 @@
                 return {at(p2)->top(), getMovementDirection(p2, to)};
             else if(!isFree(p1) && isFree(p2)) //I slide around p1
                 return {at(p1)->top(), getMovementDirection(p1, to)};
-        } else if (canOver && at(to)->size() >= at(from)->size() && isNear(to, from)) {
+        } else if (canOver && (at(to)->size() >= at(from)->size() + howMuchOverFrom) && isNear(to, from)) {
             vector<position> v= nearBoth(from,to);
             position p1=v[0], p2=v[1];
-            if(at(p1)->size() < at(from)->size() || at(p2)->size() < at(from)->size()) {
+            if(at(p1)->size() < (at(from)->size()+ howMuchOverFrom) || at(p2)->size() < (at(from)->size()+ howMuchOverFrom)) {
                 return {at(to)->top(), OVER};
             }
         }
@@ -305,15 +306,22 @@
      * \return true if the bug is part of the hive, false otherwise.
      */
     bool gameboard::canMoveWithoutBreakingHiveRule(piece b,int turn){
-        if(getPosition(b)==NULL_POSITION)
+        if(getPosition(b)==NULL_POSITION) //No position
             return true;
         //If there is a bug under this one
         if(at(getPosition(b))->size()>2) 
             return true;
+
+        cout << "CHECKING FOR POSITION: " << getPosition(b).first << " " << getPosition(b).second << endl;
         //Update cache
         if(turn != lastUpdateTurn){
+            cout << "Refreshing cache" << endl;
             lastUpdateTurn = turn;
             find_articulation();
         }
-        return not_movable_position.count(getPosition(b));
+        cout << "Articulation points: " << endl;
+        for(auto p:not_movable_position){
+            cout << p.first << " " << p.second << endl;
+        }
+        return not_movable_position.count(getPosition(b)) == 0;
     }
