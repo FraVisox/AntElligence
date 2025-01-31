@@ -44,7 +44,7 @@ class EngineDLL:
         if not isinstance(game_string, str):
             raise TypeError("game_string must be a string")
         try:
-            encoded_string = game_string.encode(self.encoding)
+            encoded_string = game_string.encode("utf-8")
             return self.dll.startGame(encoded_string)
         except UnicodeEncodeError as e:
             print(f"Encoding error: {e}")
@@ -55,25 +55,19 @@ class EngineDLL:
         """Play a move in the current game"""
         if not isinstance(move_string, str):
             raise TypeError("move_string must be a string")
-        encoded_string = move_string.encode(self.encoding)
+        encoded_string = move_string.encode("utf-8")
         return self.dll.playMove(encoded_string)
 
     def get_valid_moves(self):
         """Get list of valid moves with debug info"""
-        print("Calling validMoves()...")
         try:
             result = self.dll.validMoves()
-            print(f"Got result pointer: {result}")
             if result:
                 raw_bytes = ctypes.string_at(result)
-                print(f"Raw bytes length: {len(raw_bytes)}")
-                print(f"Raw bytes: {[hex(b) for b in raw_bytes[:20]]}")  # First 20 bytes
                 try:
-                    decoded = raw_bytes.decode(self.encoding)
-                    print(f"Decoded string (first 50 chars): {decoded[:50]}")
+                    decoded = raw_bytes.decode("utf-8")
                     return decoded
                 except UnicodeDecodeError as e:
-                    print(f"Decode error: {e}")
                     return raw_bytes.decode('ascii', errors='replace')
         except Exception as e:
             print(f"Error in get_valid_moves: {e}")

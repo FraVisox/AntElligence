@@ -169,17 +169,6 @@ EXPORT char* validMoves() {
     try {
         vector<action> moves = b.possibleMoves();
 
-        std::cout << "C++ possible moves:" << endl;
-        for(const action& move : moves) {
-            std::cout << MovementToString(move) << endl;
-        }
-
-        strcpy(BUFFER, "pass");
-        return BUFFER;
-        
-        /*
-        vector<action> moves = b.possibleMoves();
-
         if (moves.size() == 0) {
             strcpy(BUFFER, "pass");
             return BUFFER;
@@ -204,7 +193,6 @@ EXPORT char* validMoves() {
         // Replace last semicolon with null terminator
         BUFFER[i-1] = '\0';
         return BUFFER;
-        */
     }
     catch (const std::exception&) {
         BUFFER[0] = '\0';
@@ -217,8 +205,8 @@ EXPORT const char* getBoard() {
     
     try {
         // First test with a simple static string
-        const char* test = "Test;String;White[1]";
-        strcpy(BUFFER, test);
+        string test = b.toString();
+        strcpy(BUFFER, test.c_str());
         return BUFFER;
     }
     catch (const std::exception&) {

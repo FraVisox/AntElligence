@@ -1,5 +1,6 @@
 #include <string>
 #include "piece.h"
+#include <sstream>
 using namespace std;
 
 piece INVALID_PIECE(-1);
@@ -81,7 +82,9 @@ piece::piece(int eqVal){
  * @return The string representation of the piece.
  */
 string piece::toString() const{
-    return ColorToString(col)+BugTypeToString(kind)+(numIncr==0?(""):(""+numIncr));
+    stringstream ss; 
+    ss << ColorToString(col) << BugTypeToString(kind) << (numIncr==0?(""):(""+numIncr));
+    return ss.str();
 }
 
 /**

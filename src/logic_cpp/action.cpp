@@ -1,4 +1,6 @@
 #include "action.h"
+#include <sstream>
+#include <iostream>
 
 /**
  * \brief Constructs a movement action given a piece to move, another piece to which the moved piece is relative, and a direction.
@@ -117,8 +119,10 @@ action parseAction(string s){
  * \return A string representation of the action object.
  */
 string MovementToString(action a){
-    string s = a.bug.toString()+nameDirToString(a.otherBug.toString(), a.relativeDir);
-    return s;
+    stringstream ss;
+    ss << a.bug.toString();
+    //ss << nameDirToString(a.otherBug.toString(), a.relativeDir);
+    return ss.str();
 }
 
 
