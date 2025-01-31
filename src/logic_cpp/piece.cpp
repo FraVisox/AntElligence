@@ -131,3 +131,8 @@ bool operator!=(const piece& p1,const piece &p){
     return !(p1==p);
 }
 
+piece extractPiece(string s){
+    if(s[0]=='-' || s[0]=='/' || s[0]=='\\') return piece(s.substr(1));
+    if(s.find("-", 1) || s.find("\\", 1) || s.find("/", 1)) return piece(s.substr(0,2));
+    return piece(s);
+}

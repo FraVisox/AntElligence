@@ -86,6 +86,8 @@ EXPORT int startGame(char* s) {
         } 
     }
 
+    b.state = STARTED;
+
 
 
     //GameString
@@ -151,7 +153,7 @@ EXPORT int startGame(char* s) {
                 ret = true;
             }
             *s = 0;
-            b.executeAction(parseAction(move));
+            b.executeAction(move);
             if (ret) {
                 break;
             }
@@ -168,7 +170,7 @@ EXPORT int startGame(char* s) {
 }
 
 EXPORT int playMove(char* m) {
-    if(b.executeAction(parseAction(m))) {
+    if(b.executeAction(m)) {
         if (b.state == DRAW) {
             return 1;
         } else if (b.state == WHITE_WIN){
@@ -185,6 +187,14 @@ static char BUFFER[100000];  // Buffer used both for validMoves and getBoard
 EXPORT char* validMoves() {
     try {
         vector<action> moves = b.possibleMoves();
+
+        if (b.state == NOT_STARTED) {
+            strcpy(BUFFER, "err: The game has not started yet");
+            return BUFFER;
+        } else if (b.state != IN_PROGRESS && b.state != STARTED) {
+            strcpy(BUFFER, "err: The game is over");
+            return BUFFER;
+        }
 
         if (moves.size() == 0) {
             strcpy(BUFFER, "pass");

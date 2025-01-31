@@ -90,7 +90,7 @@ action pass(){
  * \return An action object constructed from the string details.
  */
 
-action parseAction(string s){
+action parseAction(string s, const unordered_set<piece>& inHandPiece){
     if (s == "pass") {
         return pass();
     }
@@ -100,8 +100,10 @@ action parseAction(string s){
     }
     string first = s.substr(0, end);
     string second = s.substr(end + 1);
-    action a = movement(piece(first), piece(second), extractDirection(second));
-    return a;
+    if (inHandPiece.find(piece(first)) != inHandPiece.end()) {
+        return placePiece(piece(first), extractPiece(second), extractDirection(second));
+    }
+    return movement(piece(first), piece(second), extractDirection(second));
 }
 
 

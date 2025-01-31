@@ -46,6 +46,7 @@ PlayerColor parseColor(string s){
 string GameStateToString(GameState gs){
     switch (gs)
     {
+        case STARTED:
         case NOT_STARTED:
             return "NotStarted";
         case IN_PROGRESS:

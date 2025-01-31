@@ -1,4 +1,5 @@
 #include "board.h"
+#include <iostream>
 
 Board::Board(){ 
     reset();
@@ -37,7 +38,7 @@ Board::Board(){
             ss << GameTypeToString(type) << ";";
             ss << GameStateToString(state) << ";" 
             << (currentTurn % 2 == 1 ? "White[" : "Black[")
-            << (currentTurn / 2 + 1) << "]";
+            << currentPlayerTurn() << "]";
 
             for (action move : moves) {
                 ss << ";";
@@ -71,7 +72,7 @@ Board::Board(){
      * @see currentColor
      */
     int Board::currentPlayerTurn(){
-        return 1+currentTurn/2;
+        return (currentTurn-1)/2+1;
     }
 
     
@@ -96,13 +97,18 @@ Board::Board(){
      *
      * \param a The action to be executed.
      */
-    bool Board::executeAction(action a){
+    bool Board::executeAction(string s){
+
+        action a = parseAction(s, inHandPiece);
 
         //The move is represented as a Movestring (wS1 -wA1) or as "pass"
 
-        if (state == NOT_STARTED) 
+        if (state == STARTED)
             state = IN_PROGRESS;
-        switch (a.actType) {
+        else if (state != IN_PROGRESS) {
+            return false; //TODO: Add error message to explain no move can be made
+        }
+        switch (a.actType) { //TODO: check if the move is valid
             case MOVEMENT:
                 a.startingPos = G.getPosition(a.bug);
                 G.addPiece(a);
@@ -115,7 +121,7 @@ Board::Board(){
                 inHandPiece.extract(a.bug);
                 if(a.bug.kind==QUEEN){
                     if(currentColor()==WHITE)isPlacedWQ=true;
-                    if(currentColor()==BLACK)isPlacedWQ=true;
+                    if(currentColor()==BLACK)isPlacedBQ=true;
                 }
                 moves.push_back(a);
                 break;
@@ -273,6 +279,9 @@ Board::Board(){
         if(toPlace){
             auto positions=G.validPositionPlaceNew(currentColor());
             for(auto p:inHandCol) {
+                if (p == INVALID_PIECE) {
+                    continue;
+                }
                 for(auto pos : positions){
                     res.push_back(placePiece(p, pos.first, pos.second));
                 }
@@ -281,14 +290,15 @@ Board::Board(){
 
         // 5- moves
         if(placedQueen()){
+            cout << "Placed queen, searching between moves: " << endl;
             piece mosq;
             piece pillb;
             for(piece b:placedBug){
                 if (b.kind != PILLBUG && b.kind != MOSQUITO){ 
                     possibleMovesBug(b,res);
-                } else if (b.kind == MOSQUITO){
+                } else if (b.kind == MOSQUITO && b.col == currentColor()){
                     mosq=b;
-                } else {
+                } else if (b.col == currentColor()) {
                     pillb=b;
                 }
             }
@@ -297,7 +307,6 @@ Board::Board(){
             possibleMovesBug(pillb,res);
         }
         return res;
-    
     }
 
     
@@ -327,10 +336,12 @@ Board::Board(){
      */
 
     void Board::possibleMovesBug(piece b, vector<action> &res){
+        cout << "Searching between the moves of " << b.toString() << endl;
+        int current = res.size();
         if(b.col==currentColor() && G.canPieceMove(b,currentTurn)){ // turn is required to make the program efficent
             switch(b.kind){
                 case BEETLE:
-                    possibleMoves_Beetle(b,res);
+                    possibleMoves_Beetle(b,res); //TODO: FORSE NON FUNZIA ARTICULATION POINT
                     break;
                 case QUEEN:
                     possibleMoves_Queen(b,res);
@@ -355,6 +366,7 @@ Board::Board(){
                     break;
             }
         }
+        cout << "Generated " << res.size()-current << " moves for " << b.toString() << endl;
     }
 
 
@@ -366,7 +378,7 @@ Board::Board(){
      * \param bug The Queen bug piece for which to generate moves.
      * \param res The vector to store the resulting actions/moves.
      */
-    void Board::possibleMoves_Queen(piece bug,vector<action> &res){
+    void Board::possibleMoves_Queen(piece bug,vector<action> &res){ //TODO: not working
         for(position dest: G.getPosition(bug).neighbor()){
             pair<piece,direction> relativeDir = G.getNearNeighbor(dest, G.getPosition(bug), false);
             if (relativeDir.second != INVALID) {

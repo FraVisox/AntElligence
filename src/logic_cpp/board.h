@@ -86,7 +86,7 @@ class Board {
      *
      * \param a The action to be executed.
      */
-    bool executeAction(action a);
+    bool executeAction(string s);
 
     bool checkWin();
 

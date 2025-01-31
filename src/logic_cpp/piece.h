@@ -19,6 +19,9 @@ class piece{
 
 extern piece INVALID_PIECE;
 
+piece extractPiece(string s);
+
+
 template<>
 struct std::hash<piece>
 {

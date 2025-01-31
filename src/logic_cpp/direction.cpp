@@ -93,9 +93,9 @@ pair<int,int> associatedDifference(direction d){
 direction extractDirection(string s){
     if(s[0]=='-') return LEFT;
     if(s[0]=='/') return DOWN_LEFT;
-    if(s[0]=='/') return UP_LEFT;
-    if(s.find("-", 1)) return RIGHT;
-    if(s.find("\\", 1)) return DOWN_RIGHT;
-    if(s.find("/", 1)) return UP_RIGHT;
+    if(s[0]=='\\') return UP_LEFT;
+    if(s.find("-", 1) != string::npos) return RIGHT;
+    if(s.find("\\", 1) != string::npos) return DOWN_RIGHT;
+    if(s.find("/", 1) != string::npos) return UP_RIGHT;
     return OVER;
 }

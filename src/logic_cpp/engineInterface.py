@@ -5,22 +5,8 @@ import os
 import sys
 import locale
 
-def get_system_encoding():
-    """Get the appropriate encoding for the Windows system"""
-    import subprocess
-    try:
-        # Get the active code page
-        result = subprocess.run('chcp', capture_output=True, shell=True, text=True)
-        code_page = result.stdout.strip().split(':')[-1].strip()
-        return f'cp{code_page}'
-    except:
-        # Fallback to default encoding
-        return locale.getpreferredencoding()
-
 class EngineDLL:
     def __init__(self):
-        self.encoding = get_system_encoding()
-        print(f"Using encoding: {self.encoding}")
         path = os.path.join(os.getcwd(), "engine.dll")
         self.dll = ctypes.CDLL(path)
         self._setup_functions()
@@ -53,8 +39,6 @@ class EngineDLL:
 
     def play_move(self, move_string):
         """Play a move in the current game"""
-        if not isinstance(move_string, str):
-            raise TypeError("move_string must be a string")
         encoded_string = move_string.encode("utf-8")
         return self.dll.playMove(encoded_string)
 
@@ -96,19 +80,3 @@ playMove = engine.play_move
 getValidMoves = engine.get_valid_moves
 getBoard = engine.get_board
 undo = engine.undo
-
-import engineInterface
-# Test script
-try:
-    # Test with different encodings
-    engineInterface.startGame("Base+MLP")
-    print("Game started successfully!")
-    
-    board = engineInterface.getBoard()
-    print("Current board:", board)
-    
-    moves = engineInterface.getValidMoves()
-    print("Valid moves:", moves)
-    
-except Exception as e:
-    print(f"Error: {e}")

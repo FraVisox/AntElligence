@@ -3,6 +3,7 @@
 
 #include "position.h"
 #include "piece.h"
+#include <unordered_set>
 
 using namespace std;
 
@@ -35,7 +36,7 @@ action placeFirst(piece p);
 
 action pass();
 
-action parseAction(string s);
+action parseAction(string s, const unordered_set<piece>& inHandPiece);
 
 string ActionToString(action a);
 

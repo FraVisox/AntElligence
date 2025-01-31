@@ -35,6 +35,7 @@ PlayerColor parseColor(string s);
 
 enum GameState{
     NOT_STARTED,
+    STARTED,
     IN_PROGRESS,
     DRAW,
     WHITE_WIN,
