@@ -225,24 +225,23 @@ Board::Board(){
      *
      * @return A vector of all possible moves for the current player.
      */
-    vector<action> Board::possibleMoves(){ //TODO: sbagliato il posizionamento, si ripete molte volte lo stesso
+    vector<action> Board::possibleMoves(){
         vector<action> res;
 
-        // 1 if turn == 1, then place something that is not the queen
-        vector<piece> canBePlaced = vector<piece>();
+        // 1 If turn == 1, then place something that is not the queen
         if(currentTurn==1){
             for(piece b:inHandPiece){
-                if(b.col==currentColor() && b.kind != QUEEN) {
+                if(b.col==currentColor() && b.kind != QUEEN && (b.numIncr == 0 || b.numIncr == 1)) {
                     res.push_back(placeFirst(b));
                 }
             }
             return res;
         }
 
-        // 2 if turn == 2 , then place something near white;
+        // 2 If turn == 2 , then place something near white;
         if(currentTurn == 2){
             for(piece b: inHandPiece){
-                if(b.col==currentColor() && b.kind != QUEEN){
+                if(b.col==currentColor() && b.kind != QUEEN && (b.numIncr == 0 || b.numIncr == 1)){
                     for(direction dir : allDirections){
                         res.push_back(placePiece(b, placedBug[0], dir));
                     }
@@ -251,7 +250,7 @@ Board::Board(){
             return res;
         }
 
-        // 3 - if i didn't place the queen after turn 3
+        // 3 - If i didn't place the queen after turn 3, it's the only move
         if(!placedQueen() && currentPlayerTurn()>3){
             auto positions = G.validPositionPlaceNew(currentColor());
             for(auto pos: positions){
@@ -260,18 +259,22 @@ Board::Board(){
             return res;
         }
         
-        // 4 - pieces in our hand
-        vector<piece> inHandCol;
+        // 4 - Place pieces in our hand
+        piece inHandCol[8] = {INVALID_PIECE,INVALID_PIECE,INVALID_PIECE,INVALID_PIECE,INVALID_PIECE,INVALID_PIECE,INVALID_PIECE,INVALID_PIECE};
+        bool toPlace = false;
         for(auto p : inHandPiece){
             if(p.col==currentColor()){
-                inHandCol.push_back(p);
+                if (inHandCol[p.kind] == INVALID_PIECE || inHandCol[p.kind].numIncr > p.numIncr){ 
+                    inHandCol[p.kind] = p;
+                    toPlace = true;
+                }
             }
         }
-        if(inHandCol.size()>0){
+        if(toPlace){
             auto positions=G.validPositionPlaceNew(currentColor());
             for(auto p:inHandCol) {
                 for(auto pos : positions){
-                    res.push_back(placePiece(p,pos.first, pos.second));
+                    res.push_back(placePiece(p, pos.first, pos.second));
                 }
             }
         }
