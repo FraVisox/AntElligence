@@ -114,8 +114,8 @@ bool Board::executeAction(string s){
     switch (a.actType) { //TODO: check if the move is valid
         case MOVEMENT:
             a.startingPos = G.getPosition(a.bug);
-            G.addPiece(a);
             G.removePiece(a.bug);
+            G.addPiece(a);
             moves.push_back(a);
             break;
         case PLACE:
@@ -403,8 +403,9 @@ void Board::possibleMoves_Queen(piece bug, vector<action> &res){
  * \param res The vector to store the resulting actions/moves.
  */
 void Board::possibleMoves_Beetle(piece bug,vector<action> &res){
-    if (G.canPieceMove(bug,currentTurn)) {
-        for(position dest:G.getPosition(bug).neighbor()){
+    if (G.canPieceMove(bug, currentTurn)) {
+        for(position dest : G.getPosition(bug).neighbor()){
+            cout << "Checking " << dest.first << " " << dest.second << endl;
             pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(dest, G.getPosition(bug), true);
             if (relativeDir.second != INVALID) {
                 res.push_back(movement(bug,relativeDir.first,relativeDir.second));
@@ -540,6 +541,10 @@ Pill bug: either 1 crawl or cause an adjacent piece at height 1
  * @param res The vector where the possible moves are stored.
  */
 void Board::possibleMoves_Pillbug(piece bug, vector<action> &res){
+
+    if (!G.isAtLevel1(G.getPosition(bug))) {
+        return;
+    }
 
     /*
     either 1 crawl or cause an adjacent piece at height 1  

@@ -43,7 +43,7 @@ position gameboard::getPosition(piece p){
  * \param bug The bug to update the position of.
  * \param pos The new position of bug.
  */
-void gameboard::updatePos(piece bug, const position &pos){
+void gameboard::updatePos(piece bug, position pos){
     bugPosition.insert_or_assign(bug,pos);
 }
 
@@ -97,6 +97,10 @@ void gameboard::removePiece(piece b){
  * \param a The action containing the info to add the piece.
  */
 void gameboard::addPiece(action a){
+    cout << "Bug positions: " << endl;
+    for (pair<piece, position> pair : bugPosition) {
+        cout << pair.first.toString() << " at " << pair.second.first << " " << pair.second.second << endl;
+    }
     position pos;
     switch (a.actType) {
         case PLACEFIRST:
@@ -111,9 +115,12 @@ void gameboard::addPiece(action a){
     }
     cout << "Adding " << a.bug.toString() << " at " << pos.first << " " << pos.second << endl;
     piece b = a.bug;
-    at(pos)->push(b);
-    updatePos(b,pos);
-    occupied.insert(pos);
+    addPiece(pos, b);
+    cout << "Bug positions: " << endl;
+    for (pair<piece, position> pair : bugPosition) {
+        cout << pair.first.toString() << " at " << pair.second.first << " " << pair.second.second << endl;
+    }
+    cout << "Stack at 0 0 : " << at(position{0,0})->size() << endl;
 }
 
 
@@ -166,7 +173,8 @@ bool gameboard::isTop(piece bug){
  * \return true if the bug can move on the given turn, false otherwise.
  */
 bool gameboard::canPieceMove(piece b,int turn){
-    return (isTop(b) && canMoveWithoutBreakingHiveRule(b,turn));
+    cout << isTop(b) << " " << isAtLevel1(getPosition(b)) << " " << " " << canMoveWithoutBreakingHiveRule(b,turn) << endl;
+    return (isTop(b) && (!isAtLevel1(getPosition(b)) || canMoveWithoutBreakingHiveRule(b,turn)));
 }
 
 /**
@@ -237,7 +245,7 @@ pair<piece, direction> gameboard::getRelativePositionIfCanMove(position to, posi
         
     }
     //If I am coming down from an upper position
-    else if (isNear(to,from)) {
+    if (isNear(to,from)) {
         vector<position> v= nearBoth(from,to);
         position p1=v[0], p2=v[1];
         if (!isAtLevel1(from) && at(to)->size() < at(from)->size() && (at(p1)->size() < at(from)->size() || at(p2)->size() < at(from)->size())) {

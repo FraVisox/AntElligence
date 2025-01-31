@@ -55,7 +55,7 @@ class gameboard{
      * \param bug The bug to update the position of.
      * \param pos The new position of bug.
      */
-    void updatePos(piece bug, const position &pos);
+    void updatePos(piece bug, position pos);
 
     /**
      * \brief Remove the top piece from a given position and update the

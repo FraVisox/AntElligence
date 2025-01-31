@@ -171,6 +171,7 @@ EXPORT int startGame(char* s) {
 
 EXPORT int playMove(char* m) {
     if(b.executeAction(m)) {
+        cout << "-------------------" << endl;
         if (b.state == DRAW) {
             return 1;
         } else if (b.state == WHITE_WIN){
@@ -179,6 +180,7 @@ EXPORT int playMove(char* m) {
             return 3;
         }
     }
+    cout << "-------------------" << endl;
     return 0;
 }
 

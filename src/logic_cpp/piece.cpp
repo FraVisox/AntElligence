@@ -133,6 +133,11 @@ bool operator!=(const piece& p1,const piece &p){
 
 piece extractPiece(string s){
     if(s[0]=='-' || s[0]=='/' || s[0]=='\\') return piece(s.substr(1));
-    if(s.find("-", 1) || s.find("\\", 1) || s.find("/", 1)) return piece(s.substr(0,2));
+    long long unsigned int pos = s.find("-", 1);
+    if (pos != string::npos) return piece(s.substr(0, pos));
+    pos = s.find("\\", 1);
+    if (pos != string::npos) return piece(s.substr(0, pos));
+    pos = s.find("/", 1);
+    if (pos != string::npos) return piece(s.substr(0, pos));
     return piece(s);
 }
