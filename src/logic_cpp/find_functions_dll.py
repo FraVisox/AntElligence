@@ -9,7 +9,6 @@ def print_dll_info(dll):
     try:
         # Try to get the address of each function
         print("\nFunction addresses:")
-        print("_sin:", dll._sin._address)
         print("startGame:", dll.startGame._address)
     except Exception as e:
         print(f"Error getting function addresses: {e}")
@@ -22,22 +21,15 @@ try:
     print_dll_info(Cengine)
     
     # Configure function signatures
-    sin = Cengine._sin
-    sin.argtypes = [ctypes.c_double]
-    sin.restype = ctypes.c_double
     
     startGame = Cengine.startGame
     startGame.argtypes = [ctypes.c_char_p]
-    startGame.restype = None
-    
-    # Test _sin function
-    print("\nTesting _sin function:")
-    print("sin(1.0) =", sin(1.0))
+    startGame.restype = ctypes.c_int
     
     # Test startGame function
     print("\nTesting startGame function:")
-    test_str = b"Base"  # Note: using bytes instead of string
-    startGame(test_str)
+    test_str = b"Base+MLP"  # Note: using bytes instead of string
+    print(startGame(test_str))
     print("startGame called successfully")
     
 except AttributeError as e:

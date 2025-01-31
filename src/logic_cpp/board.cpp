@@ -31,13 +31,21 @@ Board::Board(){
      * :return: GameString.
      * :rtype: char*
      */
-    char* Board::toString() {
-        char* s = new char[40+moves.size()*9];
-        sprintf(s, "%d;%d;%s[%d]", type, state, ColorToString(currentColor()), currentPlayerTurn());
-        for (int i = 0; i < moves.size(); i++) {
-            sprintf(s + strlen(s), ";%s", ActionToString(moves[i]));
-        }
-        return s;
+    string Board::toString() {
+        try {
+            stringstream ss;
+            ss << state << ";" 
+            << currentTurn << ";"
+            << (currentTurn % 2 == 1 ? "White[" : "Black[")
+            << (currentTurn / 2 + 1) << "]";
+            
+            // Add other board state information...
+            
+            return ss.str();
+        }   
+        catch (const std::exception& e) {
+            return "ERROR";
+    }
     }
 
     

@@ -7,6 +7,7 @@
 #include <queue>
 #include <algorithm>
 #include <string.h>
+#include <sstream>
 
 class Board {
     public:
@@ -52,7 +53,7 @@ class Board {
      * :return: GameString.
      * :rtype: char*
      */
-    char* toString();
+    string toString();
     
     /**
      * Returns the current player color (white if the current turn is odd).

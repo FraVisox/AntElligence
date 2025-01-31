@@ -1,6 +1,7 @@
 
 #include <math.h>
 #include "board.h"
+#include <iostream>
 
 // Define export macro for Windows
 #ifdef _WIN32
@@ -13,22 +14,13 @@
 extern "C" {
 #endif
 
-// Export all functions explicitly
-EXPORT double _sin(double x) {
-    return sin(x);
-}
-
-
 Board b;
 
 void raise_exception() {
     b.reset();
-    throw std::exception();
 }
 
-EXPORT void startGame(char* s) {
-    // Your existing startGame implementation
-    
+EXPORT int startGame(char* s) {
     //Type of string:
 
     // it can have GameTypeString (Base+MLP) or Gamestring (Gametype;State;Player[Turn];moves...)
@@ -37,9 +29,14 @@ EXPORT void startGame(char* s) {
     //Base+MLP
 
     //GameTypeString
-
-    if (strncmp(s,"Base",4)) {
+    if (s == nullptr) {
         raise_exception();
+        return 1;
+    }
+
+    if (strncmp(s,"Base",4) != 0) {
+        raise_exception();
+        return 1;
     }
 
     for(PlayerColor col : {BLACK,WHITE}){
@@ -85,8 +82,9 @@ EXPORT void startGame(char* s) {
         }
         if (*s == 0) {
             raise_exception();
+            return 1;
         }
-        s = 0;
+        *s = 0;
         s++;
 
         //TurnString
@@ -96,8 +94,9 @@ EXPORT void startGame(char* s) {
         }
         if (*s == 0) {
             raise_exception();
+            return 1;
         }
-        s = 0;
+        *s = 0;
         int curTurn = 0;
         if (!strcmp(turn,"White")) {
             curTurn = 1;
@@ -105,6 +104,7 @@ EXPORT void startGame(char* s) {
             curTurn = 2;
         } else {
             raise_exception();
+            return 1;
         }
         s++;
         turn = s;
@@ -113,11 +113,13 @@ EXPORT void startGame(char* s) {
         }
         if (*s == 0) {
             raise_exception();
+            return 1;
         }
-        s = 0;
+        *s = 0;
         curTurn = curTurn + 2*(atoi(turn)-1);
         if (curTurn <= 0) {
             raise_exception();
+            return 1;
         }
         s++;
 
@@ -142,8 +144,10 @@ EXPORT void startGame(char* s) {
         //Check if the current status is true
         if (b.currentTurn != curTurn || b.state != parseState(state)) {
             raise_exception();
+            return 1;
         }
     }
+    return 0;
 }
 
 EXPORT int playMove(char* m) {
@@ -157,45 +161,73 @@ EXPORT int playMove(char* m) {
         }
     }
     return 0;
-    // Your existing playMove implementation
 }
+
+static char BUFFER[100000];  // Buffer used both for validMoves and getBoard
 
 EXPORT char* validMoves() {
-    vector<action> moves = b.possibleMoves();
-    
-    char *h = new char[moves.size()*9+5];
-    int i = 0;
-    for(action move : moves){
-        string item = MovementToString(move);
-        int len = item.size();
-        for (int j = 0; j < len; j++) {
-            h[i+j] = item[j];
-        }
-        i += len;
-        h[i] = ';';
-        i++;
-    }
+    try {
+        vector<action> moves = b.possibleMoves();
 
-    if (i == 0) { //Only if it has no other move
-        h[0] = 'p';
-        h[1] = 'a';
-        h[2] = 's';
-        h[3] = 's';
-        h[4] = 0;
-    } else { //Remove the last semicolon
-        h[i-1] = 0;
+        std::cout << "C++ possible moves:" << endl;
+        for(const action& move : moves) {
+            std::cout << MovementToString(move) << endl;
+        }
+
+        strcpy(BUFFER, "pass");
+        return BUFFER;
+        
+        /*
+        vector<action> moves = b.possibleMoves();
+
+        if (moves.size() == 0) {
+            strcpy(BUFFER, "pass");
+            return BUFFER;
+        }
+        
+        int i = 0;
+        for(const action& move : moves) {
+            string item = MovementToString(move);
+            int len = item.size();
+            // Check buffer bounds
+            if (i + len + 1 >= sizeof(BUFFER)) {
+                // Buffer overflow protection
+                BUFFER[0] = '\0';
+                return BUFFER;
+            }
+            memcpy(BUFFER + i, item.c_str(), len);
+            i += len;
+            BUFFER[i] = ';';
+            i++;
+        }
+
+        // Replace last semicolon with null terminator
+        BUFFER[i-1] = '\0';
+        return BUFFER;
+        */
     }
-    return h;
-    // Your existing validMoves implementation
+    catch (const std::exception&) {
+        BUFFER[0] = '\0';
+        return BUFFER;
+    }
 }
 
-EXPORT char* getBoard() {
-    // Your existing getBoard implementation
-    return b.toString();
+EXPORT const char* getBoard() {    
+    static char BUFFER[10000];
+    
+    try {
+        // First test with a simple static string
+        const char* test = "Test;String;White[1]";
+        strcpy(BUFFER, test);
+        return BUFFER;
+    }
+    catch (const std::exception&) {
+        BUFFER[0] = '\0';
+        return BUFFER;
+    }
 }
 
 EXPORT void undo(int amount) {
-    // Your existing undo implementation
     b.undo(amount);
 }
 
@@ -263,94 +295,5 @@ For moving pieces on top of the hive (as the beetle, or the mosquito adopting
 the Beetle's movement), simply state the target piece that is about to be covered.
 
 A passing move (made because a side has no other moves) is simply pass
-
-*
-
-
-
-void raise_exception() {
-    b.reset();
-    throw std::exception();
-}
-
-/**
- * Executes a move on the board using the given MoveString.
- *
- * This function interprets the MoveString, converts it into an action,
- * and executes the action on the current board state.
- *
- * @param m A MoveString representing the move to be played.
- *
-int playMove(char* m){
-    if(b.executeAction(parseAction(m))) {
-        if (b.state == DRAW) {
-            return 1;
-        } else if (b.state == WHITE_WIN){
-            return 2;
-        } else if (b.state == BLACK_WIN){
-            return 3;
-        }
-    }
-    return 0;
-}
-
-/**
- * Returns a string containing all possible moves for the current player.
-
- * The moves are represented as a series of MoveStrings, separated by semicolons.
-
- * @return A string containing all possible moves for the current player.
- *
-char* validMoves(){
-
-    vector<action> moves = b.possibleMoves();
-    
-    char *h = new char[moves.size()*9+5];
-    int i = 0;
-    for(action move : moves){
-        string item = MovementToString(move);
-        int len = item.size();
-        for (int j = 0; j < len; j++) {
-            h[i+j] = item[j];
-        }
-        i += len;
-        h[i] = ';';
-        i++;
-    }
-
-    if (i == 0) { //Only if it has no other move
-        h[0] = 'p';
-        h[1] = 'a';
-        h[2] = 's';
-        h[3] = 's';
-        h[4] = 0;
-    } else { //Remove the last semicolon
-        h[i-1] = 0;
-    }
-    return h;
-}
-
-
-
-/**
- * Returns a string containing the current state of the board.
- *
- * The returned string is a GameString, which is a semicolon-separated
- * list of the board's properties.
- *
- * @return A string containing the current state of the board.
- *
-char* getBoard() {    
-    return b.toString();
-}
-
-/**
- * Undoes the specified amount of moves.
- *
- * @param amount The number of moves to undo.
- *
-void undo(int amount) {
-    b.undo(amount);
-}
 
 */
