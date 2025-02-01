@@ -405,7 +405,6 @@ void Board::possibleMoves_Queen(piece bug, vector<action> &res){
 void Board::possibleMoves_Beetle(piece bug,vector<action> &res){
     if (G.canPieceMove(bug, currentTurn)) {
         for(position dest : G.getPosition(bug).neighbor()){
-            cout << "Checking " << dest.first << " " << dest.second << endl;
             pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(dest, G.getPosition(bug), true);
             if (relativeDir.second != INVALID) {
                 res.push_back(movement(bug,relativeDir.first,relativeDir.second));
@@ -450,7 +449,7 @@ void Board::possibleMoves_Grasshopper(piece bug,vector<action> &res){
  * \param bug The Soldier Ant bug piece for which to generate moves.
  * \param res The vector to store the resulting actions/moves.
  */
-void Board::possibleMoves_SoldierAnt(piece bug, vector<action> & res){ //TODO: bug
+void Board::possibleMoves_SoldierAnt(piece bug, vector<action> & res){
     if (G.canPieceMove(bug,currentTurn)) {
 
         unordered_set<position> inQueue;
@@ -489,7 +488,7 @@ void Board::possibleMoves_SoldierAnt(piece bug, vector<action> & res){ //TODO: b
  * \param bug The Spider bug piece for which to generate moves.
  * \param res The vector to store the resulting actions/moves.
  */
-void Board::possibleMoves_Spider(piece bug, vector<action> & res){ //TODO: bug
+void Board::possibleMoves_Spider(piece bug, vector<action> & res){
     if (G.canPieceMove(bug,currentTurn)) {
         unordered_set<position> inQueue;
         queue<pair<position,int>> q;
@@ -503,7 +502,6 @@ void Board::possibleMoves_Spider(piece bug, vector<action> & res){ //TODO: bug
             pair<position,int> PI = q.front();
             q.pop();
             position f=PI.first;
-            cout << "Current position: " << f.first << " " << f.second << " and d=" << PI.second << endl;
             int d = PI.second;
             for(auto n:f.neighbor()){
                 if(inQueue.count(n)) 
@@ -511,7 +509,6 @@ void Board::possibleMoves_Spider(piece bug, vector<action> & res){ //TODO: bug
                 pair<piece,direction> relativeDir = G.getSlidingMoveAtLevel1(n, f);
                 if (relativeDir.second != INVALID) {
                     if(d==2) {
-                        cout << "Added to the moves the position " << relativeDir.first.toString() << relativeDir.second << endl;
                         res.push_back(movement(bug,relativeDir.first,relativeDir.second));
                     }
                     else{
@@ -565,7 +562,7 @@ void Board::possibleMoves_Pillbug(piece bug, vector<action> &res){
         }
     }
 
-    // Or it makes other adjacent pieces (even of the opponent) move //TODO: bug, for some reason not all free positions are checked
+    // Or it makes other adjacent pieces (even of the opponent) move
     piece bugs_to_move[6];
     position places_to_move[6];
     int i = 0;
@@ -618,7 +615,10 @@ void Board::possibleMoves_Pillbug(piece bug, vector<action> &res){
  * @param bug The Mosquito bug piece for which to generate moves.
  * @param res The vector to store the resulting actions/moves.
  */
-void Board::possibleMoves_Mosquito(piece bug, vector<action> &res){
+void Board::possibleMoves_Mosquito(piece bug, vector<action> &res){ //todo: test
+    cout << "----------\nEntering method" << endl;
+    if (!G.canPieceMove(bug, currentTurn)) 
+        return;
     if (!G.isAtLevel1(G.getPosition(bug))){
         //It can only move like a beetle
         possibleMoves_Beetle(bug,res);
@@ -626,26 +626,35 @@ void Board::possibleMoves_Mosquito(piece bug, vector<action> &res){
 
     set<BugType> copied;
     for(position n: G.getPosition(bug).neighbor()){
-        if(!G.isFree(n) && G.topPiece(n).kind != MOSQUITO){
+        if(!G.isFree(n) && G.topPiece(n).kind != MOSQUITO){ //TODO: i pezzi copiati devono essere ad altezza 1??
             copied.insert(G.topPiece(n).kind);
         }
     }
 
     bool pill = false;
+    position current = G.getPosition(bug);
+    G.removePiece(bug);
     for(BugType k : copied){ 
         if (k == PILLBUG) {
             pill = true;
             continue;  
         }
-        piece new_bug = bug;
+        piece new_bug = piece(-1); //this signals the bug is copied
         new_bug.kind = k;
+        new_bug.col = bug.col;
+        G.addPiece(current, new_bug);
         possibleMovesBug(new_bug, res);
+        G.removePiece(new_bug);
     }
     //In this way, we are almost certain we don't have duplicates
     if (pill) {
-        possibleMovesBug(bug, res);
+        piece new_bug = piece(-1); //this signals the bug is copied
+        new_bug.kind = PILLBUG;
+        G.addPiece(current, new_bug);
+        possibleMovesBug(new_bug, res);
+        G.removePiece(new_bug);
     }
-    
+    G.addPiece(current, bug);
 }
 
 /**
@@ -655,7 +664,7 @@ void Board::possibleMoves_Mosquito(piece bug, vector<action> &res){
  * @param bug The piece to move.
  * @param res The vector where the possible moves are stored.
  */
-void Board::possibleMoves_Ladybug(piece bug,vector<action> &res){
+void Board::possibleMoves_Ladybug(piece bug,vector<action> &res){ //TODO: fai
     if (G.canPieceMove(bug,currentTurn)) {
         vector<pair<position,int>> queue; 
         for(position dest: G.getPosition(bug).neighbor()){
@@ -680,7 +689,7 @@ void Board::possibleMoves_Ladybug(piece bug,vector<action> &res){
                 seen.insert(n);
 
                 pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(n, f, true);
-                if (relativeDir.second != INVALID && G.isAtLevel1(G.getPosition(relativeDir.first).applayMove(relativeDir.second))) {
+                if (relativeDir.second != INVALID && G.isAtLevel1(G.getPosition(relativeDir.first).applayMove(relativeDir.second)) && d == 2) { //TODO: deve fare per forza 3 passi o no?
                     res.push_back(movement(bug, relativeDir.first, relativeDir.second));
                 } else if (relativeDir.second != INVALID && d == 1) {
                     queue.push_back(make_pair(n, d + 1));

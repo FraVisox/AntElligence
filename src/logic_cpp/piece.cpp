@@ -3,7 +3,7 @@
 #include <sstream>
 using namespace std;
 
-piece INVALID_PIECE(-1);
+piece INVALID_PIECE(-2);
 
 /*
     Explaining the value of a piece:
@@ -64,6 +64,10 @@ piece::piece(string s){
  * @param eqVal An integer representing the piece. TODO: check if it's correct
  */
 piece::piece(int eqVal){
+    if (eqVal == -1) {
+        numIncr = eqVal;
+        return;
+    }
     col=(PlayerColor)(eqVal%2);
     kind=(BugType)((eqVal%14)/2);
     numIncr=eqVal/14;
@@ -82,6 +86,11 @@ piece::piece(int eqVal){
  * @return The string representation of the piece.
  */
 string piece::toString() const{
+    if (numIncr == -1) {
+        stringstream ss; 
+        ss << ColorToString(col) << "M";
+        return ss.str();
+    }
     stringstream ss; 
     ss << ColorToString(col) << BugTypeToString(kind) << (numIncr==0?(""):(to_string(numIncr)));
     return ss.str();
@@ -99,6 +108,8 @@ string piece::toString() const{
  */
 
 int piece::toVal() const{
+    if (numIncr == -1) 
+        return numIncr;
     return col+kind*2+numIncr*14;
 }
 

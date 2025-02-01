@@ -103,7 +103,7 @@ action parseAction(string s, const unordered_set<piece>& inHandPiece){
     if (inHandPiece.find(piece(first)) != inHandPiece.end()) {
         return placePiece(piece(first), extractPiece(second), extractDirection(second));
     }
-    return movement(piece(first), piece(second), extractDirection(second));
+    return movement(piece(first), extractPiece(second), extractDirection(second));
 }
 
 
