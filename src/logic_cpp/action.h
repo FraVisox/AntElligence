@@ -28,6 +28,8 @@ class action{
         action(){}
 };
 
+extern action INVALID_ACTION;
+
 action movement(piece p, piece other, direction dir);
 
 action placePiece(piece p, piece other, direction d);

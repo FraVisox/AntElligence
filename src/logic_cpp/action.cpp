@@ -2,6 +2,10 @@
 #include <sstream>
 #include <iostream>
 
+action INVALID_ACTION = action(INVALID_PIECE);
+
+
+
 /**
  * \brief Constructs a movement action given a piece to move, another piece to which the moved piece is relative, and a direction.
  *

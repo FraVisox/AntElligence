@@ -100,7 +100,9 @@ bool Board::placedQueen(){
  */
 bool Board::executeAction(string s){
 
-    action a = parseAction(s, inHandPiece);
+    action a = validMove(s);
+    if (a.bug == INVALID_PIECE)
+        return false; //todo: add error message
 
     cout << "Action: " << ActionToString(a) << " of type " << a.actType << endl;
 
@@ -142,6 +144,19 @@ bool Board::executeAction(string s){
 
     cout << "-------------------" << endl;
     return checkWin();
+}
+
+
+action Board::validMove(string s) {
+    //TODO: check
+
+    //Check the string
+
+    action a = parseAction(s, inHandPiece);
+    //Check the logic
+
+
+    return a;
 }
 
 bool Board::checkWin() {
@@ -449,7 +464,7 @@ void Board::possibleMoves_Grasshopper(piece bug,vector<action> &res){
  * \param bug The Soldier Ant bug piece for which to generate moves.
  * \param res The vector to store the resulting actions/moves.
  */
-void Board::possibleMoves_SoldierAnt(piece bug, vector<action> & res){
+void Board::possibleMoves_SoldierAnt(piece bug, vector<action> & res){ //todo: improve with if I pass near another ant then I have all its moves
     if (G.canPieceMove(bug,currentTurn)) {
 
         unordered_set<position> inQueue;
@@ -592,10 +607,18 @@ void Board::possibleMoves_Pillbug(piece bug, vector<action> &res){
             for (int l = 0; l < j; l++){
                 pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(places_to_move[l], G.getPosition(bug), false);
                 if (relativeDir.second != INVALID) {
-                    res.push_back(movement(to_move, relativeDir.first, relativeDir.second));
+                    //Check if this movement is already inside of the vector TODO: is it necessary????
+                    bool already_in = false;
+                    for (auto pair : res){
+                        if (pair.bug == to_move && G.getPosition(pair.otherBug).applayMove(pair.relativeDir) == G.getPosition(relativeDir.first).applayMove(relativeDir.second)){
+                            already_in = true;
+                            break;
+                        }
+                    }
+                    if (!already_in) {
+                        res.push_back(movement(to_move, relativeDir.first, relativeDir.second));
+                    }
                 }
-                //Check if this movement is already inside of the vector
-                //if (find(res.begin(), res.end(), movement(to_move, bug, places_to_move[l])) == res.end()) TODO
             }
             G.removePiece(to_move);
             G.addPiece(old, to_move);
@@ -616,12 +639,12 @@ void Board::possibleMoves_Pillbug(piece bug, vector<action> &res){
  * @param res The vector to store the resulting actions/moves.
  */
 void Board::possibleMoves_Mosquito(piece bug, vector<action> &res){ //todo: test
-    cout << "----------\nEntering method" << endl;
     if (!G.canPieceMove(bug, currentTurn)) 
         return;
     if (!G.isAtLevel1(G.getPosition(bug))){
         //It can only move like a beetle
         possibleMoves_Beetle(bug,res);
+        return;
     }
 
     set<BugType> copied;
@@ -650,6 +673,7 @@ void Board::possibleMoves_Mosquito(piece bug, vector<action> &res){ //todo: test
     if (pill) {
         piece new_bug = piece(-1); //this signals the bug is copied
         new_bug.kind = PILLBUG;
+        new_bug.col = bug.col;
         G.addPiece(current, new_bug);
         possibleMovesBug(new_bug, res);
         G.removePiece(new_bug);
@@ -664,7 +688,7 @@ void Board::possibleMoves_Mosquito(piece bug, vector<action> &res){ //todo: test
  * @param bug The piece to move.
  * @param res The vector where the possible moves are stored.
  */
-void Board::possibleMoves_Ladybug(piece bug,vector<action> &res){ //TODO: fai
+void Board::possibleMoves_Ladybug(piece bug,vector<action> &res){
     if (G.canPieceMove(bug,currentTurn)) {
         vector<pair<position,int>> queue; 
         for(position dest: G.getPosition(bug).neighbor()){
@@ -676,26 +700,36 @@ void Board::possibleMoves_Ladybug(piece bug,vector<action> &res){ //TODO: fai
             }
         }
 
+        //The set of seen positions is used to avoid going to the same destination twice. 
+        //It contains only the starting position and the final ones (if we put also the intermediate ones, then we can't reach the final
+        //destinations reachable if I go on another piece and then move to the piece as a second move and then descending)
         unordered_set<position> seen = unordered_set<position>{};
         seen.insert(G.getPosition(bug));
+        position current = G.getPosition(bug);
+        G.removePiece(bug);
         while(!queue.empty()){
             pair<position,int> PI = queue.front();
             queue.erase(queue.begin());
             position f=PI.first;
             int d = PI.second;
+            G.addPiece(f, bug); //Add the bug on top of f to see if it can move
             for (position n: f.neighbor()){
-                if (seen.count(n) || (find(queue.begin(), queue.end(), make_pair(n, d)) != queue.end()) || (find(queue.begin(), queue.end(), make_pair(n, d+1)) != queue.end()))
+                if (seen.count(n))
                     continue;
-                seen.insert(n);
 
                 pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(n, f, true);
-                if (relativeDir.second != INVALID && G.isAtLevel1(G.getPosition(relativeDir.first).applayMove(relativeDir.second)) && d == 2) { //TODO: deve fare per forza 3 passi o no?
-                    res.push_back(movement(bug, relativeDir.first, relativeDir.second));
-                } else if (relativeDir.second != INVALID && d == 1) {
-                    queue.push_back(make_pair(n, d + 1));
-                }
+            
+                if (relativeDir.second != INVALID) {
+                    if (G.isFree(n) && d == 2 && !seen.count(n)) { //TODO: deve fare per forza 3 passi o no?
+                        res.push_back(movement(bug, relativeDir.first, relativeDir.second));
+                        seen.insert(n);
+                    } else if (d == 1 && !G.isFree(n)) {
+                        queue.push_back(make_pair(n, d + 1));
+                    }
+                } 
             }
-            seen.insert(f);
+            G.removePiece(bug);
         }
+        G.addPiece(current, bug);
     }
 }

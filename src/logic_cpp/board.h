@@ -45,6 +45,8 @@ class Board {
 
     void reset();
 
+    action validMove(string s);
+
     /**
      * Converts the data of the board to the corresponding GameString.
      *

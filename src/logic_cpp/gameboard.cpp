@@ -224,14 +224,13 @@ pair<piece, direction> gameboard::getRelativePositionIfCanMove(position to, posi
         else if(!isFree(p1) && isFree(p2)) //I slide around p1
             return {at(p1)->top(), getMovementDirection(p1, to)};
     } 
-    else if (canOver && isNear(to, from)) {
+    else if (canOver && isNear(to, from) && !isFree(to)) {
         vector<position> v= nearBoth(from,to);
         position p1=v[0], p2=v[1];
         //If I am climbing to reach that spot
-        if(at(p1)->size() < at(to)->size() || at(p2)->size() < at(to)->size()) {
+        if(at(p1)->size() <= at(to)->size() || at(p2)->size() <= at(to)->size()) {
             return {at(to)->top(), OVER};
         }
-        
     }
     //If I am coming down from an upper position
     if (isNear(to,from)) {
