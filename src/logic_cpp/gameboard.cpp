@@ -34,7 +34,11 @@ stack<piece>* gameboard::at(position pos){
  * \return The position of bug p.
  */
 position gameboard::getPosition(piece p){
-    return bugPosition.at(p);
+    try {
+        return bugPosition.at(p);
+    } catch (const std::out_of_range& oor) {
+        return NULL_POSITION;
+    }
 }
 
 /**

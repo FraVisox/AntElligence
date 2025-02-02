@@ -1,5 +1,6 @@
 #include "board.h"
 #include <iostream>
+#include <regex>
 
 Board::Board(){ 
     reset();
@@ -101,8 +102,10 @@ bool Board::placedQueen(){
 bool Board::executeAction(string s){
 
     action a = validMove(s);
-    if (a.bug == INVALID_PIECE)
+    if (a.bug == INVALID_PIECE) {
+        cout << "Invalid move: " << s << endl;
         return false; //todo: add error message
+    }
 
     cout << "Action: " << ActionToString(a) << " of type " << a.actType << endl;
 
@@ -148,15 +151,192 @@ bool Board::executeAction(string s){
 
 
 action Board::validMove(string s) {
-    //TODO: check
 
-    //Check the string
+    //Check the syntax of the string
 
-    action a = parseAction(s, inHandPiece);
-    //Check the logic
+    if (s == "pass") {
+        if (possibleMoves().size() == 0) 
+            return pass();
+        return INVALID_ACTION;
+    }
+    std::regex pattern(R"(^(w|b)[QSBGAMLP](?:[1-3])?(?: [\-/](w|b)[QSBGAMLP](?:[1-3])?)?(?: (w|b)[QSBGAMLP](?:[1-3])?[\-/])?$)");
+    std::regex placeFirstPattern(R"(^(w|b)[QSBGAMLP](?:[1-3])?$)");
+    
+    if (!std::regex_match(s, pattern)) {
+        return INVALID_ACTION;
+    }
+
+    if (!possibleMovesVector.empty()) {
+        if (currentTurn == 1) {
+            if (std::regex_match(s, placeFirstPattern)) {
+                for (action a : possibleMoves()) {
+                    if (ActionToString(a) == s) {
+                        return a;
+                    }
+                }
+            }
+            else 
+                return INVALID_ACTION;
+        } else if (s.find(' ') == std::string::npos) {
+            return INVALID_ACTION; //no second string
+        }
+
+        string first = s.substr(0, s.find(' '));
+        string second = s.substr(s.find(' ') + 1);
 
 
-    return a;
+        piece toMove = extractPiece(first);
+        piece otherBug = extractPiece(second);
+        direction d = extractDirection(second);
+
+        position newPlace = G.getPosition(otherBug).applayMove(d);
+        for (action a : possibleMoves()) {
+            if (a.bug == toMove && newPlace == G.getPosition(a.otherBug).applayMove(a.relativeDir)) {
+                return a;
+            }
+        }
+        return INVALID_ACTION;
+    }
+
+    //Else we need to do everything by hand instead of recreating all the possible moves
+
+    bool placeFirstMove = false;
+
+    string first;
+
+    if (currentTurn == 1) {
+        if (std::regex_match(s, placeFirstPattern)) {
+            placeFirstMove = true;
+            first = s;
+        }
+        else 
+            return INVALID_ACTION;
+    } else if (s.find(' ') != std::string::npos) {
+        first = s.substr(0, s.find(' '));
+    } else {
+        return INVALID_ACTION; //no second string
+    }
+
+
+    //Check in inhandpiece to understand if the move is valid
+    piece toMove = INVALID_PIECE;
+    for (piece p : inHandPiece) {
+        if (p.toString() == first) {
+            toMove = p;
+            break;
+        }
+    }
+
+    //Place first piece
+    if (placeFirstMove) {
+        if (toMove == INVALID_PIECE || toMove.col != WHITE || toMove.kind == QUEEN) { //First to move is always the white
+            return INVALID_ACTION;
+        }
+        return placeFirst(toMove);
+    }
+
+    //Check format of second string
+    string second = s.substr(s.find(' ') + 1);
+
+
+    piece otherBug = extractPiece(second);
+    direction d = extractDirection(second);
+
+    position otherBugPos = G.getPosition(otherBug);
+    if (otherBugPos == NULL_POSITION) {
+        return INVALID_ACTION;
+    }
+    position toPlace = otherBugPos.applayMove(d);
+
+    //Place a piece
+    if (toMove != INVALID_PIECE) {
+        if (currentTurn == 2) {
+            if (toMove.kind != QUEEN && toMove.col == BLACK && d != OVER) {
+                return placePiece(toMove, otherBug, d);
+            }
+            return INVALID_ACTION;
+        }
+        if (G.isFree(toPlace) && toMove.col == currentColor()) {
+            for (position neigh : toPlace.neighbor()) {
+                if (!G.isFree(neigh) && G.topPiece(neigh).col != toMove.col) {
+                    return INVALID_ACTION;
+                }
+            }
+            return placePiece(toMove, otherBug, d);
+        }
+        return INVALID_ACTION;
+    }
+
+    //Move a piece
+    if (currentColor() == WHITE && !isPlacedWQ) {
+        return INVALID_ACTION;
+    } else if (currentColor() == BLACK && !isPlacedBQ) {
+        return INVALID_ACTION;
+    }
+    for (piece p : placedBug) {
+        if (p.toString() == first) {
+            toMove = p;
+            break;
+        }
+    }
+    if (toMove == INVALID_PIECE) {
+        return INVALID_ACTION;
+    }
+
+    // Case where the pillbug moves the piece (of the opponent or not)
+    position current = G.getPosition(toMove);
+    if (G.isAtLevel1(current)) {
+        vector<position> near = current.neighbor();
+        for(position possiblePill : near){
+            if(!G.isFree(possiblePill) && (G.topPiece(possiblePill).kind==PILLBUG && G.topPiece(possiblePill).col==currentTurn)){
+                if(G.isFree(toPlace) && (isNear(possiblePill,toPlace))) {
+                    pair<piece, direction> relativeDir = G.getRelativePositionIfCanMove(possiblePill, current, true);
+                    G.removePiece(toMove);
+                    G.addPiece(possiblePill, toMove);
+                    pair<piece, direction> relativeDir2 = G.getRelativePositionIfCanMove(toPlace, possiblePill, true);
+                    G.removePiece(toMove);
+                    G.addPiece(current, toMove);
+                    if (relativeDir.second != INVALID && relativeDir2.second != INVALID) {
+                        return movement(toMove, otherBug, d);
+                    }
+                }
+            } else if (!G.isFree(possiblePill) && G.topPiece(possiblePill).kind==MOSQUITO && G.topPiece(possiblePill).col==currentColor() && G.isAtLevel1(possiblePill)) {
+                //Search between neighbors of the mosquito to see if the pillbug is near
+                bool pillbug = false;
+                for (position neigh : possiblePill.neighbor()) {
+                    if (!G.isFree(neigh) && G.topPiece(neigh).kind==PILLBUG) {
+                        pillbug = true;
+                    }
+                }
+                if (pillbug && G.isFree(toPlace) && (isNear(possiblePill,toPlace))) {
+                    pair<piece, direction> relativeDir = G.getRelativePositionIfCanMove(possiblePill, current, true);
+                    G.removePiece(toMove);
+                    G.addPiece(possiblePill, toMove);
+                    pair<piece, direction> relativeDir2 = G.getRelativePositionIfCanMove(toPlace, possiblePill, true);
+                    G.removePiece(toMove);
+                    G.addPiece(current, toMove);
+                    if (relativeDir.second != INVALID && relativeDir2.second != INVALID) {
+                        return movement(toMove, otherBug, d);
+                    }
+                }
+            }
+        }
+    }
+
+    //Otherwise it should be of the right color
+    if (toMove.col != currentColor()) {
+        return INVALID_ACTION;
+    }
+
+    //And the move should be done by the piece itself
+    vector<action> res = vector<action>();
+    possibleMovesBug(toMove, res);
+    for (action a : res) {
+        if (a.bug == toMove && toPlace == G.getPosition(a.otherBug).applayMove(a.relativeDir)) {
+            return a;
+        }
+   }
+    return INVALID_ACTION;
 }
 
 bool Board::checkWin() {
@@ -251,6 +431,10 @@ void Board::undo(int amount) {
  * @return A vector of all possible moves for the current player.
  */
 vector<action> Board::possibleMoves(){
+    if (!possibleMovesVector.empty()) {
+        return possibleMovesVector;
+    }
+
     vector<action> res;
 
     // 1 If turn == 1, then place something that is not the queen

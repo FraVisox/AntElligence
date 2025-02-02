@@ -94,21 +94,22 @@ startGame("Base+MLP")
 
 print(getBoard())
 
-playMove("wP")
 
-playMove("bP wP-")
+#playMove("wP")
 
-playMove("wQ -wP")
+#playMove("bP wP-")
 
-playMove("bQ bP-")
+#playMove("wQ -wP")
 
-playMove("wS1 wQ/")
+#playMove("bQ bP-")
 
-playMove("bA1 bQ-")
+#playMove("wS1 wQ/")
 
-playMove("wL wS1/")
+#playMove("bA1 bQ-")
 
-playMove("bL bA1-")
+#playMove("wL wS1/")
 
-playMove("wL wP\\")
-playMove("bL bP\\")
+#playMove("bL bA1-")
+
+#playMove("wL wP\\")
+#playMove("bL bP\\")

@@ -19,6 +19,7 @@ class Board {
 
     //Moves made
     vector<action> moves = vector<action>(); 
+    vector<action> possibleMovesVector = vector<action>(); 
 
     //Gameboard and pieces
     gameboard G = gameboard();
