@@ -90,29 +90,3 @@ playMove = engine.play_move
 getValidMoves = engine.get_valid_moves
 getBoard = engine.get_board
 undo = engine.undo
-
-startGame("Base+MLP")
-
-print(getBoard())
-
-playMove("wP")
-
-playMove("bA1 wP-")
-
-playMove("wQ -wP")
-
-playMove("bQ bA1\\")
-
-#playMove("wS1 wQ/")
-
-#playMove("bA1 bQ-")
-
-#playMove("wL wS1/")
-
-#playMove("bL bA1-")
-
-#playMove("wL wP\\")
-#playMove("bL bP\\")
-
-startGame("Base+M")
-startGame("Base+MLP;InProgress;Black[1];wP")
