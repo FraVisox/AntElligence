@@ -5,6 +5,7 @@
 Board::Board(){ 
     reset();
     state = NOT_STARTED;
+    possibleMovesVector.clear();
 };
 
 
@@ -24,6 +25,23 @@ void Board::reset() {
     placedBug.erase(placedBug.begin(), placedBug.end());
     inHandPiece.clear();
 }
+
+void Board::copy(Board& b) {
+    currentTurn = b.currentTurn;
+    type = b.type;
+    state = b.state;
+    moves = b.moves;
+    G.bugPosition = b.G.bugPosition;
+    for (int i = 0; i < 100; i++) {
+        for (int j = 0; j < 100; j++) {
+            G.gb[i][j] = b.G.gb[i][j];
+        }
+    }
+    G.occupied = b.G.occupied;
+    placedBug = b.placedBug;
+    inHandPiece = b.inHandPiece;
+}
+
 
 
 /**
@@ -99,12 +117,12 @@ bool Board::placedQueen(){
  *
  * \param a The action to be executed.
  */
-bool Board::executeAction(string s){
+ReturnMessage Board::executeAction(string s){
 
     action a = validMove(s);
     if (a.bug == INVALID_PIECE) {
         cout << "Invalid move: " << s << endl;
-        return false; //todo: add error message
+        return ERROR; //todo: add error message
     }
 
     cout << "Action: " << ActionToString(a) << " of type " << a.actType << endl;
@@ -114,7 +132,7 @@ bool Board::executeAction(string s){
     if (state == STARTED)
         state = IN_PROGRESS;
     else if (state != IN_PROGRESS) {
-        return false; //TODO: Add error message to explain no move can be made
+        return ERROR; //TODO: Add error message to explain no move can be made
     }
     switch (a.actType) { //TODO: check if the move is valid
         case MOVEMENT:
@@ -146,6 +164,7 @@ bool Board::executeAction(string s){
     currentTurn++;
 
     cout << "-------------------" << endl;
+    possibleMovesVector.clear();
     return checkWin();
 }
 
@@ -159,7 +178,8 @@ action Board::validMove(string s) {
             return pass();
         return INVALID_ACTION;
     }
-    std::regex pattern(R"(^(w|b)[QSBGAMLP](?:[1-3])?(?: [\-/](w|b)[QSBGAMLP](?:[1-3])?)?(?: (w|b)[QSBGAMLP](?:[1-3])?[\-/])?$)");
+
+    std::regex pattern(R"(^(w|b)[QSBGAMLP](?:[1-3])?(?: ([\\\-/])(w|b)[QSBGAMLP](?:[1-3])?)?(?: (w|b)[QSBGAMLP](?:[1-3])?([\\\-/]))?$)");
     std::regex placeFirstPattern(R"(^(w|b)[QSBGAMLP](?:[1-3])?$)");
     
     if (!std::regex_match(s, pattern)) {
@@ -209,8 +229,9 @@ action Board::validMove(string s) {
             placeFirstMove = true;
             first = s;
         }
-        else 
+        else {
             return INVALID_ACTION;
+        }
     } else if (s.find(' ') != std::string::npos) {
         first = s.substr(0, s.find(' '));
     } else {
@@ -339,7 +360,7 @@ action Board::validMove(string s) {
     return INVALID_ACTION;
 }
 
-bool Board::checkWin() {
+ReturnMessage Board::checkWin() {
     bool white_surrounded = false;
     bool black_surrounded = false;
     if (isPlacedBQ && isPlacedWQ) { //can't win without placing the queens
@@ -355,15 +376,15 @@ bool Board::checkWin() {
     }
     if (black_surrounded && white_surrounded) {
         state = DRAW;
-        return true;
+        return POSSIBLE_WIN;
     } else if (black_surrounded) {
         state = WHITE_WIN;
-        return true;
+        return POSSIBLE_WIN;
     } else if (white_surrounded) {
         state = BLACK_WIN;
-        return true;
+        return POSSIBLE_WIN;
     }
-    return false;
+    return GOOD;
 }
 
 bool Board::checkSurrounding(piece p) {
@@ -384,11 +405,12 @@ bool Board::checkSurrounding(piece p) {
  * :raises ValueError: If there are not enough moves to undo.
  * :raises ValueError: If the game has yet to begin.
  */
-void Board::undo(int amount) {
+void Board::undo(int amount) { //TODO: erase the vector of possible moves
     if (moves.size() <= (long long unsigned int) amount) {
         reset();
         return;
     }
+    possibleMovesVector.clear();
     for (int i = 0; i < amount; i++) {
         action move = moves.back();
         moves.pop_back();

@@ -5,6 +5,15 @@ import os
 import sys
 import locale
 
+# This represents the return types of the functions
+class ReturnTypes:
+    OK = 0
+    INVALID_MOVE = 1
+    GAME_OVER = 2
+    DRAW = 3
+    WHITE_WINS = 4
+    BLACK_WINS = 5
+
 class EngineDLL:
     def __init__(self):
         path = os.path.join(os.getcwd(), "engine.dll")
@@ -31,7 +40,8 @@ class EngineDLL:
             raise TypeError("game_string must be a string")
         try:
             encoded_string = game_string.encode("utf-8")
-            return self.dll.startGame(encoded_string)
+            if self.dll.startGame(encoded_string) == 1:
+                return False
         except UnicodeEncodeError as e:
             print(f"Encoding error: {e}")
             # Fallback to ASCII if encoding fails
@@ -39,15 +49,6 @@ class EngineDLL:
 
     def play_move(self, move_string):
         """Play a move in the current game"""
-
-
-
-        #Bug_REGEX = f"({"|".join(COLORS.keys())})({"|".join(BugType)})(1|2|3)?"
-
-
-        # TODO: make a regex to check the string passed
-        #Move_REGEX = f"({Bug.REGEX})( ?({"|".join(f"\\{d}" for d in Direction.flat_left())})?({Bug.REGEX})({"|".join(f"\\{d}" for d in Direction.flat_right())})?)?"
-
         encoded_string = move_string.encode("utf-8")
         return self.dll.playMove(encoded_string)
 
@@ -94,14 +95,13 @@ startGame("Base+MLP")
 
 print(getBoard())
 
+playMove("wP")
 
-#playMove("wP")
+playMove("bA1 wP-")
 
-#playMove("bP wP-")
+playMove("wQ -wP")
 
-#playMove("wQ -wP")
-
-#playMove("bQ bP-")
+playMove("bQ bA1\\")
 
 #playMove("wS1 wQ/")
 
@@ -113,3 +113,6 @@ print(getBoard())
 
 #playMove("wL wP\\")
 #playMove("bL bP\\")
+
+startGame("Base+M")
+startGame("Base+MLP;InProgress;Black[1];wP")

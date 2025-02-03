@@ -146,5 +146,11 @@ string BugTypeToString(BugType t);
  */
 enum BugType parseBugType(string s);
 
+enum ReturnMessage{
+    GOOD = 0,
+    ERROR = 1,
+    POSSIBLE_WIN = 2,
+};
+
 
 #endif

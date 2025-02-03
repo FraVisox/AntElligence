@@ -2,6 +2,7 @@
 #include <math.h>
 #include "board.h"
 #include <iostream>
+#include <regex>
 
 // Define export macro for Windows
 #ifdef _WIN32
@@ -16,83 +17,80 @@ extern "C" {
 
 Board b;
 
-void raise_exception() {
-    b.reset();
-}
 
 EXPORT int startGame(char* s) {
-    //Type of string:
+    //Check the string:
+    if (s == nullptr) {
+        return 1;
+    }
+    string ss = s;
+    const std::regex game_string_pattern(R"(^Base(?:\+(?:M|L|P|ML|LP|MP|MLP))(?:;(?:InProgress|NotStarted|Draw|WhiteWins|BlackWins)(?:;(?:White|Black)\[\d+\](?:;(?:(?:w|b)[QSBGAMLP](?:[1-3])?(?: [\\\-/](?:w|b)[QSBGAMLP](?:[1-3])?)?(?: (?:w|b)[QSBGAMLP](?:[1-3])?[\\\-/])?)?)*)?)?$)");
+    if (!std::regex_match(ss, game_string_pattern)) {
+        cout << "Not match" << endl;
+        return 1;
+    }
 
-    // it can have GameTypeString (Base+MLP) or Gamestring (Gametype;State;Player[Turn];moves...)
-
-    //Base;InProgress;White[3];wS1;bG1 -wS1;wA1 wS1/;bG2 /bG1
-    //Base+MLP
+    //Create newboard as to not modify the original
+    Board newb = Board();
 
     //GameTypeString
-    if (s == nullptr) {
-        raise_exception();
-        return 1;
-    }
+    s += 4; //Skip "Base"
 
-    if (strncmp(s,"Base",4) != 0) {
-        raise_exception();
-        return 1;
-    }
-    s += 4;
-
+    //Add pieces
     for(PlayerColor col : {BLACK,WHITE}){
-        b.addPieceHand(piece{QUEEN,col,0});
+        newb.addPieceHand(piece{QUEEN,col,0});
         for(int i=1;i<=2;i++){
-            b.addPieceHand(piece{SPIDER,col,i});
-            b.addPieceHand(piece{BEETLE,col,i});
-            b.addPieceHand(piece{GRASSHOPPER,col,i});
-            b.addPieceHand(piece{SOLDIER_ANT,col,i});
+            newb.addPieceHand(piece{SPIDER,col,i});
+            newb.addPieceHand(piece{BEETLE,col,i});
+            newb.addPieceHand(piece{GRASSHOPPER,col,i});
+            newb.addPieceHand(piece{SOLDIER_ANT,col,i});
         }
-        b.addPieceHand(piece{GRASSHOPPER,col,3});
-        b.addPieceHand(piece{SOLDIER_ANT,col,3});
+        newb.addPieceHand(piece{GRASSHOPPER,col,3});
+        newb.addPieceHand(piece{SOLDIER_ANT,col,3});
     } 
 
+    //If there are other pieces
     if (*s == '+') {
         s++;  
         if (*s == 'M') {
-            b.addPieceHand(piece{MOSQUITO,BLACK,0});
-            b.addPieceHand(piece{MOSQUITO,WHITE,0});
+            newb.addPieceHand(piece{MOSQUITO,BLACK,0});
+            newb.addPieceHand(piece{MOSQUITO,WHITE,0});
             s++;
-            b.type = Base_M;
+            newb.type = Base_M;
         }
         if (*s == 'L') {
-            b.addPieceHand(piece{LADYBUG,BLACK,0});
-            b.addPieceHand(piece{LADYBUG,WHITE,0});
+            newb.addPieceHand(piece{LADYBUG,BLACK,0});
+            newb.addPieceHand(piece{LADYBUG,WHITE,0});
             s++;
-            if (b.type == Base_M) {
-                b.type = Base_ML;
+            if (newb.type == Base_M) {
+                newb.type = Base_ML;
             } else {
-                b.type = Base_L;
+                newb.type = Base_L;
             }
         }
         if (*s == 'P') {
-            b.addPieceHand(piece{PILLBUG,BLACK,0});
-            b.addPieceHand(piece{PILLBUG,WHITE,0});
+            newb.addPieceHand(piece{PILLBUG,BLACK,0});
+            newb.addPieceHand(piece{PILLBUG,WHITE,0});
             s++;
-            if (b.type == Base_M) {
-                b.type = Base_MP;
-            } else if (b.type == Base_L) {
-                b.type = Base_LP;
-            } else if (b.type == Base_ML) {
-                b.type = Base_MLP;
+            if (newb.type == Base_M) {
+                newb.type = Base_MP;
+            } else if (newb.type == Base_L) {
+                newb.type = Base_LP;
+            } else if (newb.type == Base_ML) {
+                newb.type = Base_MLP;
             } else {
-                b.type = Base_P;
+                newb.type = Base_P;
             }
         } 
     }
 
-    b.state = STARTED;
+    newb.state = STARTED;
 
-
-
-    //GameString
+    //If there is also a game in progress
     if (*s == ';') {
         s++;
+
+        cout << "Entering game in progress" << endl;
 
         //GameStateString
         char* state = s;
@@ -100,11 +98,12 @@ EXPORT int startGame(char* s) {
             s++;
         }
         if (*s == 0) {
-            raise_exception();
             return 1;
         }
         *s = 0;
         s++;
+
+        cout << "State: " << state  << endl;
 
         //TurnString
         char* turn = s;
@@ -112,17 +111,16 @@ EXPORT int startGame(char* s) {
             s++;
         }
         if (*s == 0) {
-            raise_exception();
             return 1;
         }
         *s = 0;
+        cout << "Turn: " << turn  << endl;
         int curTurn = 0;
         if (!strcmp(turn,"White")) {
             curTurn = 1;
         } else if (!strcmp(turn,"Black")) {
             curTurn = 2;
         } else {
-            raise_exception();
             return 1;
         }
         s++;
@@ -131,20 +129,21 @@ EXPORT int startGame(char* s) {
             s++;
         }
         if (*s == 0) {
-            raise_exception();
             return 1;
         }
         *s = 0;
+        cout << "Turn: " << turn  << endl;
         curTurn = curTurn + 2*(atoi(turn)-1);
+        cout << "Current turn: " << curTurn  << endl;
         if (curTurn <= 0) {
-            raise_exception();
             return 1;
         }
         s++;
 
         //MoveString
         while (*s == ';') {
-            char* move = s+1;
+            s++;
+            char* move = s;
             while (*s != ';' && *s != 0) {
                 s++;
             }
@@ -153,7 +152,10 @@ EXPORT int startGame(char* s) {
                 ret = true;
             }
             *s = 0;
-            b.executeAction(move);
+            cout << "Move: " << move  << endl;
+            if (newb.executeAction(move) == ERROR) {
+                return 1;
+            } 
             if (ret) {
                 break;
             }
@@ -161,23 +163,26 @@ EXPORT int startGame(char* s) {
         }
 
         //Check if the current status is true
-        if (b.currentTurn != curTurn || b.state != parseState(state)) {
-            raise_exception();
+        if (newb.currentTurn != curTurn || (parseState(state) != NOT_STARTED && newb.state != parseState(state)) || (parseState(state) == NOT_STARTED && newb.state != STARTED)) {
+            cout << "Status not consistent" << endl;
             return 1;
         }
     }
+
+    b.copy(newb);
+    cout << "Copied" << endl;
     return 0;
 }
 
 EXPORT int playMove(char* m) {
-    if(b.executeAction(m)) {
+    if(b.executeAction(m) == POSSIBLE_WIN) {
         cout << "-------------------" << endl;
         if (b.state == DRAW) {
-            return 1;
-        } else if (b.state == WHITE_WIN){
-            return 2;
-        } else if (b.state == BLACK_WIN){
             return 3;
+        } else if (b.state == WHITE_WIN){
+            return 4;
+        } else if (b.state == BLACK_WIN){
+            return 5;
         }
     }
     cout << "-------------------" << endl;

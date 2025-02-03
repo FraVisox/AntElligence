@@ -46,6 +46,8 @@ class Board {
 
     void reset();
 
+    void copy(Board& b);
+
     action validMove(string s);
 
     /**
@@ -89,9 +91,9 @@ class Board {
      *
      * \param a The action to be executed.
      */
-    bool executeAction(string s);
+    ReturnMessage executeAction(string s);
 
-    bool checkWin();
+    ReturnMessage checkWin();
 
     bool checkSurrounding(piece p);
 
