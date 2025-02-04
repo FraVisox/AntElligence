@@ -65,7 +65,6 @@ string Board::toString() {
             ss << ActionToString(move);
         }
         
-        
         return ss.str();
     }   
     catch (const std::exception& e) {
@@ -121,11 +120,9 @@ ReturnMessage Board::executeAction(string s){
 
     action a = validMove(s);
     if (a.bug == INVALID_PIECE) {
-        cout << "Invalid move: " << s << endl;
         return ERROR; //todo: add error message
     }
 
-    cout << "Action: " << ActionToString(a) << " of type " << a.actType << endl;
 
     //The move is represented as a Movestring (wS1 -wA1) or as "pass"
 
@@ -163,7 +160,6 @@ ReturnMessage Board::executeAction(string s){
     }
     currentTurn++;
 
-    cout << "-------------------" << endl;
     possibleMovesVector.clear();
     return checkWin();
 }
@@ -561,8 +557,6 @@ void Board::addPieceHand(piece p){
 
 void Board::possibleMovesBug(piece b, vector<action> &res){
     if (b == INVALID_PIECE) return;
-    cout << "Searching between the moves of " << b.toString() << endl;
-    int current = res.size();
     if(b.col==currentColor()){ // turn is required to make the program efficent
         switch(b.kind){
             case BEETLE:
@@ -591,7 +585,6 @@ void Board::possibleMovesBug(piece b, vector<action> &res){
                 break;
         }
     }
-    cout << "Generated " << res.size()-current << " moves for " << b.toString() << endl;
 }
 
 
