@@ -17,6 +17,7 @@ extern "C" {
 
 Board b;
 
+//TODO: be more precise with error types
 
 EXPORT int startGame(char* s) {
     //Check the string:
