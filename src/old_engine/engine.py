@@ -1,21 +1,22 @@
-from typing import Final
-from game_logic.enums import Command
+from typing import TypeGuard, Final, Optional
+from engine_py.enums import Command
+from engine_py.board import Board
+from engine_py.game import Move
 from agents.strategy import Strategy
 from agents.random_strat import Random
 from agents.minimax import Minimax
 from copy import deepcopy
-import engineInterface as engineInterface
 import re
 
 
 class Engine():
-  VERSION: Final[str] = "2.0.0"
+  VERSION: Final[str] = "1.0.0"
   """
   Engine version.
   """
   
   OPTIONS: Final[dict[str, str]] = {
-    "Strategy": "Random",
+    "Strategy": "Minimax",
   }
   
     
@@ -29,6 +30,7 @@ class Engine():
   }
 
   def __init__(self) -> None:
+    self.board: Optional[Board] = None
     self.brain: Strategy = self.BRAINS[self.OPTIONS["Strategy"]]
 
   def start(self) -> None:
@@ -56,7 +58,7 @@ class Engine():
         case [Command.PLAY, partial_move_1, partial_move_2]:
           self.play(f"{partial_move_1} {partial_move_2}")
         case [Command.PASS]:
-          self.play("pass")
+          self.play(Move.PASS)
         case [Command.UNDO, *arguments]:
           self.undo(arguments)
         case [Command.EXIT]:
@@ -165,7 +167,7 @@ class Engine():
     """
     Handles 'options get' argument to display AI strategy. As this is the only option, there is no need to make it more general.
     """
-    if option_name in self.OPTIONS:
+    if option_name in self.OPTIONS: 
       return "{};enum;{};{};{}".format(option_name, self.OPTIONS[option_name], self.POSSIBLE_VALUES[option_name][0], ";".join(map(str, self.POSSIBLE_VALUES[option_name])))
     
   def set_option(self, option_name, option_value):
@@ -187,8 +189,8 @@ class Engine():
     :rtype: Optional[Board]
     """
     try:
-      engineInterface.startGame(" ".join(arguments))
-      print(engineInterface.getBoard())
+      self.board = Board(" ".join(arguments))
+      print(self.board)
     except (ValueError, TypeError) as e:
       self.error(e)
 
@@ -199,7 +201,8 @@ class Engine():
     :param board: Current playing Board.
     :type board: Optional[Board]
     """
-    print(engineInterface.getValidMoves())
+    if self.is_active(self.board):
+      print(self.board.valid_moves)
       
   def parse_time_to_seconds(self, time_str):
     # Split the time string by colon
@@ -222,19 +225,18 @@ class Engine():
     :param value: Value of the restriction.
     :type value: str
     """
-    if restriction == "time":
-      if not re.match(r"^\d{2}:\d{2}:\d{2}$", value):
-        self.error("Invalid time format. Use hh:mm:ss")
-        return
-      self.brain.set_time_limit(self.parse_time_to_seconds(value))
-    elif restriction == "depth":
-      if not value.isdigit() or not int(value) > 0:
-        self.error("Invalid depth format. Use a positive integer")
-        return
-      self.brain.set_depth_limit(int(value))
-
-    # TODO: how to pass the board to the brain??? This should return a MoveString
-    print(self.brain.calculate_best_move(deepcopy(self.board)))
+    if self.is_active(self.board):
+      if restriction == "time":
+        if not re.match(r"^\d{2}:\d{2}:\d{2}$", value):
+          self.error("Invalid time format. Use hh:mm:ss")
+          return
+        self.brain.set_time_limit(self.parse_time_to_seconds(value))
+      elif restriction == "depth":
+        if not value.isdigit() or not int(value) > 0:
+          self.error("Invalid depth format. Use a positive integer")
+          return
+        self.brain.set_depth_limit(int(value))
+      print(self.brain.calculate_best_move(deepcopy(self.board)))
 
   def play(self, move: str) -> None:
     """
@@ -245,12 +247,13 @@ class Engine():
     :param move: MoveString.
     :type move: str
     """
-    try:
-      engineInterface.playMove(move)
-      self.brain.empty_cache()
-      print(engineInterface.getBoard())
-    except ValueError as e:
-      self.invalidmove(e)
+    if self.is_active(self.board):
+      try:
+        self.board.play(move)
+        self.brain.empty_cache()
+        print(self.board)
+      except ValueError as e:
+        self.error(e)
 
   def undo(self, arguments: list[str]) -> None:
     """
@@ -261,21 +264,36 @@ class Engine():
     :param arguments: Command arguments.
     :type arguments: list[str]
     """
-    if len(arguments) <= 1:
-      try:
-        if arguments:
-          if (amount := arguments[0]).isdigit():
-            engineInterface.undo(int(amount))
+    if self.is_active(self.board):
+      if len(arguments) <= 1:
+        try:
+          if arguments:
+            if (amount := arguments[0]).isdigit():
+              self.board.undo(int(amount))
+            else:
+              raise ValueError(f"Expected a positive integer but got '{amount}'")
           else:
-            raise ValueError(f"Expected a positive integer but got '{amount}'")
-        else:
-          engineInterface.undo(1)
-        self.brain.empty_cache()
-        print(engineInterface.getBoard())
-      except ValueError as e:
-        self.error(e)
-    else:
-      self.error(f"Too many arguments for command '{Command.UNDO}'")
+            self.board.undo()
+          self.brain.empty_cache()
+          print(self.board)
+        except ValueError as e:
+          self.error(e)
+      else:
+        self.error(f"Too many arguments for command '{Command.UNDO}'")
+
+  def is_active(self, board: Optional[Board]) -> TypeGuard[Board]:
+    """
+    Checks whether the current playing Board is initialized.
+
+    :param board: Current playing Board.
+    :type board: Optional[Board]
+    :return: Whether the Board is initialized.
+    :rtype: TypeGuard[Board]
+    """
+    if not board:
+      self.error("No game is currently active")
+      return False
+    return True
 
   def error(self, error: str | Exception) -> None:
     """
@@ -285,16 +303,6 @@ class Engine():
     :type message: str | Exception
     """
     print(f"err {error}.")
-
-
-  def invalidmove(self, error: str | Exception) -> None:
-    """
-    Outputs the invalid move error.
-
-    :param message: Message or exception.
-    :type message: str | Exception
-    """
-    print(f"invalidmove {error}.")
 
 if __name__ == "__main__":
   Engine().start()

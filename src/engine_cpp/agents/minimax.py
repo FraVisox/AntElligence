@@ -1,6 +1,6 @@
-from game_logic.board import Board
+from engine_py.board import Board
 from agents.strategy import Strategy
-from game_logic.enums import *
+from engine_py.enums import *
 from copy import deepcopy
 import time
 from agents.oracle import Oracle

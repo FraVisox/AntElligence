@@ -1,5 +1,5 @@
 from random import choice
-from game_logic.board import Board
+from engine_py.board import Board
 from agents.strategy import Strategy
 
 

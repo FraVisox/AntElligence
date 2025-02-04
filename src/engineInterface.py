@@ -16,7 +16,7 @@ class ReturnTypes:
 
 class EngineDLL:
     def __init__(self):
-        path = os.path.join(os.getcwd(), "engine.dll")
+        path = os.path.join(os.getcwd(), "engine_cpp/engine.dll")
         self.dll = ctypes.CDLL(path)
         self._setup_functions()
 

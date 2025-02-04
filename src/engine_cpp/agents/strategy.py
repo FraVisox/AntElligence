@@ -1,6 +1,6 @@
 from typing import Optional
 from abc import ABC, abstractmethod
-from game_logic.board import Board
+from engine_py.board import Board
 
 class Strategy(ABC):
   """

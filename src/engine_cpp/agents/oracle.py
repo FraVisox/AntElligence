@@ -1,6 +1,6 @@
-from game_logic.board import Board
-from game_logic.board import Bug
-from game_logic.enums import *
+from engine_py.board import Board
+from engine_py.board import Bug
+from engine_py.enums import *
 from copy import deepcopy
 
 
