@@ -17,6 +17,24 @@ extern "C" {
 
 Board b;
 
+/*
+    TODO: BUGS
+
+    1. 
+    STATUS: Base+MLP;InProgress;White[6];wG1;bA1 wG1\;wQ -wG1;bM bA1-;wL \wQ;bG1 bM/;wP /wL;bQ /bA1;wB1 \wG1;bL bG1\
+    WHAT: wB1 can move over the other pieces, but the move doesn't succeed (invalid move)
+
+    2. 
+    STATUS: Base+MLP;InProgress;White[6];wG1;bA1 wG1\;wQ -wG1;bM bA1-;wL \wQ;bG1 bM/;wP /wL;bQ /bA1;wB1 \wG1;bL bG1\
+    WHAT: wP can't move any piece. But idk why the mosquito can move the pieces
+
+    3.
+    STATUS: Base+MLP;InProgress;Black[9];wG1;bA1 wG1\;wQ -wG1;bM bA1-;wL \wQ;bG1 bM/;wP /wL;bQ /bA1;wB1 \wG1;bL bG1\;wA1 wP\;bP bA1\;wL wG1-;bL \wL;wM -wB1;bB1 bG1\;wA1 /bQ
+    WHAT: bM can't move anywhere
+
+*/
+
+
 //TODO: be more precise with error types
 
 EXPORT int startGame(char* s) {
