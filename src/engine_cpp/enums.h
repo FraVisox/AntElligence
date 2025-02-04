@@ -146,10 +146,14 @@ string BugTypeToString(BugType t);
  */
 enum BugType parseBugType(string s);
 
+
+// This should correspond to the ReturnMessage enum in the python code
 enum ReturnMessage{
-    GOOD = 0,
+    OK = 0,
     ERROR = 1,
-    POSSIBLE_WIN = 2,
+    GAME_OVER_DRAW = 2,
+    GAME_OVER_WHITE_WINS = 3,
+    GAME_OVER_BLACK_WINS = 4
 };
 
 

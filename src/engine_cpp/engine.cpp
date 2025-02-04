@@ -21,12 +21,12 @@ Board b;
 EXPORT int startGame(char* s) {
     //Check the string:
     if (s == nullptr) {
-        return 1;
+        return ERROR;
     }
     string ss = s;
     const std::regex game_string_pattern(R"(^Base(?:\+(?:M|L|P|ML|LP|MP|MLP))?(?:;(?:InProgress|NotStarted|Draw|WhiteWins|BlackWins)(?:;(?:White|Black)\[\d+\](?:;(?:(?:w|b)[QSBGAMLP](?:[1-3])?(?: [\\\-/](?:w|b)[QSBGAMLP](?:[1-3])?)?(?: (?:w|b)[QSBGAMLP](?:[1-3])?[\\\-/])?)?)*)?)?$)");
     if (!std::regex_match(ss, game_string_pattern)) {
-        return 1;
+        return ERROR;
     }
 
     //Create newboard as to not modify the original
@@ -97,7 +97,7 @@ EXPORT int startGame(char* s) {
             s++;
         }
         if (*s == 0) {
-            return 1;
+            return ERROR;
         }
         *s = 0;
         s++;
@@ -109,7 +109,7 @@ EXPORT int startGame(char* s) {
             s++;
         }
         if (*s == 0) {
-            return 1;
+            return ERROR;
         }
         *s = 0;
         int curTurn = 0;
@@ -118,7 +118,7 @@ EXPORT int startGame(char* s) {
         } else if (!strcmp(turn,"Black")) {
             curTurn = 2;
         } else {
-            return 1;
+            return ERROR;
         }
         s++;
         turn = s;
@@ -126,12 +126,12 @@ EXPORT int startGame(char* s) {
             s++;
         }
         if (*s == 0) {
-            return 1;
+            return ERROR;
         }
         *s = 0;
         curTurn = curTurn + 2*(atoi(turn)-1);
         if (curTurn <= 0) {
-            return 1;
+            return ERROR;
         }
         s++;
 
@@ -148,7 +148,7 @@ EXPORT int startGame(char* s) {
             }
             *s = 0;
             if (newb.executeAction(move) == ERROR) {
-                return 1;
+                return ERROR;
             } 
             if (ret) {
                 break;
@@ -158,7 +158,7 @@ EXPORT int startGame(char* s) {
 
         //Check if the current status is true
         if (newb.currentTurn != curTurn || (parseState(state) != NOT_STARTED && newb.state != parseState(state)) || (parseState(state) == NOT_STARTED && newb.state != STARTED)) {
-            return 1;
+            return ERROR;
         }
     }
 
@@ -167,74 +167,53 @@ EXPORT int startGame(char* s) {
 }
 
 EXPORT int playMove(char* m) {
-    if(b.executeAction(m) == POSSIBLE_WIN) {
-        if (b.state == DRAW) {
-            return 3;
-        } else if (b.state == WHITE_WIN){
-            return 4;
-        } else if (b.state == BLACK_WIN){
-            return 5;
-        }
-    }
-    return 0;
+    return b.executeAction(m);
 }
 
-static char BUFFER[100000];  // Buffer used both for validMoves and getBoard
+// TODO: is it sufficient? 14 bugs, even with 10 moves a bug we should have at max 1260 bytes. Maybe find a better lower bound
+static char BUFFER[10000];  // Buffer used both for validMoves and getBoard. 
 
 EXPORT char* validMoves() {
-    try {
-        vector<action> moves = b.possibleMoves();
+    vector<action> moves = b.possibleMoves();
 
-        if (b.state == NOT_STARTED) {
-            strcpy(BUFFER, "err: The game has not started yet");
-            return BUFFER;
-        } else if (b.state != IN_PROGRESS && b.state != STARTED) {
-            strcpy(BUFFER, "err: The game is over");
-            return BUFFER;
-        }
-
-        if (moves.size() == 0) {
-            strcpy(BUFFER, "pass");
-            return BUFFER;
-        }
-        
-        int i = 0;
-        for(const action& move : moves) {
-            string item = ActionToString(move);
-            int len = item.size();
-            // Check buffer bounds
-            if ( (long long unsigned int) i + len + 1 >= sizeof(BUFFER)) {
-                // Buffer overflow protection
-                BUFFER[0] = '\0';
-                return BUFFER;
-            }
-            memcpy(BUFFER + i, item.c_str(), len);
-            i += len;
-            BUFFER[i] = ';';
-            i++;
-        }
-
-        // Replace last semicolon with null terminator
-        BUFFER[i-1] = '\0';
+    if (b.state == NOT_STARTED) {
+        strcpy(BUFFER, "err The game has not started yet.");
+        return BUFFER;
+    } else if (b.state != IN_PROGRESS && b.state != STARTED) {
+        strcpy(BUFFER, "err The game is over.");
         return BUFFER;
     }
-    catch (const std::exception&) {
-        BUFFER[0] = '\0';
+
+    if (moves.size() == 0) {
+        strcpy(BUFFER, "pass");
         return BUFFER;
     }
+    
+    int i = 0;
+    for(const action& move : moves) {
+        string item = ActionToString(move);
+        int len = item.size();
+        // Check buffer bounds
+        if ( (long long unsigned int) i + len + 1 >= sizeof(BUFFER)) {
+            // Buffer overflow protection
+            BUFFER[0] = '\0';
+            return BUFFER;
+        }
+        memcpy(BUFFER + i, item.c_str(), len);
+        i += len;
+        BUFFER[i] = ';';
+        i++;
+    }
+
+    // Replace last semicolon with null terminator
+    BUFFER[i-1] = '\0';
+    return BUFFER;
 }
 
 EXPORT const char* getBoard() {        
-    try {
-        // First test with a simple static string
-        string test = b.toString();
-        strcpy(BUFFER, test.c_str());
-        return BUFFER;
-    }
-    catch (const std::exception&) {
-        BUFFER[0] = '\0';
-        return BUFFER;
-    }
+    string test = b.toString();
+    strcpy(BUFFER, test.c_str());
+    return BUFFER;
 }
 
 EXPORT void undo(int amount) {

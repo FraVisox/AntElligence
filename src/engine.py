@@ -5,6 +5,7 @@ from engine_cpp.agents.random_strat import Random
 from engine_cpp.agents.minimax import Minimax
 from copy import deepcopy
 import engineInterface as engineInterface
+
 import re
 
 
@@ -187,8 +188,10 @@ class Engine():
     :rtype: Optional[Board]
     """
     try:
-      engineInterface.startGame(" ".join(arguments))
-      print(engineInterface.getBoard())
+      if not engineInterface.startGame(" ".join(arguments)):
+        self.error("Failed to start the game as the string was invalid")
+      else: 
+        print(engineInterface.getBoard())
     except (ValueError, TypeError) as e:
       self.error(e)
 
@@ -246,7 +249,11 @@ class Engine():
     :type move: str
     """
     try:
-      engineInterface.playMove(move)
+      ret = engineInterface.playMove(move)
+      if ret == engineInterface.ReturnTypes.ERROR:
+        self.error("Invalid move")
+        return
+      # TODO: make something different if someone wins??
       self.brain.empty_cache()
       print(engineInterface.getBoard())
     except ValueError as e:

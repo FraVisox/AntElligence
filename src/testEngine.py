@@ -90,13 +90,8 @@ print(getBoard())
 playMove("bQ bA1\\")
 print(getBoard())
 
-#playMove("wS1 wQ/")
+undo(15)
+print(getBoard())
 
-#playMove("bA1 bQ-")
-
-#playMove("wL wS1/")
-
-#playMove("bL bA1-")
-
-#playMove("wL wP\\")
-#playMove("bL bP\\")
+startGame("Base+MLP;BlackWins;White[7];wP;bP wP-;wQ \\wP;bQ bP-;wA1 \\wQ;bA1 bQ-;wS1 -wQ;bA2 bQ/;wG1 /wQ;bA1 \\bP;wG2 /wG1;bA2 \\bA1")
+print(getBoard())

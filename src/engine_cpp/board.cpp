@@ -20,10 +20,16 @@ Board::Board(){
 void Board::reset() {
     currentTurn = 1;
     state = STARTED;
-    moves.erase(moves.begin(), moves.end());
+    //We do not change the type of game
+    moves.clear();
+    possibleMovesVector.clear();
+    isPlacedBQ = false;
+    isPlacedWQ = false;
     G.reset();
-    placedBug.erase(placedBug.begin(), placedBug.end());
-    inHandPiece.clear();
+    for (piece p : placedBug) {
+        inHandPiece.insert(p);
+    }
+    placedBug.clear();
 }
 
 void Board::copy(Board& b) {
@@ -31,6 +37,8 @@ void Board::copy(Board& b) {
     type = b.type;
     state = b.state;
     moves = b.moves;
+    possibleMovesVector = b.possibleMovesVector;
+    //Copy the gameboard
     G.bugPosition = b.G.bugPosition;
     for (int i = 0; i < 100; i++) {
         for (int j = 0; j < 100; j++) {
@@ -40,6 +48,8 @@ void Board::copy(Board& b) {
     G.occupied = b.G.occupied;
     placedBug = b.placedBug;
     inHandPiece = b.inHandPiece;
+    isPlacedBQ = b.isPlacedBQ;
+    isPlacedWQ = b.isPlacedWQ;
 }
 
 
@@ -120,18 +130,17 @@ ReturnMessage Board::executeAction(string s){
 
     action a = validMove(s);
     if (a.bug == INVALID_PIECE) {
-        return ERROR; //todo: add error message
+        return ERROR;
     }
-
 
     //The move is represented as a Movestring (wS1 -wA1) or as "pass"
 
     if (state == STARTED)
         state = IN_PROGRESS;
     else if (state != IN_PROGRESS) {
-        return ERROR; //TODO: Add error message to explain no move can be made
+        return ERROR;
     }
-    switch (a.actType) { //TODO: check if the move is valid
+    switch (a.actType) {
         case MOVEMENT:
             a.startingPos = G.getPosition(a.bug);
             G.removePiece(a.bug);
@@ -372,15 +381,15 @@ ReturnMessage Board::checkWin() {
     }
     if (black_surrounded && white_surrounded) {
         state = DRAW;
-        return POSSIBLE_WIN;
+        return GAME_OVER_DRAW;
     } else if (black_surrounded) {
         state = WHITE_WIN;
-        return POSSIBLE_WIN;
+        return GAME_OVER_WHITE_WINS;
     } else if (white_surrounded) {
         state = BLACK_WIN;
-        return POSSIBLE_WIN;
+        return GAME_OVER_BLACK_WINS;
     }
-    return GOOD;
+    return OK;
 }
 
 bool Board::checkSurrounding(piece p) {
@@ -401,10 +410,17 @@ bool Board::checkSurrounding(piece p) {
  * :raises ValueError: If there are not enough moves to undo.
  * :raises ValueError: If the game has yet to begin.
  */
-void Board::undo(int amount) { //TODO: erase the vector of possible moves
+void Board::undo(int amount) { 
+    if (state == NOT_STARTED) {
+        return;
+    }
     if (moves.size() <= (long long unsigned int) amount) {
+        moves.clear();
         reset();
         return;
+    }
+    if (state != IN_PROGRESS) {
+        state = IN_PROGRESS;
     }
     possibleMovesVector.clear();
     for (int i = 0; i < amount; i++) {
@@ -663,7 +679,7 @@ void Board::possibleMoves_Grasshopper(piece bug,vector<action> &res){
  * \param bug The Soldier Ant bug piece for which to generate moves.
  * \param res The vector to store the resulting actions/moves.
  */
-void Board::possibleMoves_SoldierAnt(piece bug, vector<action> & res){ //todo: improve with if I pass near another ant then I have all its moves
+void Board::possibleMoves_SoldierAnt(piece bug, vector<action> & res){
     if (G.canPieceMove(bug,currentTurn)) {
 
         unordered_set<position> inQueue;
@@ -736,7 +752,7 @@ void Board::possibleMoves_Spider(piece bug, vector<action> & res){
     }
 }
 
-/* TODO: implement. DOES THE PILLBUG NEED TO CHECK FOR SLIDE FREE?
+/*
 
 Ladybug: 1 climb, then either 1 crawl or 1 climb, then 1 crawl into an unoccupied space. 
         The Ladybug must start and end its move at height 1, but it cannot be at height 
@@ -770,8 +786,18 @@ void Board::possibleMoves_Pillbug(piece bug, vector<action> &res){
     if (G.canPieceMove(bug,currentTurn)) {
         for(position dest: G.getPosition(bug).neighbor()){
             pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(dest, G.getPosition(bug), false);
-            if (relativeDir.second != INVALID ) {//&& find(res.begin(), res.end(), movement(bug, relativeDir.first, relativeDir.second)) == res.end()){ todo
-                res.push_back(movement(bug,relativeDir.first,relativeDir.second));
+            //TODO: is it necessary to check inside for duplicate moves?
+            if (relativeDir.second != INVALID ) { 
+                bool already_in = false;
+                for (auto pair : res){
+                    if (pair.bug == bug && G.getPosition(pair.otherBug).applayMove(pair.relativeDir) == G.getPosition(relativeDir.first).applayMove(relativeDir.second)){
+                        already_in = true;
+                        break;
+                    }
+                }
+                if (!already_in) {
+                    res.push_back(movement(bug, relativeDir.first, relativeDir.second));
+                }
             }
         }
     }
@@ -806,7 +832,7 @@ void Board::possibleMoves_Pillbug(piece bug, vector<action> &res){
             for (int l = 0; l < j; l++){
                 pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(places_to_move[l], G.getPosition(bug), false);
                 if (relativeDir.second != INVALID) {
-                    //Check if this movement is already inside of the vector TODO: is it necessary????
+                    //Check if this movement is already inside of the vector TODO: is it necessary to check for duplicate moves????
                     bool already_in = false;
                     for (auto pair : res){
                         if (pair.bug == to_move && G.getPosition(pair.otherBug).applayMove(pair.relativeDir) == G.getPosition(relativeDir.first).applayMove(relativeDir.second)){
@@ -837,7 +863,7 @@ void Board::possibleMoves_Pillbug(piece bug, vector<action> &res){
  * @param bug The Mosquito bug piece for which to generate moves.
  * @param res The vector to store the resulting actions/moves.
  */
-void Board::possibleMoves_Mosquito(piece bug, vector<action> &res){ //todo: test
+void Board::possibleMoves_Mosquito(piece bug, vector<action> &res){
     if (!G.canPieceMove(bug, currentTurn)) 
         return;
     if (!G.isAtLevel1(G.getPosition(bug))){
@@ -848,7 +874,7 @@ void Board::possibleMoves_Mosquito(piece bug, vector<action> &res){ //todo: test
 
     set<BugType> copied;
     for(position n: G.getPosition(bug).neighbor()){
-        if(!G.isFree(n) && G.topPiece(n).kind != MOSQUITO){ //TODO: i pezzi copiati devono essere ad altezza 1??
+        if(!G.isFree(n) && G.topPiece(n).kind != MOSQUITO){
             copied.insert(G.topPiece(n).kind);
         }
     }
@@ -919,7 +945,7 @@ void Board::possibleMoves_Ladybug(piece bug,vector<action> &res){
                 pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(n, f, true);
             
                 if (relativeDir.second != INVALID) {
-                    if (G.isFree(n) && d == 2 && !seen.count(n)) { //TODO: deve fare per forza 3 passi o no?
+                    if (G.isFree(n) && d == 2 && !seen.count(n)) { //TODO: It must do exactly 3 steps right?
                         res.push_back(movement(bug, relativeDir.first, relativeDir.second));
                         seen.insert(n);
                     } else if (d == 1 && !G.isFree(n)) {

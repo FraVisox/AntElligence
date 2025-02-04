@@ -2,17 +2,14 @@
 
 import ctypes
 import os
-import sys
-import locale
 
 # This represents the return types of the functions
 class ReturnTypes:
     OK = 0
-    INVALID_MOVE = 1
-    GAME_OVER = 2
-    DRAW = 3
-    WHITE_WINS = 4
-    BLACK_WINS = 5
+    ERROR = 1
+    GAME_OVER_DRAW = 2
+    GAME_OVER_WHITE_WINS = 3
+    GAME_OVER_BLACK_WINS = 4
 
 class EngineDLL:
     def __init__(self):
@@ -40,12 +37,10 @@ class EngineDLL:
             raise TypeError("game_string must be a string")
         try:
             encoded_string = game_string.encode("utf-8")
-            if self.dll.startGame(encoded_string) == 1:
-                return False
+            return self.dll.startGame(encoded_string) == ReturnTypes.OK
         except UnicodeEncodeError as e:
-            print(f"Encoding error: {e}")
             # Fallback to ASCII if encoding fails
-            return self.dll.startGame(game_string.encode('ascii', errors='replace'))
+            return self.dll.startGame(encoded_string) == ReturnTypes.OK
 
     def play_move(self, move_string):
         """Play a move in the current game"""
@@ -63,8 +58,7 @@ class EngineDLL:
                     return decoded
                 except UnicodeDecodeError as e:
                     return raw_bytes.decode('ascii', errors='replace')
-        except Exception as e:
-            print(f"Error in get_valid_moves: {e}")
+        except Exception:
             return ""
 
     def get_board(self):
