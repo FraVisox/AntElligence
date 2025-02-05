@@ -19,9 +19,6 @@ Board b;
 
 /*
     TODO: BUGS
-    1.
-    STATUS: Base+MLP;InProgress;Black[9];wG1;bA1 wG1\;wQ -wG1;bM bA1-;wL \wQ;bG1 bM/;wP /wL;bQ /bA1;wB1 \wG1;bL bG1\;wA1 wP\;bP bA1\;wL wG1-;bL \wL;wM -wB1;bB1 bG1\;wA1 /bQ
-    WHAT: bM can't move anywhere
 
 */
 
