@@ -219,6 +219,10 @@ action Board::validMove(string s) {
             if (a.bug == toMove && newPlace == G.getPosition(a.otherBug).applayMove(a.relativeDir)) {
                 return a;
             }
+            if (toMove.kind == MOSQUITO && areBugsSameOrCopied(toMove, a.bug) && newPlace == G.getPosition(a.otherBug).applayMove(a.relativeDir)) { //TODO: bug con mosquito, se la muovo poi ha delle mosse sbagliate, come se non si fosse mossa
+                a.bug = toMove;
+                return a;
+            }
         }
         return INVALID_ACTION;
     }
@@ -356,9 +360,13 @@ action Board::validMove(string s) {
 
     //And the move should be done by the piece itself
     vector<action> res = vector<action>();
-    possibleMovesBug(toMove, res);
+    possibleMovesBug(toMove, res); //TODO: remember to update both this and the one before
     for (action a : res) {
         if (a.bug == toMove && toPlace == G.getPosition(a.otherBug).applayMove(a.relativeDir)) {
+            return a;
+        }
+        if (toMove.kind == MOSQUITO && areBugsSameOrCopied(toMove, a.bug) && toPlace == G.getPosition(a.otherBug).applayMove(a.relativeDir)) { //TODO: bug con mosquito, se la muovo poi ha delle mosse sbagliate, come se non si fosse mossa
+            a.bug = toMove;
             return a;
         }
    }

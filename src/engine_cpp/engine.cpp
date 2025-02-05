@@ -4,6 +4,9 @@
 #include <iostream>
 #include <regex>
 
+//BIG TODO: after 3 turns that we do and redo the same things the game should end in a draw (i think)
+
+
 // Define export macro for Windows
 #ifdef _WIN32
     #define EXPORT __declspec(dllexport)

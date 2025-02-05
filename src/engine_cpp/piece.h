@@ -43,5 +43,6 @@ struct std::hash<piece>
 
 bool operator!=(const piece& p1,const piece &p);
 bool operator==(const piece& p1,const piece &p);
+bool areBugsSameOrCopied(const piece& p1,const piece &p);
 
 #endif

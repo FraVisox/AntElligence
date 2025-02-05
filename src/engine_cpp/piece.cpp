@@ -124,8 +124,11 @@ int piece::toVal() const{
  * \return true if the pieces are equal, false otherwise.
  */
 bool operator==(const piece& p1,const piece &p){
-    bool ret = (p1.toVal()==p.toVal()) || (p.toVal() != -1 && p.kind == MOSQUITO && p1.toVal() == -1) || (p1.toVal() != -1 && p1.kind == MOSQUITO && p.toVal() == -1);
-    return ret;
+    return p1.toVal()==p.toVal();
+}
+
+bool areBugsSameOrCopied(const piece& p1,const piece &p) {
+    return (p1.toVal()==p.toVal()) || (p.toVal() != -1 && p.kind == MOSQUITO && p1.toVal() == -1) || (p1.toVal() != -1 && p1.kind == MOSQUITO && p.toVal() == -1);
 }
 
 /**
