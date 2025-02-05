@@ -184,7 +184,7 @@ action Board::validMove(string s) {
         return INVALID_ACTION;
     }
 
-    std::regex pattern(R"(^(w|b)[QSBGAMLP](?:[1-3])?(?: ([\\\-/])(w|b)[QSBGAMLP](?:[1-3])?)?(?: (w|b)[QSBGAMLP](?:[1-3])?([\\\-/]))?$)");
+    std::regex pattern(R"(^(w|b)[QSBGAMLP](?:[1-3])?(?: ([\\\-/])(w|b)[QSBGAMLP](?:[1-3])?)?(?: (w|b)[QSBGAMLP](?:[1-3])?)?(?: (w|b)[QSBGAMLP](?:[1-3])?([\\\-/]))?$)");
     std::regex placeFirstPattern(R"(^(w|b)[QSBGAMLP](?:[1-3])?$)");
     
     if (!std::regex_match(s, pattern)) {
@@ -314,7 +314,7 @@ action Board::validMove(string s) {
     if (G.isAtLevel1(current)) {
         vector<position> near = current.neighbor();
         for(position possiblePill : near){
-            if(!G.isFree(possiblePill) && (G.topPiece(possiblePill).kind==PILLBUG && G.topPiece(possiblePill).col==currentTurn)){
+            if(!G.isFree(possiblePill) && (G.topPiece(possiblePill).kind==PILLBUG && G.topPiece(possiblePill).col==currentColor())){
                 if(G.isFree(toPlace) && (isNear(possiblePill,toPlace))) {
                     pair<piece, direction> relativeDir = G.getRelativePositionIfCanMove(possiblePill, current, true);
                     G.removePiece(toMove);
