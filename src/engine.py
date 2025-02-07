@@ -1,11 +1,12 @@
-from typing import Final
+from typing import Final, Optional
 from engine_py.enums import Command
 from engine_cpp.agents.strategy import Strategy
 from engine_cpp.agents.random_strat import Random
 from engine_cpp.agents.minimax import Minimax
 from copy import deepcopy
-import engineInterface as engineInterface
-
+#import engineInterface as engineInterface
+from engineInterface import engine as CPPInterface
+from BoardModel import BoardModel
 import re
 
 
@@ -29,9 +30,10 @@ class Engine():
     "Minimax": Minimax(),
   }
 
+
+
   def __init__(self) -> None:
     self.brain: Strategy = self.BRAINS[self.OPTIONS["Strategy"]]
-
   def start(self) -> None:
     """
     Engine main loop to handle commands.
@@ -188,10 +190,10 @@ class Engine():
     :rtype: Optional[Board]
     """
     try:
-      if not engineInterface.startGame(" ".join(arguments)):
+      if not CPPInterface.start_game(" ".join(arguments)):
         self.error("Failed to start the game as the string was invalid")
       else: 
-        print(engineInterface.getBoard())
+        print(CPPInterface.get_board())
     except (ValueError, TypeError) as e:
       self.error(e)
 
@@ -202,7 +204,7 @@ class Engine():
     :param board: Current playing Board.
     :type board: Optional[Board]
     """
-    print(engineInterface.getValidMoves())
+    print(CPPInterface.get_valid_moves())
       
   def parse_time_to_seconds(self, time_str):
     # Split the time string by colon
@@ -237,7 +239,7 @@ class Engine():
       self.brain.set_depth_limit(int(value))
 
     # TODO: how to pass the board to the brain??? This should return a MoveString
-    print(self.brain.calculate_best_move(deepcopy(self.board)))
+    print(self.brain.calculate_best_move(CPPInterface))
 
   def play(self, move: str) -> None:
     """
@@ -249,13 +251,13 @@ class Engine():
     :type move: str
     """
     try:
-      ret = engineInterface.playMove(move)
-      if ret == engineInterface.ReturnTypes.ERROR:
-        self.error("Invalid move")
-        return
+      ret = CPPInterface.play_move(move)
+      #if ret == CPPInterface.ReturnTypes.ERROR:
+      #  self.error("Invalid move")
+      #  return
       # TODO: make something different if someone wins??
       self.brain.empty_cache()
-      print(engineInterface.getBoard())
+      print(CPPInterface.get_board())
     except ValueError as e:
       self.invalidmove(e)
 
@@ -272,13 +274,13 @@ class Engine():
       try:
         if arguments:
           if (amount := arguments[0]).isdigit():
-            engineInterface.undo(int(amount))
+            CPPInterface.undo(int(amount))
           else:
             raise ValueError(f"Expected a positive integer but got '{amount}'")
         else:
-          engineInterface.undo(1)
+          CPPInterface.undo(1)
         self.brain.empty_cache()
-        print(engineInterface.getBoard())
+        print(CPPInterface.get_board())
       except ValueError as e:
         self.error(e)
     else:

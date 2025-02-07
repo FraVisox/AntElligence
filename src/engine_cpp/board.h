@@ -44,6 +44,8 @@ class Board {
      * Resets the gameboard to its default configuration.
      */
 
+    vector<byte> graphRap();
+    void loadGraph(vector<byte> );
     void reset();
 
     void copy(Board& b);

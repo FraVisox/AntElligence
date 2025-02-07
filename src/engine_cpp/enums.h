@@ -34,12 +34,12 @@ string ColorToString(PlayerColor c);
 PlayerColor parseColor(string s);
 
 enum GameState{
-    NOT_STARTED,
-    STARTED,
-    IN_PROGRESS,
-    DRAW,
-    WHITE_WIN,
-    BLACK_WIN
+    NOT_STARTED=1,
+    STARTED=2,
+    IN_PROGRESS=3,
+    DRAW=4,
+    WHITE_WIN=5,
+    BLACK_WIN=6
 };
 
 /**

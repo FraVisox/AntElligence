@@ -54,6 +54,7 @@ void Board::copy(Board& b) {
 
 
 
+
 /**
  * Converts the data of the board to the corresponding GameString.
  *
@@ -129,7 +130,8 @@ bool Board::placedQueen(){
 ReturnMessage Board::executeAction(string s){
 
     action a = validMove(s);
-    if (a.bug == INVALID_PIECE) {
+    if (a == INVALID_ACTION) {
+        cerr<<"Error: not a valid piece";
         return ERROR;
     }
 
@@ -188,6 +190,7 @@ action Board::validMove(string s) {
     std::regex placeFirstPattern(R"(^(w|b)[QSBGAMLP](?:[1-3])?$)");
     
     if (!std::regex_match(s, pattern)) {
+        cerr<<"Not mached regex pattern";
         return INVALID_ACTION;
     }
 
@@ -202,7 +205,9 @@ action Board::validMove(string s) {
             }
             else 
                 return INVALID_ACTION;
-        } else if (s.find(' ') == std::string::npos) {
+        }
+        
+        if (s.find(' ') == std::string::npos) {
             return INVALID_ACTION; //no second string
         }
 
