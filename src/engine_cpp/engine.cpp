@@ -4,8 +4,25 @@
 #include <iostream>
 #include <regex>
 
-//BIG TODO: after 3 turns that we do and redo the same things the game should end in a draw (i think)
+/*
 
+//TODO: be more precise with error types
+
+//TODO: OTHER RULES
+
+The game ends in a draw in the following cases: 
+a) both Queen Bees are surrounded at the same at the end of any turn; 
+b) it is mutually agreed upon; 
+c) the same position appears three times over the whole game. (***********************************)
+
+The pieces already in play can be moved according to their abilities, provided the following are all true:
+- The player’s Queen Bee is in the hive;
+- The activated piece and the piece being moved are both uncovered;
+- Neither the activated piece, nor the piece being moved, were moved on the (********************************)
+previous turn;
+- Removing the piece being moved from the hive would not cause the hive to become discontiguous (One Hive rule).
+
+*/
 
 // Define export macro for Windows
 #ifdef _WIN32
@@ -20,14 +37,21 @@ extern "C" {
 
 Board b;
 
-/*
-    TODO: BUGS
-
-*/
-
-
-//TODO: be more precise with error types
-
+/**
+ * Starts a new game or resumes a game from a given GameString.
+ *
+ * This function initializes a new board based on the provided GameString, which 
+ * includes game type, game state, turn information, and any moves made so far.
+ * It validates the GameString format and updates the game board accordingly.
+ * If the GameString is invalid or inconsistent, the function returns an error.
+ *
+ * @param s A character pointer representing the GameString.
+ *          The GameString should follow a specific pattern to indicate 
+ *          the game configuration and moves.
+ * @return An integer indicating success or error:
+ *         - Returns 0 if the game is successfully started or resumed.
+ *         - Returns ERROR if the GameString is invalid or inconsistent.
+ */
 EXPORT int startGame(char* s) {
     //Check the string:
     if (s == nullptr) {
@@ -176,27 +200,55 @@ EXPORT int startGame(char* s) {
     return 0;
 }
 
+/**
+ * \brief Execute a move in the game.
+ *
+ * Given a string representing a move, this function executes it in the current game.
+ * The string should be a valid MoveString, which is a concatenation of a bug piece
+ * to be moved and its relative position and direction. The relative position and
+ * direction are represented by a single string, which is the concatenation of the
+ * relative position bug piece and the direction indicator.
+ *
+ * \param m The string representing the move.
+ * \return 0 if the move was successful, an error code otherwise.
+ */
 EXPORT int playMove(char* m) {
     return b.executeAction(m);
 }
 
-// TODO: is it sufficient? 14 bugs, even with 10 moves a bug we should have at max 1260 bytes. Maybe find a better lower bound
-static char BUFFER[10000];  // Buffer used both for validMoves and getBoard. 
+// IT SHOULD BE SUFFICIENT FOR ALL THE POSSIBLE MOVES (considering 9 bytes for each move)
+static char MOVES_BUFFER[10000];
 
+/**
+ * \brief Return a string with all valid moves for the current player.
+ *
+ * If the game has not started yet, this function returns "err The game has not started yet.".
+ * If the game is over, this function returns "err The game is over.".
+ * If there are no valid moves, this function returns "pass".
+ *
+ * Otherwise, this function returns a string with all valid moves for the current player.
+ * The string is a concatenation of valid moves, separated by semicolons.
+ * Each valid move is represented by a MoveString, which is a concatenation of a bug piece
+ * to be moved and its relative position and direction. The relative position and
+ * direction are represented by a single string, which is the concatenation of the
+ * relative position bug piece and the direction indicator.
+ *
+ * \return A pointer to a string containing all valid moves for the current player.
+ */
 EXPORT char* validMoves() {
     vector<action> moves = b.possibleMoves();
 
     if (b.state == NOT_STARTED) {
-        strcpy(BUFFER, "err The game has not started yet.");
-        return BUFFER;
+        strcpy(MOVES_BUFFER, "err The game has not started yet.");
+        return MOVES_BUFFER;
     } else if (b.state != IN_PROGRESS && b.state != STARTED) {
-        strcpy(BUFFER, "err The game is over.");
-        return BUFFER;
+        strcpy(MOVES_BUFFER, "err The game is over.");
+        return MOVES_BUFFER;
     }
 
     if (moves.size() == 0) {
-        strcpy(BUFFER, "pass");
-        return BUFFER;
+        strcpy(MOVES_BUFFER, "pass");
+        return MOVES_BUFFER;
     }
     
     int i = 0;
@@ -204,28 +256,56 @@ EXPORT char* validMoves() {
         string item = ActionToString(move);
         int len = item.size();
         // Check buffer bounds
-        if ( (long long unsigned int) i + len + 1 >= sizeof(BUFFER)) {
+        if ( (long long unsigned int) i + len + 1 >= sizeof(MOVES_BUFFER)) {
             // Buffer overflow protection
-            BUFFER[0] = '\0';
-            return BUFFER;
+            MOVES_BUFFER[0] = '\0';
+            return MOVES_BUFFER;
         }
-        memcpy(BUFFER + i, item.c_str(), len);
+        memcpy(MOVES_BUFFER + i, item.c_str(), len);
         i += len;
-        BUFFER[i] = ';';
+        MOVES_BUFFER[i] = ';';
         i++;
     }
 
     // Replace last semicolon with null terminator
-    BUFFER[i-1] = '\0';
-    return BUFFER;
+    MOVES_BUFFER[i-1] = '\0';
+    return MOVES_BUFFER;
 }
 
+//This should take into account around 10 000 turns
+static char BOARD_BUFFER[100000];
+
+/**
+ * \brief Returns a string representation of the current game state.
+ *
+ * This string contains all information about the current game state, including
+ * the current turn number, the game type, the game state, the moves made so far,
+ * the bugs currently in play and the bugs in hand.
+ *
+ * The string is a semicolon-separated list of the following elements:
+ * - The game type (Base, Base_M, Base_L, Base_P, Base_ML, Base_MP, Base_LP, Base_MLP)
+ * - The game state (NOT_STARTED, STARTED, IN_PROGRESS, DRAW, WHITE_WIN, BLACK_WIN)
+ * - The current turn number
+ * - A list of the moves made so far, each move being a MoveString
+ * - The bugs currently in play, each bug being represented by a BugString
+ * - The bugs in hand, each bug being represented by a BugString
+ *
+ * \return A pointer to a string containing the current game state.
+ */
 EXPORT const char* getBoard() {        
     string test = b.toString();
-    strcpy(BUFFER, test.c_str());
-    return BUFFER;
+    strcpy(BOARD_BUFFER, test.c_str());
+    return BOARD_BUFFER;
 }
 
+/**
+ * \brief Undoes the specified amount of moves on the board.
+ *
+ * This function calls the undo method on the board to reverse the 
+ * specified number of moves. It updates the game state accordingly.
+ *
+ * \param amount The number of moves to undo.
+ */
 EXPORT void undo(int amount) {
     b.undo(amount);
 }
@@ -234,7 +314,7 @@ EXPORT void undo(int amount) {
 }
 #endif
 
-/* STRINGS
+/* BRIEF DESCRIPTION OF THE STRINGS FORMAT
 
 - GAMESTRING: no trailing semicolon at the end of the string
 
