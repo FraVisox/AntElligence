@@ -3,12 +3,9 @@
 /**
  * \brief Converts a PlayerColor enum to a string.
  *
- * Given a PlayerColor, this function returns the corresponding string
- * representation, which is either "b" for black or "w" for white.
- *
- * \param c The PlayerColor to convert.
- * \return The string representation of the given PlayerColor.
- * \throws string "Invalid color" if c is neither BLACK nor WHITE.
+ * \param c PlayerColor enum.
+ * \return "b" if the color is BLACK, "w" if the color is WHITE.
+ * \throws string If the color is invalid.
  */
 string ColorToString(PlayerColor c){
     if(c==BLACK) return "b";
@@ -17,14 +14,11 @@ string ColorToString(PlayerColor c){
 }
 
 /**
- * \brief Converts a string to a PlayerColor enum.
+ * \brief Parses a color string to a PlayerColor enum.
  *
- * Given a string, this function returns the corresponding PlayerColor enum
- * value, which is either BLACK or WHITE.
- *
- * \param s The string to convert.
- * \return The PlayerColor enum value of the given string.
- * \throws string "Invalid color for string "+s if s is neither "b" nor "w".
+ * \param s Color string. Must be either "b" for black or "w" for white.
+ * \return Parsed PlayerColor enum.
+ * \throws string If the color string is invalid.
  */
 PlayerColor parseColor(string s){
     if(s=="b") return PlayerColor::BLACK;
@@ -35,13 +29,14 @@ PlayerColor parseColor(string s){
 /**
  * \brief Converts a GameState enum to a string.
  *
- * Given a GameState enum, this function returns the corresponding GameStateString
- * value.
- *
- * \param gs The GameState enum to convert.
- * \return The GameStateString value of the given GameState enum.
- * \throws string "Invalid game state" if gs is not one of the valid GameState
- *   values.
+ * \param gs GameState enum.
+ * \return A string representation of the GameState, as follows:
+ * - STARTED and NOT_STARTED: "NotStarted"
+ * - IN_PROGRESS: "InProgress"
+ * - DRAW: "Draw"
+ * - WHITE_WIN: "WhiteWins"
+ * - BLACK_WIN: "BlackWins"
+ * \throws string If the GameState is invalid.
  */
 string GameStateToString(GameState gs){
     switch (gs)
@@ -62,15 +57,16 @@ string GameStateToString(GameState gs){
 }
 
 /**
- * \brief Converts a string to a GameState enum.
+ * \brief Parses a GameState string to a GameState enum.
  *
- * Given a string, this function returns the corresponding GameState enum
- * value.
- *
- * \param s The string to convert.
- * \return The GameState enum value of the given string.
- * \throws string "Not valid game state for string "+s if s is not one of the
- *   valid GameStateString values.
+ * \param s GameState string. Must be one of the following:
+ * - "NotStarted" for the NOT_STARTED GameState
+ * - "InProgress" for the IN_PROGRESS GameState
+ * - "Draw" for the DRAW GameState
+ * - "WhiteWins" for the WHITE_WIN GameState
+ * - "BlackWins" for the BLACK_WIN GameState
+ * \return Parsed GameState enum.
+ * \throws string If the GameState string is invalid.
  */
 GameState parseState(string s){
     if(s=="NotStarted")
@@ -86,19 +82,20 @@ GameState parseState(string s){
     throw "Invalid game state for string " + s;
 }
 
-
-
-
 /**
- * \brief Converts a GameType enum to a string.
+ * \brief Converts a GameType enum to a string representation.
  *
- * Given a GameType enum, this function returns the corresponding string
- * representation, which describes the base and any expansions included.
- *
- * \param gt The GameType enum to convert.
- * \return The string representation of the given GameType.
- * \throws string "Invalid game type" if gt is not one of the valid GameType
- *   values.
+ * \param gt GameType enum.
+ * \return A string representation of the GameType, as follows:
+ * - Base: "Base"
+ * - Base_L: "Base+L"
+ * - Base_M: "Base+M"
+ * - Base_P: "Base+P"
+ * - Base_ML: "Base+ML"
+ * - Base_MP: "Base+MP"
+ * - Base_LP: "Base+LP"
+ * - Base_MLP: "Base+MLP"
+ * \throws string If the GameType is invalid.
  */
 string GameTypeToString(GameType gt){
     switch (gt)
@@ -123,19 +120,20 @@ string GameTypeToString(GameType gt){
     throw "Invalid game type";
 }
 
-
 /**
- * \brief Converts a string representation of a GameType to the corresponding
- *   enum.
+ * \brief Parses a GameType string to a GameType enum.
  *
- * Given a string that represents a GameType, this function returns the
- *   corresponding GameType enum value.
- *
- * \param s The string representation of the GameType, which should be one of
- *   the valid GameType values.
- * \return The GameType enum value corresponding to the given string.
- * \throws string "Invalid game type for string " + s if s is not one of the
- *   valid GameType string values.
+ * \param s GameType string. Must be one of the following:
+ * - "Base" for the Base GameType
+ * - "Base+L" for the Base_L GameType
+ * - "Base+M" for the Base_M GameType
+ * - "Base+P" for the Base_P GameType
+ * - "Base+ML" for the Base_ML GameType
+ * - "Base+MP" for the Base_MP GameType
+ * - "Base+LP" for the Base_LP GameType
+ * - "Base+MLP" for the Base_MLP GameType
+ * \return Parsed GameType enum.
+ * \throws string If the GameType string is invalid.
  */
 GameType parseGameType(string s){
     if(s=="Base")
@@ -161,13 +159,20 @@ GameType parseGameType(string s){
 char _bug_string[]="QSBGAMLP";
 
 /**
- * \brief Converts a BugType to its corresponding string representation.
+ * \brief Converts a BugType enum to a string.
  *
- * Given a BugType enumeration value, this function returns the single
- * character string that represents the bug type.
+ * The string is a single character:
+ * - Q for QUEEN
+ * - S for SPIDER
+ * - B for BEETLE
+ * - G for GRASSHOPPER
+ * - A for SOLDIER_ANT
+ * - M for MOSQUITO
+ * - L for LADYBUG
+ * - P for PILLBUG
  *
- * \param t The BugType to be converted to a string.
- * \return A string representing the BugType.
+ * \param t BugType enum.
+ * \return A string representation of the BugType enum.
  */
 string BugTypeToString(BugType t){
     int p=t;
@@ -175,14 +180,21 @@ string BugTypeToString(BugType t){
 }
 
 /**
- * \brief Converts a string representation of a bug type to its enumeration value.
+ * \brief Parses a BugType string to a BugType enum.
  *
- * Given a single character string representing a bug type, this function returns
- * the corresponding BugType enumeration value.
+ * The string is a single character:
+ * - Q for QUEEN
+ * - S for SPIDER
+ * - B for BEETLE
+ * - G for GRASSHOPPER
+ * - A for SOLDIER_ANT
+ * - M for MOSQUITO
+ * - L for LADYBUG
+ * - P for PILLBUG
  *
- * \param s The string to be converted to a BugType.
- * \return A BugType enumeration value.
- * \throw string Not valid bug type. If the input string is not a valid bug type.
+ * \param s BugType string.
+ * \return Parsed BugType enum.
+ * \throws string If the BugType string is invalid.
  */
 enum BugType parseBugType(string s){
     if(s=="Q") return BugType::QUEEN;

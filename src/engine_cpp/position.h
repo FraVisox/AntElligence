@@ -2,9 +2,9 @@
 #define POSITION_H
 #include <string>
 #include <vector>
-using namespace std;
 #include "enums.h"
 #include "direction.h"
+
 class position{
     public:
     int first;
@@ -12,25 +12,22 @@ class position{
 
     position(int x,int y);
     position(const position &p);
-    
     position();
 
-    vector<position> neighbor();
+    //Relative positions
 
+    vector<position> neighbor();
     position applayMove(direction d);
 };
 
 extern position NULL_POSITION;
 
-direction getMovementDirection(position f, position t);
+direction getMovementDirection(const position &f, const position &t);
+bool isNear(const position &p1, const position &p2);
+vector<position> nearBoth(position &p1, position &p2);
 
 bool operator==(const position &p1,const position& p2);
-
 bool operator!=(const position &p1,const position& p2);
-
-bool isNear(const position &p1, const position &p2);
-
-vector<position> nearBoth(position &p1,position &p2);
 
 
 template<>

@@ -1,7 +1,17 @@
 #include "board.h"
-#include <iostream>
 #include <regex>
 
+/**
+ * \brief Construct a new Board, initializing all members to default values.
+ *
+ * Initialize the new Board with all members set to default values.
+ * The state of the board is set to NOT_STARTED, indicating that the game has not yet started.
+ * The current turn is set to 1, indicating that it is White's turn to play.
+ * The possible moves vector is cleared.
+ * The game board and pieces are reset using the reset() method.
+ * The isPlacedBQ and isPlacedWQ flags are set to false, indicating that neither the
+ * black nor white queens have been placed on the board yet.
+ */
 Board::Board(){ 
     reset();
     state = NOT_STARTED;
@@ -9,14 +19,21 @@ Board::Board(){
 };
 
 
-/**
- * Resets the board to its initial state.
- *
- * Sets the turn number to 1, game type to Base, and game state to NOT_STARTED.
- * Clears all recorded moves, placed bugs, and pieces in hand.
- * Resets the gameboard to its default configuration.
- */
 
+/**
+ * \brief Reset the board to the default state.
+ *
+ * Reset the board to the default state, initializing all members to default values.
+ * This method is called by the constructor to initialize a new board.
+ * The state of the board is set to STARTED, indicating that the game has started.
+ * The current turn is set to 1, indicating that it is White's turn to play.
+ * The possible moves vector is cleared.
+ * The game board and pieces are reset using the reset() method.
+ * The isPlacedBQ and isPlacedWQ flags are set to false, indicating that neither the
+ * black nor white queens have been placed on the board yet.
+ * All bugs that are currently on the board are placed back in the player's hand.
+ * The placed bug vector is cleared.
+ */
 void Board::reset() {
     currentTurn = 1;
     state = STARTED;
@@ -32,7 +49,15 @@ void Board::reset() {
     placedBug.clear();
 }
 
-void Board::copy(Board& b) {
+/**
+ * \brief Copy the given board into this one.
+ *
+ * Copy the given board into this one, overwriting all the members of this
+ * board with the corresponding members of the given board.
+ *
+ * \param b The board to copy from.
+ */
+void Board::copy(const Board& b) {
     currentTurn = b.currentTurn;
     type = b.type;
     state = b.state;
@@ -55,12 +80,18 @@ void Board::copy(Board& b) {
 
 
 /**
- * Converts the data of the board to the corresponding GameString.
+ * \brief Convert the board to a string representation.
  *
- * The GameString is the most detailed representation of the game state.
+ * This method converts the board into a string, which can be used to store the
+ * current state of the game in a file or database, or to send it over a network.
  *
- * :return: GameString.
- * :rtype: char*
+ * The string is a semicolon-separated list of the following elements:
+ * - The game type (Base, Base_M, Base_L, Base_P, Base_ML, Base_MP, Base_LP, Base_MLP)
+ * - The game state (NOT_STARTED, STARTED, IN_PROGRESS, DRAW, WHITE_WIN, BLACK_WIN)
+ * - The current turn number, prefixed by "White[" or "Black[", depending on whose turn it is.
+ * - A list of the moves made so far, each move being a MoveString.
+ *
+ * \return A string containing the current game state.
  */
 string Board::toString() {
     try {
@@ -82,11 +113,10 @@ string Board::toString() {
 }
 }
 
-
 /**
- * Returns the current player color (white if the current turn is odd).
+ * \brief Return the color of the current player.
  *
- * @return The current player color.
+ * \return The color of the current player (WHITE or BLACK).
  */
 PlayerColor Board::currentColor(){
     if(currentTurn%2==1) return PlayerColor::WHITE;
@@ -94,11 +124,11 @@ PlayerColor Board::currentColor(){
 }
 
 /**
- * Returns the turn number of the current player.
+ * \brief Returns the turn number of the current player.
  *
+ * The turn number increases every two moves, so the first move is turn 1, the third move is turn 2, and so on.
  *
- * @return The turn number of the current player.
- * @see currentColor
+ * \return The turn number of the current player.
  */
 int Board::currentPlayerTurn(){
     return (currentTurn-1)/2+1;
@@ -106,9 +136,9 @@ int Board::currentPlayerTurn(){
 
 
 /**
- * Returns whether the current player has placed their queen or not.
+ * \brief Checks if the queen for the current player has been placed.
  *
- * @return Whether the current player has placed their queen or not.
+ * \return True if the queen for the current player has been placed, false otherwise.
  */
 bool Board::placedQueen(){
     if(currentColor()==WHITE) 
@@ -118,13 +148,16 @@ bool Board::placedQueen(){
 
 
 /**
- * Executes an action. The action can be of type MOVEMENT, PLACE, PLACEFIRST
- * or PASS. Depending on the type of the action, the bug is moved, placed
- * or removed from the board, the turn is incremented, and the
- * placed/available bug pieces are updated. If the action is a PASS, nothing
- * is done.
+ * \brief Execute a move in the game.
  *
- * \param a The action to be executed.
+ * Given a string representing a move, this function executes it in the current game.
+ * The string should be a valid MoveString, which is a concatenation of a bug piece
+ * to be moved and its relative position and direction. The relative position and
+ * direction are represented by a single string, which is the concatenation of the
+ * relative position bug piece and the direction indicator.
+ *
+ * \param s The string representing the move.
+ * \return 0 if the move was successful, an error code otherwise.
  */
 ReturnMessage Board::executeAction(string s){
 
@@ -174,6 +207,30 @@ ReturnMessage Board::executeAction(string s){
 }
 
 
+/**
+ * \brief Validates and parses a given move string.
+ *
+ * This function checks the syntax of a move string and determines if it is a valid move
+ * for the current state of the board. It supports various actions such as passing, placing
+ * the first piece, moving a piece, and special moves involving the mosquito and pillbug.
+ *
+ * If the move string is "pass", it checks if there are no valid moves available before allowing
+ * the pass.
+ *
+ * For a placement move, it checks if the piece to be placed is in hand and if the position
+ * is valid. It ensures that the first move is always made by a white piece.
+ *
+ * For a movement move, it validates if the piece to be moved is already placed on the board,
+ * and ensures that the movement follows the rules for the specific bug type, including special
+ * rules for the mosquito and pillbug.
+ *
+ * It also checks that the move does not repeat a previous movement action by the same piece
+ * in consecutive turns.
+ *
+ * \param s The string representing the move.
+ * \return An action object representing the parsed move, or INVALID_ACTION if the move is
+ *         not valid.
+ */
 action Board::validMove(string s) {
 
     //Check the syntax of the string
@@ -217,10 +274,22 @@ action Board::validMove(string s) {
         position newPlace = G.getPosition(otherBug).applayMove(d);
         for (action a : possibleMoves()) {
             if (a.bug == toMove && newPlace == G.getPosition(a.otherBug).applayMove(a.relativeDir)) {
+                if (moves.size() > 1) {
+                    action previous_move = moves[moves.size()-2];
+                    if (previous_move.bug == toMove && previous_move.actType == MOVEMENT) {
+                        return INVALID_ACTION;
+                    }
+                }
                 return a;
             }
-            if (toMove.kind == MOSQUITO && areBugsSameOrCopied(toMove, a.bug) && newPlace == G.getPosition(a.otherBug).applayMove(a.relativeDir)) { //TODO: bug con mosquito, se la muovo poi ha delle mosse sbagliate, come se non si fosse mossa
+            if (toMove.kind == MOSQUITO && areBugsSameOrCopied(toMove, a.bug) && newPlace == G.getPosition(a.otherBug).applayMove(a.relativeDir)) {
                 a.bug = toMove;
+                if (moves.size() > 1) {
+                    action previous_move = moves[moves.size()-2];
+                    if (previous_move.bug == toMove && previous_move.actType == MOVEMENT) {
+                        return INVALID_ACTION;
+                    }
+                }
                 return a;
             }
         }
@@ -327,6 +396,12 @@ action Board::validMove(string s) {
                     G.removePiece(toMove);
                     G.addPiece(current, toMove);
                     if (relativeDir.second != INVALID && relativeDir2.second != INVALID) {
+                        if (moves.size() > 1) {
+                            action previous_move = moves[moves.size()-2];
+                            if (previous_move.bug == toMove && previous_move.actType == MOVEMENT) {
+                                return INVALID_ACTION;
+                            }
+                        }
                         return movement(toMove, otherBug, d);
                     }
                 }
@@ -346,6 +421,12 @@ action Board::validMove(string s) {
                     G.removePiece(toMove);
                     G.addPiece(current, toMove);
                     if (relativeDir.second != INVALID && relativeDir2.second != INVALID) {
+                        if (moves.size() > 1) {
+                            action previous_move = moves[moves.size()-2];
+                            if (previous_move.bug == toMove && previous_move.actType == MOVEMENT) {
+                                return INVALID_ACTION;
+                            }
+                        }
                         return movement(toMove, otherBug, d);
                     }
                 }
@@ -363,15 +444,46 @@ action Board::validMove(string s) {
     possibleMovesBug(toMove, res); //TODO: remember to update both this and the one before
     for (action a : res) {
         if (a.bug == toMove && toPlace == G.getPosition(a.otherBug).applayMove(a.relativeDir)) {
+            if (moves.size() > 1) {
+                action previous_move = moves[moves.size()-2];
+                if (previous_move.bug == toMove && previous_move.actType == MOVEMENT) {
+                    return INVALID_ACTION;
+                }
+            }
             return a;
         }
-        if (toMove.kind == MOSQUITO && areBugsSameOrCopied(toMove, a.bug) && toPlace == G.getPosition(a.otherBug).applayMove(a.relativeDir)) { //TODO: bug con mosquito, se la muovo poi ha delle mosse sbagliate, come se non si fosse mossa
+        if (toMove.kind == MOSQUITO && areBugsSameOrCopied(toMove, a.bug) && toPlace == G.getPosition(a.otherBug).applayMove(a.relativeDir)) {
             a.bug = toMove;
+            if (moves.size() > 1) {
+                action previous_move = moves[moves.size()-2];
+                if (previous_move.bug == toMove && previous_move.actType == MOVEMENT) {
+                    return INVALID_ACTION;
+                }
+            }
             return a;
         }
    }
     return INVALID_ACTION;
 }
+
+/**
+ * \brief Checks the win condition for the current game state.
+ *
+ * This function evaluates whether either player's queen is surrounded,
+ * indicating a win or draw condition. It checks if both the white and
+ * black queens have been placed on the board. If they have, it verifies
+ * whether they are surrounded by other pieces.
+ *
+ * - If both queens are surrounded, the game is declared a draw.
+ * - If only the black queen is surrounded, the white player wins.
+ * - If only the white queen is surrounded, the black player wins.
+ *
+ * Updates the game state accordingly and returns a corresponding
+ * ReturnMessage indicating the result of the check.
+ *
+ * \return A ReturnMessage indicating whether the game is ongoing,
+ * a draw, or if a player has won.
+ */
 
 ReturnMessage Board::checkWin() {
     bool white_surrounded = false;
@@ -400,7 +512,16 @@ ReturnMessage Board::checkWin() {
     return OK;
 }
 
-bool Board::checkSurrounding(piece p) {
+/**
+ * \brief Checks if a piece is surrounded by other pieces.
+ *
+ * Checks if all of a piece's neighbors are not free. If so, the
+ * piece is considered surrounded and the method returns true.
+ *
+ * \param p The piece to check.
+ * \return True if the piece is surrounded, false otherwise.
+ */
+bool Board::checkSurrounding(const piece &p) {
     position pos = G.getPosition(p);
     for (position adj: pos.neighbor()) {
         if (G.isFree(adj)) {
@@ -411,12 +532,12 @@ bool Board::checkSurrounding(piece p) {
 }
 
 /**
- * Undoes the specified amount of moves.
+ * \brief Undoes the specified amount of moves on the board.
  *
- * :param amount: Amount of moves to undo.
- * :type amount: int
- * :raises ValueError: If there are not enough moves to undo.
- * :raises ValueError: If the game has yet to begin.
+ * This function calls the undo method on the board to reverse the 
+ * specified number of moves. It updates the game state accordingly.
+ *
+ * \param amount The number of moves to undo.
  */
 void Board::undo(int amount) { 
     if (state == NOT_STARTED) {
@@ -459,18 +580,51 @@ void Board::undo(int amount) {
     }
 }
 
+
 /**
- * Returns a vector of all possible moves for the current player.
+ * \brief Adds a piece to the in-hand pieces set.
  *
- * Rules to generate moves:
+ * This method is used to add a piece to the set of pieces that are
+ * currently in the player's hand. The piece is added to the set
+ * of in-hand pieces, which is used to determine which pieces can
+ * be placed on the board.
  *
- * 1. If turn == 1, then place something that is not the queen.
- * 2. If turn == 2, then place something near white.
- * 3. If i didn't place the queen after turn 3, place the queen in any valid position.
- * 4. Pieces in our hand.
- * 5. Moves.
+ * \param p The piece to add to the in-hand pieces set.
+ */
+void Board::addPieceHand(piece p){
+    inHandPiece.insert(p);
+}
+
+/**
+ * \brief Get all possible moves for the current player.
  *
- * @return A vector of all possible moves for the current player.
+ * This function returns all possible moves for the current player.
+ * It returns a vector of action objects, each representing a possible
+ * move. The moves are determined by the current state of the game and
+ * the pieces on the board.
+ *
+ * The function first checks if the board is empty, and if it is, it
+ * returns an empty vector. Then it checks if the current player has
+ * already placed their queen, and if they have, it returns a vector
+ * containing all possible moves for the current player. If the current
+ * player has not placed their queen, it returns a vector containing
+ * all possible moves for the current player, including placing the
+ * queen.
+ *
+ * If the current player has placed all their pieces, the function
+ * returns a vector containing all possible moves for the current
+ * player, including passing.
+ *
+ * If the current player has placed some pieces, but not all of them,
+ * the function returns a vector containing all possible moves for
+ * the current player, including placing pieces and passing.
+ *
+ * If the current player has not placed any pieces, the function
+ * returns a vector containing all possible moves for the current
+ * player, including placing pieces and passing.
+ *
+ * \return A vector of action objects, each representing a possible
+ *         move for the current player.
  */
 vector<action> Board::possibleMoves(){
     if (!possibleMovesVector.empty()) {
@@ -537,7 +691,12 @@ vector<action> Board::possibleMoves(){
     if(placedQueen()){
         piece mosq = INVALID_PIECE;
         piece pillb = INVALID_PIECE;
+
+        piece previous = INVALID_PIECE;
+        if (moves.size() > 1)
+            previous = moves[moves.size()-2].bug;
         for(piece b:placedBug){
+            if (b == previous) continue;
             if (b.kind != PILLBUG && b.kind != MOSQUITO){ 
                 possibleMovesBug(b,res);
             } else if (b.kind == MOSQUITO && b.col == currentColor()){
@@ -553,31 +712,6 @@ vector<action> Board::possibleMoves(){
     return res;
 }
 
-
-/**
- * \brief Adds a piece to the player's hand.
- *
- * Inserts the given piece into the in-hand piece set, indicating that the
- * piece is available for the player to use in future actions.
- * 
- * \param p The piece to add to the player's hand.
- */
-void Board::addPieceHand(piece p){
-    inHandPiece.insert(p);
-}
-
-/**
- * \brief Generates all possible moves for a specific bug.
- *
- * This function calculates all the possible moves for the given bug based
- * on its type. If the bug belongs to the current player and can move without
- * violating the hive rules, it delegates to specific functions to generate
- * moves relevant to the bug's type. The generated moves are added to the 
- * provided result vector.
- *
- * \param b The bug for which to generate possible moves.
- * \param res The vector to store the resulting actions/moves.
- */
 
 void Board::possibleMovesBug(piece b, vector<action> &res){
     if (b == INVALID_PIECE) return;
@@ -612,18 +746,12 @@ void Board::possibleMovesBug(piece b, vector<action> &res){
 }
 
 
-/**
- * Generates all valid moves for a Queen bug piece. The Queen can move
- * to any empty adjacent position, as long as the hive rules are not
- * violated. The generated moves are added to the provided result vector.
- *
- * \param bug The Queen bug piece for which to generate moves.
- * \param res The vector to store the resulting actions/moves.
- */
+
 void Board::possibleMoves_Queen(piece bug, vector<action> &res){
     if (G.canPieceMove(bug,currentTurn)) {
         for(position dest: G.getPosition(bug).neighbor()){
-            pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(dest, G.getPosition(bug), false);
+            position pos = G.getPosition(bug);
+            pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(dest, pos, false);
             if (relativeDir.second != INVALID) {
                 res.push_back(movement(bug,relativeDir.first,relativeDir.second));
             }
@@ -631,19 +759,12 @@ void Board::possibleMoves_Queen(piece bug, vector<action> &res){
     }
 }
 
-/**
- * Generates all valid moves for a Beetle bug piece. The Beetle can move
- * to any adjacent position, both if it's empty or not
- * as long as the hive rules are not violated. The generated moves are
- * added to the provided result vector.
- *
- * \param bug The Beetle bug piece for which to generate moves.
- * \param res The vector to store the resulting actions/moves.
- */
+
 void Board::possibleMoves_Beetle(piece bug,vector<action> &res){
     if (G.canPieceMove(bug, currentTurn)) {
         for(position dest : G.getPosition(bug).neighbor()){
-            pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(dest, G.getPosition(bug), true);
+            position pos = G.getPosition(bug);
+            pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(dest, pos, true);
             if (relativeDir.second != INVALID) {
                 res.push_back(movement(bug,relativeDir.first,relativeDir.second));
             }
@@ -651,14 +772,6 @@ void Board::possibleMoves_Beetle(piece bug,vector<action> &res){
     }
 }
 
-/**
- * Generates all valid moves for a Grasshopper bug piece. The Grasshopper
- * can move to any position that is in the same direction as the bug
- * is currently at. The generated moves are added to the provided result
- * vector.
- * \param bug The Grasshopper bug piece for which to generate moves.
- * \param res The vector to store the resulting actions/moves.
- */
 void Board::possibleMoves_Grasshopper(piece bug,vector<action> &res){
     if (G.canPieceMove(bug,currentTurn)) {
         position from=G.getPosition(bug);
@@ -677,16 +790,6 @@ void Board::possibleMoves_Grasshopper(piece bug,vector<action> &res){
 }
 
 
-/**
- * Generates all valid moves for a Soldier Ant bug piece. The Soldier Ant
- * can move to any position that is reachable by moving one or more
- * tiles in any direction. The generated moves are added to the provided
- * result vector. The algorithm used is a breadth-first search to find
- * all reachable positions.
- *
- * \param bug The Soldier Ant bug piece for which to generate moves.
- * \param res The vector to store the resulting actions/moves.
- */
 void Board::possibleMoves_SoldierAnt(piece bug, vector<action> & res){
     if (G.canPieceMove(bug,currentTurn)) {
 
@@ -716,16 +819,7 @@ void Board::possibleMoves_SoldierAnt(piece bug, vector<action> & res){
     }
 }
 
-/**
- * Generates all valid moves for a Spider bug piece. The Spider can move to
- * any position that is reachable by moving three tiles in any
- * direction. The generated moves are added to the provided result vector.
- * The algorithm used is a breadth-first search to find all reachable
- * positions.
- *
- * \param bug The Spider bug piece for which to generate moves.
- * \param res The vector to store the resulting actions/moves.
- */
+
 void Board::possibleMoves_Spider(piece bug, vector<action> & res){
     if (G.canPieceMove(bug,currentTurn)) {
         unordered_set<position> inQueue;
@@ -760,40 +854,17 @@ void Board::possibleMoves_Spider(piece bug, vector<action> & res){
     }
 }
 
-/*
-
-Ladybug: 1 climb, then either 1 crawl or 1 climb, then 1 crawl into an unoccupied space. 
-        The Ladybug must start and end its move at height 1, but it cannot be at height 
-        1 at any other time while moving.
-Mosquito: if its height is 1, it has the abilities of any uncovered non-Mosquito pieces in occupied adjacent spaces. 
-        If it is only adjacent to uncovered Mosquitoes, it has no abilities. 
-        If its height is greater than 1, it has only the abilities of a Beetle.
-Pill bug: either 1 crawl or cause an adjacent piece at height 1  
-        to perform 1 climb to the same space as the Pillbug, then 1 crawl to an unoccupied destination space.
-*/    
-
-/**
- * Computes all the possible moves for a Pillbug piece.
- * A Pillbug can move as a queen, or it can move another adjacent piece (even of the opponent) one space, as long as it doesn't break the hive.
- * @param bug The piece to move.
- * @param res The vector where the possible moves are stored.
- */
 void Board::possibleMoves_Pillbug(piece bug, vector<action> &res){
 
     if (!G.isAtLevel1(G.getPosition(bug))) {
         return;
     }
 
-    /*
-    either 1 crawl or cause an adjacent piece at height 1  
-    to perform 1 climb to the same space as the Pillbug, then 1 crawl to an unoccupied destination space.
-    
-    */
-
     // The pillbug can move as a queen. Check if the move is already present as the pillbug could be moved by the mosquito.
     if (G.canPieceMove(bug,currentTurn)) {
         for(position dest: G.getPosition(bug).neighbor()){
-            pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(dest, G.getPosition(bug), false);
+            position pos = G.getPosition(bug);
+            pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(dest, pos, false);
             //TODO: is it necessary to check inside for duplicate moves?
             if (relativeDir.second != INVALID ) { 
                 bool already_in = false;
@@ -820,7 +891,8 @@ void Board::possibleMoves_Pillbug(piece bug, vector<action> &res){
             piece possible_piece = G.topPiece(dest);
             if (G.canMoveWithoutBreakingHiveRule(possible_piece, currentTurn)){
                 //If valid, this piece can be moved over the pillbug
-                pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(G.getPosition(bug), dest, true);
+                position pos = G.getPosition(bug);
+                pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(pos, dest, true);
                 if (relativeDir.second != INVALID) {
                     bugs_to_move[i] = possible_piece;
                     i++;
@@ -838,7 +910,8 @@ void Board::possibleMoves_Pillbug(piece bug, vector<action> &res){
             G.removePiece(to_move);
             G.addPiece(G.getPosition(bug), to_move); //already checked this can be done
             for (int l = 0; l < j; l++){
-                pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(places_to_move[l], G.getPosition(bug), false);
+                position pos = G.getPosition(bug);
+                pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(places_to_move[l], pos, false);
                 if (relativeDir.second != INVALID) {
                     //Check if this movement is already inside of the vector TODO: is it necessary to check for duplicate moves????
                     bool already_in = false;
@@ -860,17 +933,7 @@ void Board::possibleMoves_Pillbug(piece bug, vector<action> &res){
     }
 }
 
-/**
- * Generates all valid moves for a Mosquito bug piece. The Mosquito can
- * mimic the movement abilities of neighboring bug pieces, except other
- * Mosquitoes. If the Mosquito is not at level 1, it can only move like a Beetle.
- * It also has the ability to perform special moves if it copies a Pillbug's
- * movement abilities. The generated moves are added to the provided result
- * vector.
- *
- * @param bug The Mosquito bug piece for which to generate moves.
- * @param res The vector to store the resulting actions/moves.
- */
+
 void Board::possibleMoves_Mosquito(piece bug, vector<action> &res){
     if (!G.canPieceMove(bug, currentTurn)) 
         return;
@@ -914,19 +977,13 @@ void Board::possibleMoves_Mosquito(piece bug, vector<action> &res){
     G.addPiece(current, bug);
 }
 
-/**
- * Computes all the possible moves for a Ladybug piece.
- * A Ladybug can move three or two spaces in any direction, but the first 2 moves
- * should be over of the hive.
- * @param bug The piece to move.
- * @param res The vector where the possible moves are stored.
- */
 void Board::possibleMoves_Ladybug(piece bug,vector<action> &res){
     if (G.canPieceMove(bug,currentTurn)) {
         vector<pair<position,int>> queue; 
         for(position dest: G.getPosition(bug).neighbor()){
             if(!G.isFree(dest)){
-                pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(dest, G.getPosition(bug), true);
+                position pos = G.getPosition(bug);
+                pair<piece,direction> relativeDir = G.getRelativePositionIfCanMove(dest, pos, true);
                 if (relativeDir.second != INVALID) {
                     queue.push_back(make_pair(dest, 1));
                 }

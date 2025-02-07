@@ -1,22 +1,20 @@
 #include "action.h"
 #include <sstream>
-#include <iostream>
 
+//Invalid action (it has an invalid piece)
 action INVALID_ACTION = action(INVALID_PIECE);
 
-
-
 /**
- * \brief Constructs a movement action given a piece to move, another piece to which the moved piece is relative, and a direction.
- *
- * Given a piece and another piece with respect to which the bug is moved, and a direction, this function returns an action
- * object which represents a movement action. The action object contains the piece to move, the other bug piece, the direction
- * of movement relative to the other bug piece, and the type of action, which is a MOVEMENT action.
- *
- * \param p The piece to move.
- * \param other The other bug piece with respect to which the moved piece is moved.
- * \param dir The direction of movement relative to the other bug piece.
- * \return An action object representing a movement action.
+ *   Constructs a movement action.
+ * 
+ *   :param p: Bug piece moved.
+ *   :type p: piece
+ *   :param other: Bug piece relative to which the other bug piece is moved.
+ *   :type other: piece
+ *   :param dir: Direction of the destination tile with respect to the relative bug piece.
+ *   :type dir: direction
+ *   :return: Action representing the movement.
+ *   :rtype: action
  */
 action movement(piece p, piece other, direction dir){
     action a;
@@ -28,16 +26,18 @@ action movement(piece p, piece other, direction dir){
     return a;
 }
 
+
 /**
- * \brief Constructs a place action.
- *
- * Creates an action object representing the placement of a piece at a specified position.
- * The action object includes the piece to be placed, the target position, and indicates
- * that this action is a PLACE action.
- *
- * \param p The piece to place.
- * \param d The destination position.
- * \return An action object representing a place action.
+ *   Constructs a place action.
+ * 
+ *   :param p: Bug piece to be placed.
+ *   :type p: piece
+ *   :param other: Bug piece relative to which the new piece is placed.
+ *   :type other: piece
+ *   :param d: Direction of the destination tile with respect to the relative bug piece.
+ *   :type d: direction
+ *   :return: Action representing the placement.
+ *   :rtype: action
  */
 action placePiece(piece p, piece other, direction d){
     action a;
@@ -49,14 +49,12 @@ action placePiece(piece p, piece other, direction d){
 }
 
 /**
- * \brief Constructs a place first action.
- *
- * Creates an action object representing the placement of a piece on the
- * starting position. The action object includes the piece to be placed and
- * indicates that this action is a PLACEFIRST action.
- *
- * \param p The piece to place.
- * \return An action object representing a place first action.
+ *   Constructs a place first action.
+ * 
+ *   :param p: Bug piece to be placed.
+ *   :type p: piece
+ *   :return: Action representing the placement of the first bug.
+ *   :rtype: action
  */
 action placeFirst(piece p){
     action a(p);
@@ -65,14 +63,10 @@ action placeFirst(piece p){
 }
 
 /**
- * \brief Constructs a pass action.
- *
- * Creates an action object representing a pass action, which allows the player
- * to end their turn without performing any other action. The action object does
- * not contain any information other than the type of action, which is a PASS
- * action.
- *
- * \return An action object representing a pass action.
+ *   Constructs a pass action.
+ * 
+ *   :return: Action representing the pass of the player's turn.
+ *   :rtype: action
  */
 action pass(){
     action a;
@@ -82,18 +76,16 @@ action pass(){
 
 
 /**
- * \brief Converts a string representation of an action to an action object.
- *
- * Parses a string containing the details of an action, including the bug piece
- * to be moved and its relative position and direction, and constructs an
- * action object representing this move. The string is expected to have two
- * parts separated by a space: the first part representing the bug piece, and
- * the second part representing the relative position and direction.
- *
- * \param s The string representation of the action.
- * \return An action object constructed from the string details.
+ *   Parses an action string.
+ * 
+ *   :param s: Action string.
+ *   :type s: string
+ *   :param inHandPiece: Set of pieces in hand.
+ *   :type inHandPiece: unordered_set<piece>
+ *   :raises ValueError: If the action string is not valid.
+ *   :return: Action parsed from the string.
+ *   :rtype: action
  */
-
 action parseAction(string s, const unordered_set<piece>& inHandPiece){
     if (s == "pass") {
         return pass();
@@ -111,20 +103,15 @@ action parseAction(string s, const unordered_set<piece>& inHandPiece){
 }
 
 
-
 /**
- * \brief Converts an action object representing a movement action to a string.
- *
- * Given an action object, this function converts its details to a string
- * representation. The string is a concatenation of the bug piece to be moved
- * and its relative position and direction. The relative position and direction
- * are represented by a single string, which is the concatenation of the
- * relative position bug piece and the direction indicator.
- *
- * \param a The action object to be converted to a string.
- * \return A string representation of the action object.
+ *   Converts an action to a string representation of a movement.
+ * 
+ *   :param a: Action representing a movement.
+ *   :type a: action
+ *   :return: String representation of the movement.
+ *   :rtype: string
  */
-string MovementToString(action a){
+string MovementToString(const action &a){
     stringstream ss;
     ss << a.bug.toString();
     ss << " ";
@@ -133,7 +120,15 @@ string MovementToString(action a){
 }
 
 
-string ActionToString(action a){
+/**
+ *   Converts an action to a string representation of the action.
+ * 
+ *   :param a: Action to be converted.
+ *   :type a: action
+ *   :return: String representation of the action.
+ *   :rtype: string
+ */
+string ActionToString(const action &a){
     switch (a.actType)
     {
         case PLACE:

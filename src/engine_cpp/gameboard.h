@@ -23,185 +23,50 @@ class gameboard{
     unordered_map<piece,position> bugPosition = unordered_map<piece,position>(); 
     unordered_set<position> occupied = unordered_set<position>();
 
+    //Initialization
+
     gameboard(){}
 
-    /**
-     * Resets the gameboard to its initial state.
-     *
-     * All positions on the board are cleared, and all the data structures are cleared.
-     * This should be called at the start of each game.
-     */
+    //Reset
+
     void reset();
 
-    /**
-     * \brief Get the stack of pieces at a given position.
-     *
-     * \param pos The position to get the stack of pieces from.
-     * \return A pointer to the stack of pieces at pos.
-     */
-    stack<piece>* at(position pos);
+    //Manage positions
 
-    /**
-     * \brief Get the position of a bug on the board.
-     *
-     * \param p The bug to get the position of.
-     * \return The position of bug p.
-     */
-    position getPosition(piece p);
+    stack<piece>* at(const position &pos);
+    void popPosition(const position &pos);
+    bool isFree(const position &pos);
+    bool isAtLevel1(const position &pos);
 
-    /**
-     * \brief Update the position of a bug on the board.
-     *
-     * \param bug The bug to update the position of.
-     * \param pos The new position of bug.
-     */
-    void updatePos(piece bug, position pos);
 
-    /**
-     * \brief Remove the top piece from a given position and update the
-     *        occupied set.
-     *
-     * If the position is not free, remove the top piece from the position
-     * and update the position of the removed piece to NULL_POSITION.
-     * Then, if the position is free after popping the top piece, remove
-     * the position from the occupied set.
-     *
-     * \param pos The position to pop the top piece from.
-     */
-    void popPosition(position pos);
-
-    /**
-     * \brief Remove a bug from the board.
-     *
-     * If the bug is the top piece at its position, remove it from the board.
-     * This involves popping the piece from its position and removing its
-     * position from the occupied set. Additionally, remove the bug from
-     * the bugPosition map.
-     *
-     * \param b The bug to remove from the board.
-     */
-    void removePiece(piece b);
-
-    /**
-     * \brief Add a piece to the board.
-     *
-     * Pushes the given bug onto the given position and updates the bug's
-     * position in the bugPosition map. Additionally, inserts the position
-     * into the occupied set.
-     *
-     * \param pos The position to add the piece to.
-     * \param b The bug to add to the board.
-     */
-    void addPiece(action a);
-
-    void addPiece(position pos, piece b);
-
-    /**
-     * \brief Check if a position is free of pieces.
-     *
-     * \param pos The position to check.
-     * \return true if the position is free, false otherwise.
-     */
-    bool isFree(position &pos);
-
-    /**
-     * \brief Check if the given bug is the top piece at its position.
-     *
-     * \param bug The bug to check.
-     * \return true if the bug is the top piece at its position, false otherwise.
-     */
-    bool isTop(piece bug);
+    //Manage pieces
     
-    /**
-     * \brief Check if the given bug can move on the given turn.
-     *
-     * Checks if the given bug is the top piece at its position and if the
-     * hive rule is satisfied for the given bug on the given turn.
-     *
-     * \param b The bug to check.
-     * \param turn The turn to check.
-     * \return true if the bug can move on the given turn, false otherwise.
-     */
-    bool canPieceMove(piece b,int turn);
+    position getPosition(const piece &p);
+    void updatePos(const piece &bug,const position &pos);
+    void removePiece(const piece &b);    
+    void addPiece(const action &a);
+    void addPiece(const position &pos, const piece &b);
+    bool isTop(const piece &bug);
+    bool canPieceMove(const piece &b,int turn);
+    piece topPiece(const position &pos);
 
-    /**
-     * \brief Check if a bug can slide to the given position.
-     *
-     * A bug can slide to the given position if the given position is
-     * free, the bug is at a position adjacent to the given position, and the
-     * two positions on the path between the bug and the given position are
-     * both free.
-     *
-     * \param from The position of the bug.
-     * \param to The position the bug would like to slide to.
-     * \return true if the bug can slide to the given position for free, false otherwise.
-     */
-    bool canHorizontalSlide(position from, position to);
 
-    //Use it only after canSlideFree
-    pair<piece, direction> getRelativePositionIfCanMove(position to, position from, bool canOver);
+    //Main function to understand the movements
+    bool canHorizontalSlide( position &from,  position &to);
+    pair<piece, direction> getRelativePositionIfCanMove( position &to,  position &from, bool canOver);
+    pair<piece, direction> getSlidingMoveAtLevel1(position &to, position &from);
+    bool canMoveWithoutBreakingHiveRule(const piece &b,int turn);
 
-    //Only for ant and spider
-    pair<piece, direction> getSlidingMoveAtLevel1(position to, position from);
 
-    /**
-     * \brief Get the top piece at a given position.
-     *
-     * \param pos The position to get the top piece from.
-     * \return The top piece at the given position.
-     *
-     * \throws std::string if the given position is empty.
-     */
-    piece topPiece(position pos);
-    
-    /**
-     * \brief Get all valid positions to place a new piece.
-     *
-     * A position is valid if it is adjacent to a piece of the given color, and
-     * if all the neighbors of the position are either free or of the same color.
-     *
-     * \param color The color of the player for which to get the valid positions.
-     * \return An unordered set of all valid positions to place a new piece.
-     */
+    //And the placing
     vector<pair<piece,direction>> validPositionPlaceNew(PlayerColor color);
+    vector<position> occupiedEdge(position &pos);
 
-    /**
-     * \brief Get the occupied neighboring positions.
-     *
-     * This function returns a vector of positions that are neighbors
-     * to the given position and are currently occupied by pieces.
-     *
-     * \param pos The position to check for occupied neighbors.
-     * \return A vector containing the positions of all occupied neighbors.
-     */
-
-    vector<position> occupiedEdge(position pos);
-
-    /**
-     * \brief Check if a position is at level 1.
-     *
-     * A position is at level 1 if there is only one piece at that position.
-     *
-     * \param pos The position to check.
-     * \return true if the position is at level 1, false otherwise.
-     */
-    bool isAtLevel1(position pos);
-
-    /**
-     * \brief Check if the bug can be moved.
-     *
-     * A bug can be moved if it is possible to move it without breaking
-     * the hive rule.
-     *
-     * \param b The bug to check.
-     * \param turn The current turn.
-     * \return true if the bug is part of the hive, false otherwise.
-     */
-    bool canMoveWithoutBreakingHiveRule(piece b,int turn);
     
     //PRIVATE FUNCTIONS TO FIND ARTICULATION POINTS (HIVE RULE) AND CALCULATE POSITION
 
     private:
+
     int timer=0;
     int lastUpdateTurn=-1;
     unordered_set<position> not_movable_position;
@@ -219,7 +84,7 @@ class gameboard{
      * \param d The direction to move the bug in.
      * \return The new position of the bug after moving in the given direction.
      */
-    position calcPosition(piece b, direction d){
+    position calcPosition(const piece &b, direction d){
         position pos = getPosition(b);
         pos = pos.applayMove(d);
         return pos;
@@ -260,7 +125,7 @@ class gameboard{
      * \param v The current position.
      * \param p The parent position, defaults to NULL_POSITION.
      */
-    void dfs(position &v, position &p = NULL_POSITION) {
+    void dfs(position &v, const position &p = NULL_POSITION) {
 
         //Mark this as visited
         visited_dfs.insert(v);

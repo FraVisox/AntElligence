@@ -5,9 +5,10 @@
 
 class piece{
     public:
+        //To represent the piece: color, number, king
         PlayerColor col;
-        int numIncr;
         BugType kind;
+        int numIncr;
 
         piece(enum BugType k,PlayerColor c,int=0);
         piece(string s);
@@ -20,7 +21,9 @@ class piece{
 extern piece INVALID_PIECE;
 
 piece extractPiece(string s);
-
+bool operator!=(const piece& p1,const piece &p);
+bool operator==(const piece& p1,const piece &p);
+bool areBugsSameOrCopied(const piece& p1,const piece &p);
 
 template<>
 struct std::hash<piece>
@@ -39,10 +42,5 @@ struct std::hash<piece>
         return  hash<int>{}(p.toVal());
     }
 };
-
-
-bool operator!=(const piece& p1,const piece &p);
-bool operator==(const piece& p1,const piece &p);
-bool areBugsSameOrCopied(const piece& p1,const piece &p);
 
 #endif

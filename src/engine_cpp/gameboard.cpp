@@ -1,11 +1,11 @@
 #include "gameboard.h"
 #include <iostream>
 
+
 /**
- * Resets the gameboard to its initial state.
+ * \brief Resets the gameboard.
  *
- * All positions on the board are cleared, and all the data structures are cleared.
- * This should be called at the start of each game.
+ * Resets the gameboard by clearing all the positions and by clearing the bugPosition and occupied maps.
  */
 void gameboard::reset() {
     for (int i = 0; i < 100; i++) {
@@ -18,22 +18,26 @@ void gameboard::reset() {
 }
 
 /**
- * \brief Get the stack of pieces at a given position.
+ * \brief Gets the stack at the given position.
  *
- * \param pos The position to get the stack of pieces from.
- * \return A pointer to the stack of pieces at pos.
+ * This function returns a pointer to the stack that contains the pieces at the given position.
+ *
+ * \param pos The position to get the stack at.
+ * \return A pointer to the stack at the given position. The stack is empty if the position is free.
  */
-stack<piece>* gameboard::at(position pos){
+stack<piece>* gameboard::at(const position &pos){
     return &gb[(100+(pos.first%100))%100][(100+(pos.second%100))%100];
 }
 
 /**
- * \brief Get the position of a bug on the board.
+ * \brief Gets the position of a bug on the board.
+ *
+ * If the bug is not on the board, NULL_POSITION is returned.
  *
  * \param p The bug to get the position of.
- * \return The position of bug p.
+ * \return The position of the bug on the board, NULL_POSITION if the bug is not on the board.
  */
-position gameboard::getPosition(piece p){
+position gameboard::getPosition(const piece &p){
     try {
         return bugPosition.at(p);
     } catch (const std::out_of_range& oor) {
@@ -42,28 +46,32 @@ position gameboard::getPosition(piece p){
 }
 
 /**
- * \brief Update the position of a bug on the board.
+ * \brief Updates the position of a bug on the gameboard.
  *
- * \param bug The bug to update the position of.
- * \param pos The new position of bug.
+ * This function updates the position of the specified bug in the bugPosition map.
+ * If the bug is already present in the map, its position is updated to the new
+ * position provided. If the bug is not present, it is added to the map with the
+ * given position.
+ *
+ * \param bug The bug whose position is to be updated.
+ * \param pos The new position of the bug.
  */
-void gameboard::updatePos(piece bug, position pos){
+
+void gameboard::updatePos(const piece &bug, const position &pos){
     bugPosition.insert_or_assign(bug,pos);
 }
 
 
 /**
- * \brief Remove the top piece from a given position and update the
- *        occupied set.
+ * \brief Pops the top piece from the stack at the given position.
  *
- * If the position is not free, remove the top piece from the position
- * and update the position of the removed piece to NULL_POSITION.
- * Then, if the position is free after popping the top piece, remove
- * the position from the occupied set.
+ * If the stack at the given position is not empty, the top piece is removed from
+ * the stack and its position in the bugPosition map is set to NULL_POSITION. If
+ * the stack is empty, the position is removed from the occupied set.
  *
- * \param pos The position to pop the top piece from.
+ * \param pos The position at which to pop the top piece.
  */
-void gameboard::popPosition(position pos){
+void gameboard::popPosition(const position &pos){
     if(!isFree(pos)){
         updatePos(at(pos)->top(), NULL_POSITION);
         at(pos)->pop();
@@ -74,16 +82,15 @@ void gameboard::popPosition(position pos){
 
 
 /**
- * \brief Remove a bug from the board.
+ * \brief Removes a bug from the gameboard.
  *
- * If the bug is the top piece at its position, remove it from the board.
- * This involves popping the piece from its position and removing its
- * position from the occupied set. Additionally, remove the bug from
- * the bugPosition map.
+ * If the bug is the top piece at its current position, it is removed from the
+ * stack and its position in the bugPosition map is set to NULL_POSITION. If
+ * the bug is not the top piece, it is simply removed from the bugPosition map.
  *
- * \param b The bug to remove from the board.
+ * \param b The bug to be removed from the gameboard.
  */
-void gameboard::removePiece(piece b){
+void gameboard::removePiece(const piece &b){
     if(isTop(b)){
         popPosition(getPosition(b));
         bugPosition.extract(b);
@@ -91,16 +98,18 @@ void gameboard::removePiece(piece b){
 }
 
 /**
- * \brief Add a piece to the board.
+ * \brief Adds a piece to the gameboard based on the given action.
  *
- * Pushes the given bug onto the given position and updates the bug's
- * position in the bugPosition map. Additionally, inserts the position
- * into the occupied set.
+ * This function places a bug on the gameboard according to the specified action.
+ * For a PLACEFIRST action, the piece is placed at the initial position (0,0).
+ * For PLACE and MOVEMENT actions, the position is calculated relative to another
+ * bug and direction specified in the action. If the action is a PASS, no piece is
+ * added. The function then delegates the actual placement to another version of
+ * addPiece that takes a position and a piece as arguments.
  *
- * \param pos The position to add the piece to.
- * \param a The action containing the info to add the piece.
+ * \param a The action specifying how and where to place the piece on the board.
  */
-void gameboard::addPiece(action a){
+void gameboard::addPiece(const action &a){
     position pos;
     switch (a.actType) {
         case PLACEFIRST:
@@ -119,16 +128,16 @@ void gameboard::addPiece(action a){
 
 
 /**
- * \brief Add a piece to the board at a given position.
+ * \brief Adds a bug to the gameboard at the specified position.
  *
- * Pushes the given bug onto the given position and updates the bug's
- * position in the bugPosition map. Additionally, inserts the position
- * into the occupied set.
+ * Places a bug on the gameboard at the specified position. The bug is added to
+ * the top of the stack at that position and its position in the bugPosition map
+ * is updated to the given position. The position is added to the occupied set.
  *
- * \param pos The position to add the piece to.
- * \param b The bug to add to the board.
+ * \param pos The position at which to add the bug.
+ * \param b The bug to be added to the gameboard.
  */
-void gameboard::addPiece(position pos, piece b){
+void gameboard::addPiece(const position &pos, const piece &b){
     at(pos)->push(b);
     updatePos(b,pos);
     occupied.insert(pos);
@@ -136,53 +145,62 @@ void gameboard::addPiece(position pos, piece b){
 
 
 /**
- * \brief Check if a position is free of pieces.
+ * \brief Checks if the specified position on the gameboard is free.
  *
- * \param pos The position to check.
- * \return true if the position is free, false otherwise.
+ * This function determines whether the stack at the given position is empty,
+ * indicating that no pieces are currently placed there.
+ *
+ * \param pos The position to check on the gameboard.
+ * \return True if the position is free (no pieces present), false otherwise.
  */
-bool gameboard::isFree(position &pos){
+bool gameboard::isFree(const position &pos){
     return at(pos)->empty();
 }
 
 /**
- * \brief Check if the given bug is the top piece at its position.
+ * \brief Checks if the given bug is at the top of the stack.
+ *
+ * This function checks if the given bug is at the top of the stack at its
+ * current position. This is used to check if a bug can be moved, as only the
+ * top bug at any given position can be moved.
  *
  * \param bug The bug to check.
- * \return true if the bug is the top piece at its position, false otherwise.
+ * \return True if the bug is at the top of the stack, false otherwise.
  */
-bool gameboard::isTop(piece bug){
+bool gameboard::isTop(const piece &bug){
     position pos=getPosition(bug);
     return (at(pos)->top()==bug);
 }
 
 /**
- * \brief Check if the given bug can move on the given turn.
+ * \brief Checks if a bug piece can be moved.
  *
- * Checks if the given bug is the top piece at its position and if the
- * hive rule is satisfied for the given bug on the given turn.
+ * This function checks if a bug piece can be moved. A bug can be moved if it is
+ * at the top of its stack and either not at level 1 or it is at level 1 and can
+ * be moved without breaking the hive rule.
  *
  * \param b The bug to check.
- * \param turn The turn to check.
- * \return true if the bug can move on the given turn, false otherwise.
+ * \param turn The turn of the player.
+ * \return True if the bug can be moved, false otherwise.
  */
-bool gameboard::canPieceMove(piece b,int turn){
+bool gameboard::canPieceMove(const piece &b,int turn){
     return (isTop(b) && (!isAtLevel1(getPosition(b)) || canMoveWithoutBreakingHiveRule(b,turn)));
 }
 
 /**
- * \brief Check if a bug can slide to the given position.
+ * \brief Checks if a bug piece can be moved horizontally.
  *
- * A bug can slide to the given position if the given position is
- * free, the bug is at a position adjacent to the given position, and the
- * two positions on the path between the bug and the given position are
- * both free.
+ * This function checks if a bug piece can be moved horizontally. A bug can be
+ * moved horizontally if it is at the top of its stack, the destination is at
+ * level 1 and the neighboring positions are at a lower level than the source
+ * position, and the source position is at level 1 or not all neighboring
+ * positions are at a lower level than the source position.
  *
- * \param from The position of the bug.
- * \param to The position the bug would like to slide to.
- * \return true if the bug can slide to the given position for free, false otherwise.
+ * \param from The source position of the bug.
+ * \param to The destination position of the bug.
+ * \return True if the bug can be moved horizontally, false otherwise.
  */
-bool gameboard::canHorizontalSlide(position from, position to){
+bool gameboard::canHorizontalSlide( position &from, position &to){
     if(at(to)->size() < at(from)->size() && isNear(to, from)){
         vector<position> v= nearBoth(from,to);
         position p1=v[0], p2=v[1];
@@ -196,26 +214,18 @@ bool gameboard::canHorizontalSlide(position from, position to){
 
 
 /**
- * \brief Determine the relative position and direction for a possible move.
- * 
- * This function evaluates whether a piece can move from a starting position
- * to a target position on the gameboard. Depending on the conditions, it
- * returns the top piece and direction around which the movement can occur.
- * 
- * If the piece is at level 1 and can slide horizontally, it checks the
- * neighboring positions to determine the best path for sliding around.
- * Alternatively, if the piece can move over others and is near the target
- * position, it checks if the piece can move over to the target position.
- * 
- * \param to The target position the piece wants to move to.
- * \param from The starting position of the piece.
- * \param canOver Whether the piece is allowed to move over other pieces.
- * \param howMuchOverFrom The additional height from which the piece can move over.
- * \return A pair containing the top piece at the relevant position and
- *         the direction for the move. Returns INVALID_PIECE and INVALID
- *         direction if the move is not possible
+ * \brief Finds the relative position if the bug at position 'from' can move to position 'to'.
+ *
+ * This function finds the relative position if the bug at position 'from' can move to position 'to'.
+ * If the bug can be moved, it will return a pair containing the piece that is relative to the bug and the direction to move.
+ * If the bug cannot be moved, it will return a pair containing the invalid piece and the invalid direction.
+ *
+ * \param to The destination position of the bug.
+ * \param from The source position of the bug.
+ * \param canOver Whether the bug can be moved over other pieces.
+ * \return A pair containing the relative piece and direction if the bug can be moved, otherwise a pair containing the invalid piece and direction.
  */
-pair<piece, direction> gameboard::getRelativePositionIfCanMove(position to, position from, bool canOver){
+pair<piece, direction> gameboard::getRelativePositionIfCanMove(position &to, position &from, bool canOver){
 
     //TODO: check the logic of this function
 
@@ -252,7 +262,22 @@ pair<piece, direction> gameboard::getRelativePositionIfCanMove(position to, posi
     return {INVALID_PIECE, INVALID};
 }
 
-pair<piece, direction> gameboard::getSlidingMoveAtLevel1(position to, position from) {
+/**
+ * \brief Determines the sliding move at level 1 from one position to another.
+ *
+ * This function checks if a move from the 'from' position to the 'to' position
+ * is possible by sliding at level 1 on a hexagonal grid. It assesses the 
+ * neighboring positions to determine if the move can occur by sliding around
+ * an adjacent piece. If the target position is free and adjacent to the source 
+ * position, it evaluates the neighbors to identify a valid sliding path.
+ *
+ * \param to The destination position.
+ * \param from The starting position.
+ * \return A pair containing the relative piece and direction for the slide if 
+ *         a valid sliding move is possible, otherwise a pair containing the 
+ *         invalid piece and direction.
+ */
+pair<piece, direction> gameboard::getSlidingMoveAtLevel1(position &to, position &from) {
     if(isFree(to) && isNear(from, to)){
         vector<position> v= nearBoth(from,to);
         position p1=v[0], p2=v[1];
@@ -267,18 +292,18 @@ pair<piece, direction> gameboard::getSlidingMoveAtLevel1(position to, position f
 
 
 /**
- * \brief Get the occupied neighboring positions.
+ * \brief Finds the occupied adjacent positions of a given position.
  *
- * This function returns a vector of positions that are neighbors
- * to the given position and are currently occupied by pieces.
+ * This function takes a position on the board and returns a vector of
+ * positions that are adjacent to the given position and are occupied by
+ * at least one bug.
  *
- * \param pos The position to check for occupied neighbors.
- * \return A vector containing the positions of all occupied neighbors.
+ * \param pos The position to check.
+ * \return A vector of positions that are adjacent and occupied.
  */
-
-vector<position> gameboard::occupiedEdge(position pos){
+vector<position> gameboard::occupiedEdge(position &pos){
     vector<position> ris;
-    for(auto n:pos.neighbor()){
+    for(auto n: pos.neighbor()){
         if(!isFree(n)){
             ris.push_back(n);
         }
@@ -287,14 +312,18 @@ vector<position> gameboard::occupiedEdge(position pos){
 }
 
 /**
- * \brief Get the top piece at a given position.
+ * \brief Gets the top piece on the given position.
+ *
+ * This function takes a position on the board and returns the top piece on
+ * that position. If the position is empty, it throws a string with the
+ * message "Asked piece for empty pos".
  *
  * \param pos The position to get the top piece from.
- * \return The top piece at the given position.
- *
- * \throws std::string if the given position is empty.
+ * \return The top piece at the given position if it is not empty.
+ * \throw A string with the message "Asked piece for empty pos" if the position
+ *        is empty.
  */
-piece gameboard::topPiece(position pos){
+piece gameboard::topPiece(const position &pos){
     if(!isFree(pos)){
         return at(pos)->top();
     }
@@ -303,13 +332,16 @@ piece gameboard::topPiece(position pos){
 
 
 /**
- * \brief Get all valid positions to place a new piece.
+ * \brief Gets all valid positions and directions to place a new piece on the board.
  *
- * A position is valid if it is adjacent to a piece of the given color, and
- * if all the neighbors of the position are either free or of the same color.
+ * This function takes a player color and returns a vector of pairs containing the
+ * piece that can be placed and the direction from the adjacent occupied position.
+ * The positions are only valid if they are free and if the adjacent neighbors are
+ * all of the same color or free.
  *
- * \param color The color of the player for which to get the valid positions.
- * \return An unordered set of all valid positions to place a new piece.
+ * \param color The player color to place the piece for.
+ * \return A vector of pairs containing the piece and direction for each valid
+ *         position to place a new piece.
  */
 vector<pair<piece,direction>> gameboard::validPositionPlaceNew(PlayerColor color){
     unordered_set<position> seen;
@@ -343,28 +375,33 @@ vector<pair<piece,direction>> gameboard::validPositionPlaceNew(PlayerColor color
 
 
 /**
- * \brief Check if a position is at level 1.
+ * \brief Checks if a position is at level 1.
  *
- * A position is at level 1 if there is only one piece at that position.
+ * This function takes a position and checks if the stack of pieces at that
+ * position has only one element. If the position is empty, it returns false.
  *
  * \param pos The position to check.
- * \return true if the position is at level 1, false otherwise.
+ * \return True if the position is at level 1, false otherwise.
  */
-bool gameboard::isAtLevel1(position pos){
+bool gameboard::isAtLevel1(const position &pos){
     return at(pos)->size()==1;
 }
 
 /**
- * \brief Check if the bug can be moved.
+ * \brief Checks if a bug piece can be moved without breaking the hive rule.
  *
- * A bug can be moved if it is possible to move it without breaking
- * the hive rule.
+ * This function takes a bug piece and a turn and checks if the bug can be moved
+ * without breaking the hive rule. The hive rule is broken if the bug is removed
+ * from its current position and there is no other bug piece of the same player
+ * that can reach the removed bug piece by a series of jumps. This function uses
+ * a cache to avoid calculating the same thing multiple times in a row.
  *
- * \param b The bug to check.
- * \param turn The current turn.
- * \return true if the bug is part of the hive, false otherwise.
+ * \param b The bug piece to check.
+ * \param turn The turn of the player.
+ * \return True if the bug can be moved without breaking the hive rule, false otherwise.
  */
-bool gameboard::canMoveWithoutBreakingHiveRule(piece b,int turn){
+
+bool gameboard::canMoveWithoutBreakingHiveRule(const piece &b,int turn){
     if(getPosition(b)==NULL_POSITION) //No position
         return true;
     //If there is a bug under this one

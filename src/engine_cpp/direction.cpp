@@ -13,17 +13,15 @@ pair<int,int> movementCircleClockwise[]={
 };
 
 /**
- * \brief Concatenates a string with a direction symbol.
+ *   Converts a direction to a string representation of a movement.
  *
- * Given a string `name` and a `Direction`, this function appends or prepends
- * a symbol to `name` based on the specified direction. The symbol represents
- * the relative direction on a hexagonal grid.
- *
- * \param name The base string to which the direction symbol is added.
- * \param dir The direction for which the corresponding symbol is appended or prepended to the name.
- * \return A new string with the direction symbol added to the original name.
+ *   :param name: Short name of the bug piece.
+ *   :type name: string
+ *   :param dir: Direction of the destination tile with respect to the relative bug piece.
+ *   :type dir: direction
+ *   :return: String representation of the movement.
+ *   :rtype: string
  */
-
 string nameDirToString(string name, direction dir){
     switch (dir) {
         case RIGHT: return name+"-";
@@ -36,17 +34,16 @@ string nameDirToString(string name, direction dir){
         default: return "";
     }
 }
-
-
 /**
- * \brief Converts a number to its corresponding direction.
+ *   Converts an integer to a direction.
  *
- * Given a number between 0 and 5 (inclusive), this function
- * returns the corresponding direction in the order they appear
- * in the array `allDirections`.
+ *   The integer is expected to be in the range 0 to 5. The corresponding direction
+ *   is returned.
  *
- * \param n The number representing the direction.
- * \return The direction corresponding to the number.
+ *   :param n: Integer to convert.
+ *   :type n: int
+ *   :return: Direction.
+ *   :rtype: direction
  */
 direction numberToDirection(int n){
     return allDirections[n];
@@ -54,42 +51,57 @@ direction numberToDirection(int n){
 
 
 /**
- * \brief Calculates the opposite direction.
+ *   Returns the opposite direction.
  *
- * Given a direction, this function returns the opposite
- * direction on a hexagonal grid.
+ *   Given a direction, this function returns the direction that is 180 degrees
+ *   opposite to the given direction.
  *
- * \param d The direction for which the opposite direction is calculated.
- * \return The direction that is opposite to the given direction.
+ *   :param d: Direction to find the opposite of.
+ *   :type d: direction
+ *   :return: Opposite direction.
+ *   :rtype: direction
  */
-
 direction oppositeDir(direction d){
     return numberToDirection((d+3)%6);
 }
 
-
 /**
- * \brief Calculates the difference of coordinates associated with a direction.
+ *   Returns the pair of integers associated with a direction.
  *
- * Given a direction, this function returns the difference of coordinates
- * associated with that direction on a hexagonal grid.
+ *   This function takes a direction as a parameter and returns a pair of integers
+ *   that represent the movement delta associated with that direction.
  *
- * \param d The direction for which the difference of coordinates is calculated.
- * \return The difference of coordinates associated with the given direction.
+ *   :param d: Direction to get the associated difference of.
+ *   :type d: direction
+ *   :return: The pair of integers associated with the direction.
+ *   :rtype: pair<int,int>
  */
 pair<int,int> associatedDifference(direction d){
     return movementCircleClockwise[d];
 }
 
 /**
- * \brief Extracts the direction from a string.
+ *   Extracts a direction from a string, given a string representation of
+ *   a move.
  *
- * Given a string, this function extracts and returns the direction
- * associated with the string. If the string does not contain a valid
- * direction, this function returns OVER.
+ *   Given a string representation of a move, this function extracts the
+ *   direction moved, which is the first character of the string.
  *
- * \param s The string from which the direction is extracted.
- * \return The direction associated with the string.
+ *   The function checks if the first character of the string is a '-', '\\'
+ *   or '/' character, and if so, returns the direction represented by the
+ *   second character of the string.
+ *
+ *   If the first character is not one of the above, the function looks for
+ *   the first occurrence of '-', '\\', or '/' in the string, and returns
+ *   the direction represented by the substring from the beginning of the string
+ *   to the found character.
+ *
+ *   If no such character is found, the function returns the direction OVER.
+ *
+ *   :param s: String representation of the move.
+ *   :type s: string
+ *   :return: Direction moved, represented as a direction object.
+ *   :rtype: direction
  */
 direction extractDirection(string s){
     if(s[0]=='-') return LEFT;

@@ -6,7 +6,7 @@
 
 /*
 
-//TODO: be more precise with error types
+//TODO: be more precise with error types (add things to enum)
 
 //TODO: OTHER RULES
 
