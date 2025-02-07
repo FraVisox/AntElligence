@@ -1,7 +1,6 @@
 from typing import Optional
 from abc import ABC, abstractmethod
-from engine_py.board import Board
-
+from engineInterface import EngineDLL
 class Strategy(ABC):
   """
   Base abstract class for AI agents.
@@ -15,7 +14,7 @@ class Strategy(ABC):
     self._cache: Optional[str] = None
 
   @abstractmethod # TODO: what to pass to it?
-  def calculate_best_move(self, board: Board) -> str:
+  def calculate_best_move(self, engineInterface: EngineDLL) -> str:
     pass
 
   def empty_cache(self) -> None:

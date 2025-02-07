@@ -25,7 +25,6 @@ Board b;
 
 */
 
-
 //TODO: be more precise with error types
 
 EXPORT int startGame(char* s) {
@@ -176,6 +175,17 @@ EXPORT int startGame(char* s) {
     return 0;
 }
 
+
+
+EXPORT int getTurn(){
+    return b.currentTurn;
+}
+
+EXPORT double oracleEval(){
+    return 0; // TODO
+}
+
+
 EXPORT int playMove(char* m) {
     return b.executeAction(m);
 }
@@ -229,6 +239,10 @@ EXPORT const char* getBoard() {
 EXPORT void undo(int amount) {
     b.undo(amount);
 }
+
+
+
+
 
 #ifdef __cplusplus
 }
