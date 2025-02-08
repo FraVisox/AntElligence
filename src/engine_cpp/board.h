@@ -31,6 +31,7 @@ class Board {
     //Initialization
 
     Board();
+
     void reset();
     void copy(const Board& b);
 

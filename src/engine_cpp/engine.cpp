@@ -36,6 +36,12 @@ extern "C" {
 #endif
 
 Board b;
+/*
+    TODO: BUGS
+
+*/
+
+//TODO: be more precise with error types
 
 /**
  * Starts a new game or resumes a game from a given GameString.
@@ -200,6 +206,14 @@ EXPORT int startGame(char* s) {
     return 0;
 }
 
+  EXPORT int getTurn(){
+    return b.currentTurn;
+}
+
+EXPORT double oracleEval(){
+    return 0; // TODO
+}
+
 /**
  * \brief Execute a move in the game.
  *
@@ -309,6 +323,10 @@ EXPORT const char* getBoard() {
 EXPORT void undo(int amount) {
     b.undo(amount);
 }
+
+
+
+
 
 #ifdef __cplusplus
 }

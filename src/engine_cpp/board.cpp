@@ -79,6 +79,7 @@ void Board::copy(const Board& b) {
 
 
 
+
 /**
  * \brief Convert the board to a string representation.
  *
@@ -162,7 +163,7 @@ bool Board::placedQueen(){
 ReturnMessage Board::executeAction(string s){
 
     action a = validMove(s);
-    if (a.bug == INVALID_PIECE) {
+    if (a == INVALID_ACTION) {
         return ERROR;
     }
 
@@ -259,7 +260,9 @@ action Board::validMove(string s) {
             }
             else 
                 return INVALID_ACTION;
-        } else if (s.find(' ') == std::string::npos) {
+        }
+        
+        if (s.find(' ') == std::string::npos) {
             return INVALID_ACTION; //no second string
         }
 

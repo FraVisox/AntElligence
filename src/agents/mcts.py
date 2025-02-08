@@ -1,13 +1,11 @@
 from random import choice
-from engine_py.board import Board
+from old_engine_py.game_logic.board import Board
 from agents.strategy import Strategy
 
 # TODO: implement monte carlo tree search
 # https://ai.stackexchange.com/questions/11617/combining-deep-reinforcement-learning-with-alpha-beta-pruning
 # https://dke.maastrichtuniversity.nl/m.winands/documents/paper%2049.pdf
 # https://discovery.ucl.ac.uk/id/eprint/10045895/1/agz_unformatted_nature.pdf
-
-
 
 
 # Idea: we don't need to explore all the moves of the player

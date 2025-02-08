@@ -46,4 +46,5 @@ action pass();
 action parseAction(string s, const unordered_set<piece>& inHandPiece);
 string ActionToString(const action &a);
 
+bool operator==(const action &a1,const action &a2);
 #endif

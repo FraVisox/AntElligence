@@ -4,7 +4,7 @@ import platform
 from agents.strategy import Strategy
 from agents.minimax import Minimax
 from agents.random_strat import Random as RandStrat
-from game_logic.board import *
+from old_engine_py.game_logic.board import *
 
 file_results = "results\\game_results.csv"
 

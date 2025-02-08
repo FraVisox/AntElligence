@@ -143,3 +143,7 @@ string ActionToString(const action &a){
     }
     return "";
 }
+
+bool operator==(const action &a1,const action &a2){
+    return (a1.actType==a2.actType)&& a1.bug==a2.bug && a1.otherBug==a2.otherBug && a1.relativeDir==a2.relativeDir && a1.startingPos==a2.startingPos;
+}

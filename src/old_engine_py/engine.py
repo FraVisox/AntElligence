@@ -1,7 +1,7 @@
 from typing import TypeGuard, Final, Optional
-from engine_py.enums import Command
-from engine_py.board import Board
-from engine_py.game import Move
+from game_logic.enums import Command
+from game_logic.board import Board
+from game_logic_py.game import Move
 from agents.strategy import Strategy
 from agents.random_strat import Random
 from agents.minimax import Minimax
