@@ -1,6 +1,6 @@
 from typing import Final, Optional, Set
-from engine_py.enums import GameType, GameState, PlayerColor, BugType, Direction
-from engine_py.game import Position, Bug, Move
+from game_logic_py.enums import GameType, GameState, PlayerColor, BugType, Direction
+from game_logic_py.game import Position, Bug, Move
 import re
 
 class Board():

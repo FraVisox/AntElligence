@@ -10,7 +10,6 @@ class Random(Strategy):
 
 
   def calculate_best_move(self, board: BoardModel) -> str:
-    print("Updated")
     if not self._cache or self.DISABLE_CACHE:
       self._cache = choice(board.valid_moves().split(";"))
     return self._cache

@@ -1,4 +1,4 @@
-from old_engine_py.game_logic.board import Board
+from BoardModel import BoardModel
 from agents.strategy import Strategy
 from old_engine_py.game_logic.enums import *
 from copy import deepcopy
@@ -20,7 +20,7 @@ class Minimax(Strategy):
   """
   color = PlayerColor.WHITE
 
-  def utility(self, state, board):
+  def utility(self, state, board: BoardModel):
     """
     Heuristic function evaluating the current game state from the AI's perspective.
 
@@ -49,15 +49,15 @@ class Minimax(Strategy):
       if state == GameState.BLACK_WINS:
         return -100
       
-      return board._get_number_of_bugs_near_queen(PlayerColor.WHITE) - board._get_number_of_bugs_near_queen(PlayerColor.BLACK)
+      return board.get_oracle_eval()
     else:
       if state == GameState.BLACK_WINS:
         return 100
       elif state == GameState.WHITE_WINS:
         return -100
-      return board._get_number_of_bugs_near_queen(PlayerColor.BLACK) - board._get_number_of_bugs_near_queen(PlayerColor.WHITE)
+      return board.get_oracle_eval()
 
-  def initiate_minimax(self, board):
+  def initiate_minimax(self, board: BoardModel):
     """
     Starts the minimax tree by checking all possible moves and returning the one with the highest utility.
 
@@ -68,7 +68,7 @@ class Minimax(Strategy):
     :return: The best move according to the minimax algorithm.
     :rtype: str
     """
-    #start = time.perf_counter()
+    start = time.perf_counter()
     max_eval = MIN_EVAL
     alpha = MIN_EVAL
     todo_action = Command.PASS
@@ -81,8 +81,8 @@ class Minimax(Strategy):
         max_eval = eval
         todo_action = action
       alpha = max(alpha, max_eval)
-    #end = time.perf_counter()
-    #print(end-start)
+    end = time.perf_counter()
+    print(end-start)
     return todo_action
 
   def minmax(self, state, board, depth, maximizing_player, alpha, beta):
@@ -136,7 +136,7 @@ class Minimax(Strategy):
                 break  
         return min_eval
 
-  def calculate_best_move(self, board: Board) -> str:
+  def calculate_best_move(self, board: BoardModel) -> str:
     """
     Calculates the best move for the current player given the state of the board.
 
@@ -150,6 +150,6 @@ class Minimax(Strategy):
     """
     
     if not self._cache or self.DISABLE_CACHE:
-      self.color = board.current_player_color
+      self.color = board.current_player_color()
       self._cache = self.initiate_minimax(board)
     return self._cache
