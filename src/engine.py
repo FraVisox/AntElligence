@@ -2,10 +2,9 @@ from typing import Final, Optional
 from game_logic_py.enums import Command
 from agents.strategy import Strategy
 from agents.random_strat import Random
-#from engine_cpp.agents.minimax import Minimax
-from copy import deepcopy
-#import engineInterface as engineInterface
+from agents.minimax import Minimax
 from engineInterface import engine as CPPInterface
+from engineInterface import ReturnTypes
 from BoardModel import BoardModel
 import re
 
@@ -27,7 +26,7 @@ class Engine():
   
   BRAINS: Final[dict[str, Strategy]] = {
     "Random": Random(),
-#    "Minimax": Minimax(),
+    "Minimax": Minimax(),
   }
 
 
@@ -204,7 +203,8 @@ class Engine():
     :param board: Current playing Board.
     :type board: Optional[Board]
     """
-    print(CPPInterface.get_valid_moves())
+    #This also prints the errors, in case there were any
+    print(CPPInterface.get_valid_moves()) 
       
   def parse_time_to_seconds(self, time_str):
     # Split the time string by colon
@@ -238,7 +238,6 @@ class Engine():
         return
       self.brain.set_depth_limit(int(value))
 
-    # TODO: how to pass the board to the brain??? This should return a MoveString
     print(self.brain.calculate_best_move(CPPInterface))
 
   def play(self, move: str) -> None:
@@ -252,12 +251,15 @@ class Engine():
     """
     try:
       ret = CPPInterface.play_move(move)
-      #if ret == CPPInterface.ReturnTypes.ERROR:
-      #  self.error("Invalid move")
-      #  return
-      # TODO: make something different if someone wins??
-      self.brain.empty_cache()
-      print(CPPInterface.get_board())
+      match(ret):
+        case ReturnTypes.INVALID_ARGUMENT:
+          self.invalidmove(move)
+        case ReturnTypes.INVALID_GAME_NOT_STARTED:
+          self.error("Game not in progress")
+        case _: 
+          # TODO: return something different if someone wins?
+          self.brain.empty_cache()
+          print(CPPInterface.get_board())
     except ValueError as e:
       self.invalidmove(e)
 

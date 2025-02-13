@@ -164,7 +164,7 @@ ReturnMessage Board::executeAction(string s){
 
     action a = validMove(s);
     if (a == INVALID_ACTION) {
-        return ERROR;
+        return INVALID_ARGUMENT;
     }
 
     //The move is represented as a Movestring (wS1 -wA1) or as "pass"
@@ -172,7 +172,7 @@ ReturnMessage Board::executeAction(string s){
     if (state == STARTED)
         state = IN_PROGRESS;
     else if (state != IN_PROGRESS) {
-        return ERROR;
+        return INVALID_GAME_NOT_STARTED;
     }
     switch (a.actType) {
         case MOVEMENT:
@@ -696,8 +696,9 @@ vector<action> Board::possibleMoves(){
         piece pillb = INVALID_PIECE;
 
         piece previous = INVALID_PIECE;
-        if (moves.size() > 1)
-            previous = moves[moves.size()-2].bug;
+        if (moves.size() > 1 &&  moves[moves.size()-2].actType == MOVEMENT) {
+            previous = moves[moves.size()-2].bug; //TODO: is the rule correct?
+        }
         for(piece b:placedBug){
             if (b == previous) continue;
             if (b.kind != PILLBUG && b.kind != MOSQUITO){ 

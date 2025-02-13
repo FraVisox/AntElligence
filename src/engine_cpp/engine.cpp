@@ -36,12 +36,6 @@ extern "C" {
 #endif
 
 Board b;
-/*
-    TODO: BUGS
-
-*/
-
-//TODO: be more precise with error types
 
 /**
  * Starts a new game or resumes a game from a given GameString.
@@ -55,18 +49,18 @@ Board b;
  *          The GameString should follow a specific pattern to indicate 
  *          the game configuration and moves.
  * @return An integer indicating success or error:
- *         - Returns 0 if the game is successfully started or resumed.
- *         - Returns ERROR if the GameString is invalid or inconsistent.
+ *         - Returns OK if the game is successfully started or resumed.
+ *         - Returns INVALID_ARGUMENT if the GameString is invalid or inconsistent.
  */
 EXPORT int startGame(char* s) {
     //Check the string:
     if (s == nullptr) {
-        return ERROR;
+        return INVALID_ARGUMENT;
     }
     string ss = s;
     const std::regex game_string_pattern(R"(^Base(?:\+(?:M|L|P|ML|LP|MP|MLP))?(?:;(?:InProgress|NotStarted|Draw|WhiteWins|BlackWins)(?:;(?:White|Black)\[\d+\](?:;(?:(?:w|b)[QSBGAMLP](?:[1-3])?(?: [\\\-/](?:w|b)[QSBGAMLP](?:[1-3])?)?(?: (?:w|b)[QSBGAMLP](?:[1-3])?[\\\-/])?)?)*)?)?$)");
     if (!std::regex_match(ss, game_string_pattern)) {
-        return ERROR;
+        return INVALID_ARGUMENT;
     }
 
     //Create newboard as to not modify the original
@@ -137,7 +131,7 @@ EXPORT int startGame(char* s) {
             s++;
         }
         if (*s == 0) {
-            return ERROR;
+            return INVALID_ARGUMENT;
         }
         *s = 0;
         s++;
@@ -149,7 +143,7 @@ EXPORT int startGame(char* s) {
             s++;
         }
         if (*s == 0) {
-            return ERROR;
+            return INVALID_ARGUMENT;
         }
         *s = 0;
         int curTurn = 0;
@@ -158,7 +152,7 @@ EXPORT int startGame(char* s) {
         } else if (!strcmp(turn,"Black")) {
             curTurn = 2;
         } else {
-            return ERROR;
+            return INVALID_ARGUMENT;
         }
         s++;
         turn = s;
@@ -166,12 +160,12 @@ EXPORT int startGame(char* s) {
             s++;
         }
         if (*s == 0) {
-            return ERROR;
+            return INVALID_ARGUMENT;
         }
         *s = 0;
         curTurn = curTurn + 2*(atoi(turn)-1);
         if (curTurn <= 0) {
-            return ERROR;
+            return INVALID_ARGUMENT;
         }
         s++;
 
@@ -188,7 +182,7 @@ EXPORT int startGame(char* s) {
             }
             *s = 0;
             if (newb.executeAction(move) == ERROR) {
-                return ERROR;
+                return INVALID_ARGUMENT;
             } 
             if (ret) {
                 break;
@@ -198,15 +192,15 @@ EXPORT int startGame(char* s) {
 
         //Check if the current status is true
         if (newb.currentTurn != curTurn || (parseState(state) != NOT_STARTED && newb.state != parseState(state)) || (parseState(state) == NOT_STARTED && newb.state != STARTED)) {
-            return ERROR;
+            return INVALID_ARGUMENT;
         }
     }
 
     b.copy(newb);
-    return 0;
+    return OK;
 }
 
-  EXPORT int getTurn(){
+EXPORT int getTurn(){
     return b.currentTurn;
 }
 
@@ -224,7 +218,13 @@ EXPORT double oracleEval(){
  * relative position bug piece and the direction indicator.
  *
  * \param m The string representing the move.
- * \return 0 if the move was successful, an error code otherwise.
+ * \return An integer representing:
+ *              - OK if the move was successful, 
+ *              - GAME_OVER_DRAW if the move results in a draw,
+ *              - GAME_OVER_WHITE_WINS if the move results in a win for the white player,
+ *              - GAME_OVER_BLACK_WINS if the move results in a win for the black player,
+ *              - INVALID_ARGUMENT if the move is not valid,
+ *              - INVALID_GAME_NOT_STARTED if the game is not in progress,
  */
 EXPORT int playMove(char* m) {
     return b.executeAction(m);
@@ -323,8 +323,6 @@ EXPORT const char* getBoard() {
 EXPORT void undo(int amount) {
     b.undo(amount);
 }
-
-
 
 
 

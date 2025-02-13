@@ -11,7 +11,9 @@ enum ReturnMessage{ //TODO: add more errors
     ERROR = 1,
     GAME_OVER_DRAW = 2,
     GAME_OVER_WHITE_WINS = 3,
-    GAME_OVER_BLACK_WINS = 4
+    GAME_OVER_BLACK_WINS = 4,
+    INVALID_ARGUMENT = 5,
+    INVALID_GAME_NOT_STARTED = 6,
 };
 
 

@@ -12,6 +12,8 @@ class ReturnTypes:
     GAME_OVER_DRAW = 2
     GAME_OVER_WHITE_WINS = 3
     GAME_OVER_BLACK_WINS = 4
+    INVALID_ARGUMENT = 5
+    INVALID_GAME_NOT_STARTED = 6
 
 class EngineDLL(BoardModel):
     def __init__(self,gamestring: str = ""):
@@ -53,14 +55,8 @@ class EngineDLL(BoardModel):
 
     def start_game(self, game_string):
         """Start a new game with the given configuration string"""
-        if not isinstance(game_string, str):
-            raise TypeError("game_string must be a string")
-        try:
-            encoded_string = game_string.encode("utf-8")
-            return self.dll.startGame(encoded_string) == ReturnTypes.OK
-        except UnicodeEncodeError as e:
-            # Fallback to ASCII if encoding fails
-            return self.dll.startGame(encoded_string) == ReturnTypes.OK
+        encoded_string = game_string.encode("utf-8")
+        return self.dll.startGame(encoded_string) == ReturnTypes.OK
 
     def play_move(self, move_string):
         """Play a move in the current game"""
