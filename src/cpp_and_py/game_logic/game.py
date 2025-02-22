@@ -1,5 +1,5 @@
 from typing import Final, Optional
-from game_logic_py.enums import PlayerColor, BugType, Direction
+from game_logic.enums import PlayerColor, BugType, Direction
 import re
 
 class Position():

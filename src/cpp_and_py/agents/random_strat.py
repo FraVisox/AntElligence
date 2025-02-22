@@ -1,7 +1,6 @@
 from random import choice
 from BoardModel import BoardModel
 from agents.strategy import Strategy
-from engineInterface import EngineDLL
 
 class Random(Strategy):
   """

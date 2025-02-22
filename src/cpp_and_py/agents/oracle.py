@@ -1,6 +1,8 @@
-from engine_py.board import Board
-from engine_py.board import Bug
-from engine_py.enums import *
+'''
+
+from old_engine_py.game_logic.board import Board
+from old_engine_py.game_logic.board import Bug
+from old_engine_py.game_logic.enums import *
 from copy import deepcopy
 
 
@@ -60,3 +62,5 @@ class Oracle:
 		BugType.QUEEN_BEE:4
 		
 	}
+    
+'''

@@ -1,5 +1,6 @@
+'''
 from random import choice
-from old_engine_py.game_logic.board import Board
+from game_logic_py.board import Board
 from agents.strategy import Strategy
 
 # TODO: implement monte carlo tree search
@@ -21,3 +22,4 @@ class MCTS(Strategy):
     if not self._cache:
       self._cache = choice(board.valid_moves.split(";"))
     return self._cache
+'''

@@ -1,5 +1,5 @@
 from typing import Final, Optional
-from game_logic_py.enums import Command
+from game_logic.enums import Command
 from agents.strategy import Strategy
 from agents.random_strat import Random
 from agents.minimax import Minimax

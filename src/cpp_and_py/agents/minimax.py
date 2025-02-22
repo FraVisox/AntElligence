@@ -1,9 +1,8 @@
 from BoardModel import BoardModel
 from agents.strategy import Strategy
-from old_engine_py.game_logic.enums import *
+from game_logic.enums import *
 from copy import deepcopy
 import time
-from agents.oracle import Oracle
 
 # TODO: make a better order of moves to make alpha-beta better
 # TODO: Improve heuristic:
@@ -84,6 +83,9 @@ class Minimax(Strategy):
     end = time.perf_counter()
     print(end-start)
     return todo_action
+  
+  def heuristic_eval_board(self, state, board, color):
+     return 0
 
   def minmax(self, state, board, depth, maximizing_player, alpha, beta):
     """
@@ -109,7 +111,7 @@ class Minimax(Strategy):
     :rtype: int
     """
     if state == GameState.DRAW or state == GameState.WHITE_WINS or state == GameState.BLACK_WINS or depth >= self.depth_limit:
-        return Oracle.heuristic_eval_board(state, board,self.color)
+        return self.heuristic_eval_board(state, board,self.color)
     
     if maximizing_player:
         max_eval = MIN_EVAL

@@ -1,6 +1,7 @@
 from typing import Optional
 from abc import ABC, abstractmethod
 from engineInterface import EngineDLL
+
 class Strategy(ABC):
   """
   Base abstract class for AI agents.
