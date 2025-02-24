@@ -1,8 +1,5 @@
 
-#include <math.h>
-#include "board.h"
-#include <iostream>
-#include <regex>
+#include "engine_interface.h"
 
 /*
 
@@ -24,7 +21,7 @@ previous turn;
 
 */
 
-Board b;
+Board b = Board();
 
 /**
  * Starts a new game or resumes a game from a given GameString.
@@ -219,8 +216,6 @@ int playMove(char* m) {
     return b.executeAction(m);
 }
 
-// IT SHOULD BE SUFFICIENT FOR ALL THE POSSIBLE MOVES (considering 9 bytes for each move)
-static char MOVES_BUFFER[10000];
 
 /**
  * \brief Return a string with all valid moves for the current player.
@@ -275,8 +270,6 @@ char* validMoves() {
     return MOVES_BUFFER;
 }
 
-//This should take into account around 10 000 turns
-static char BOARD_BUFFER[100000];
 
 /**
  * \brief Returns a string representation of the current game state.
@@ -309,7 +302,7 @@ const char* getBoard() {
  *
  * \param amount The number of moves to undo.
  */
-void undo(int amount) {
+void undoB(int amount) {
     b.undo(amount);
 }
 

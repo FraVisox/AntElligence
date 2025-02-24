@@ -6,86 +6,19 @@
 #include <memory>
 #include <regex>
 #include <algorithm>
-#include "engine/engine_interface.cpp"
-
-// Forward declarations
-class Strategy; //TODO: implement
-class Random;
-class Minimax;
-
-// Enum for commands
-enum class Command {
-    INFO,
-    HELP,
-    OPTIONS,
-    NEWGAME,
-    VALIDMOVES,
-    BESTMOVE,
-    PLAY,
-    PASS,
-    UNDO,
-    EXIT,
-    GET,
-    SET,
-    UNKNOWN
-};
-
-enum class StrategyName {
-    RANDOM = 0,
-    MINIMAX = 1,
-    DRL = 2
-};
-
-// Convert string to Command enum
-Command stringToCommand(const std::string& cmd) {
-    if (cmd == "info") return Command::INFO;
-    if (cmd == "help") return Command::HELP;
-    if (cmd == "options") return Command::OPTIONS;
-    if (cmd == "newgame") return Command::NEWGAME;
-    if (cmd == "validmoves") return Command::VALIDMOVES;
-    if (cmd == "bestmove") return Command::BESTMOVE;
-    if (cmd == "play") return Command::PLAY;
-    if (cmd == "pass") return Command::PASS;
-    if (cmd == "undo") return Command::UNDO;
-    if (cmd == "exit") return Command::EXIT;
-    if (cmd == "get") return Command::GET;
-    if (cmd == "set") return Command::SET;
-    return Command::UNKNOWN;
-}
-
-std::string optionToString(StrategyName brain) {
-    switch (brain) {
-        case StrategyName::RANDOM:
-            return "Random";
-        case StrategyName::MINIMAX:
-            return "Minimax";
-        case StrategyName::DRL:
-            return "DRL";
-    }
-}
-
-StrategyName stringToStrategyName(const std::string& brain) {
-    if (brain == "Random") return StrategyName::RANDOM;
-    if (brain == "Minimax") return StrategyName::MINIMAX;
-    if (brain == "DRL") return StrategyName::DRL;
-    return StrategyName::RANDOM;
-}
+#include "engine/engine_interface.h"
+#include "engine/enums.h"
+#include "strategy.h"
 
 class Engine {
 private:
     const std::string VERSION = "2.0.0";
     const std::string OPTION = "Strategy";
     
-    std::vector<Strategy> BRAINS;
+    Strategy BRAINS[3] = {Strategy(StrategyName::RANDOM), Strategy(StrategyName::MINIMAX), Strategy(StrategyName::DRL)};
     StrategyName current_brain = StrategyName::RANDOM;
 
 public:
-    Engine() {
-        // Initialize BRAINS map
-        BRAINS.push_back(new Random()); //TODO
-        BRAINS.push_back(new Minimax());
-    }
-
     void start() {
         info();
         std::string line;
@@ -163,6 +96,28 @@ public:
         std::cout << "Mosquito;Ladybug;Pillbug" << std::endl;
     }
 
+    void bestmove(string s1, string s2) {
+        if (s1 == "time") {
+
+        } else if (s2 == "depth") {
+
+        }
+        //TODO: complete
+    }
+
+    void play(string s) {
+
+    }
+
+    void undo(vector<string> numbers) {
+        if (numbers.size() != 1) {
+            return;
+        }
+        int n = std::stoi(numbers[0]);
+        undoB(n);
+        cout << getBoard() << endl;
+    }
+
     void help(const std::vector<std::string>& arguments) {
         if (!arguments.empty()) {
             if (arguments.size() > 1) {
@@ -183,6 +138,19 @@ public:
             printAllCommands();
             std::cout << "Try 'help <command>' to see help for a particular Command." << std::endl;
         }
+    }
+
+
+    void newgame(std::vector<std::string> args) {
+        char* s = new char[args[0].length() + 1]; //TODO: migliora
+        strcpy(s, args[0].c_str());
+        startGame(s);
+        cout << getBoard() << endl;
+    }
+
+    void validmoves() {
+        char* s = validMoves();
+        std::cout << s << std::endl;
     }
 
     void options(const std::vector<std::string>& arguments) {
@@ -229,18 +197,18 @@ public:
         std::cout << "invalidmove " << message << "." << std::endl;
     }
 
-private:
+
     void printCommandHelp(Command cmd) {
         // Implementation of help text for each command
         // This would contain the same text as in the Python version
         // but formatted for C++ output
+        //TODO: complete
     }
 
     void printAllCommands() {
         // Implementation to print all available commands
     }
 
-    // Additional helper functions as needed...
 };
 
 int main() {
