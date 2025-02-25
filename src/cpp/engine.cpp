@@ -1,227 +1,117 @@
+#include "engine.h"
 #include <string>
-#include <map>
-#include <vector>
-#include <iostream>
-#include <sstream>
-#include <memory>
-#include <regex>
-#include <algorithm>
-#include "engine/engine_interface.h"
-#include "engine/enums.h"
-#include "strategy.h"
+using namespace std;
 
-class Engine {
-private:
-    const std::string VERSION = "2.0.0";
-    const std::string OPTION = "Strategy";
+void Engine::newgame(string arguments){
+    vector<string> gameInfos;
+
+    int p=0;
     
-    Strategy BRAINS[3] = {Strategy(StrategyName::RANDOM), Strategy(StrategyName::MINIMAX), Strategy(StrategyName::DRL)};
-    StrategyName current_brain = StrategyName::RANDOM;
+    if(arguments=="")arguments="Base";
 
-public:
-    void start() {
-        info();
-        std::string line;
-        
-        while (true) {
-            std::cout << "ok" << std::endl;
-            
-            std::getline(std::cin, line);
-            std::istringstream iss(line);
-            std::vector<std::string> tokens;
-            std::string token;
-            
-            while (iss >> token) {
-                tokens.push_back(token);
+    while(p<arguments.size()){
+        int n=arguments.find(';',p);
+        if(n==-1){
+            gameInfos.push_back(arguments.substr(p));
+            break;
+        }
+        gameInfos.push_back(arguments.substr(p,n-p));
+        p=n+1;
+    }
+    board.state=STARTED;
+
+    
+
+    board.reset();
+
+    for(PlayerColor col : {BLACK,WHITE}){
+        board.addPieceHand(piece{QUEEN,col,0});
+        for(int i=1;i<=2;i++){
+            board.addPieceHand(piece{SPIDER,col,i});
+            board.addPieceHand(piece{BEETLE,col,i});
+            board.addPieceHand(piece{GRASSHOPPER,col,i});
+            board.addPieceHand(piece{SOLDIER_ANT,col,i});
+        }
+        board.addPieceHand(piece{GRASSHOPPER,col,3});
+        board.addPieceHand(piece{SOLDIER_ANT,col,3});
+    }
+    
+    board.type=Base;
+    if(gameInfos[0].size()>4){
+        string addInfo=gameInfos[0].substr(5);  
+
+        if (addInfo.find('M')!=-1) {
+            board.addPieceHand(piece{MOSQUITO,BLACK,0});
+            board.addPieceHand(piece{MOSQUITO,WHITE,0});
+            board.type = Base_M;
+        }
+        if (addInfo.find('L')!=-1) {
+            board.addPieceHand(piece{LADYBUG,BLACK,0});
+            board.addPieceHand(piece{LADYBUG,WHITE,0});
+            if (board.type == Base_M) {
+                board.type = Base_ML;
+            } else {
+                board.type = Base_L;
             }
-            
-            if (tokens.empty()) continue;
-            
-            try {
-                Command cmd = stringToCommand(tokens[0]);
-                std::vector<std::string> args(tokens.begin() + 1, tokens.end());
-                
-                switch (cmd) {
-                    case Command::INFO:
-                        info();
-                        break;
-                    case Command::HELP:
-                        help(args);
-                        break;
-                    case Command::OPTIONS:
-                        options(args);
-                        break;
-                    case Command::NEWGAME:
-                        newgame(args);
-                        break;
-                    case Command::VALIDMOVES:
-                        validmoves();
-                        break;
-                    case Command::BESTMOVE:
-                        if (args.size() == 2) {
-                            bestmove(args[0], args[1]);
-                        } else {
-                            error("Invalid number of arguments for bestmove");
-                        }
-                        break;
-                    case Command::PLAY:
-                        if (args.size() == 1) {
-                            play(args[0]);
-                        } else if (args.size() == 2) {
-                            play(args[0] + " " + args[1]);
-                        } else {
-                            error("Invalid number of arguments for play");
-                        }
-                        break;
-                    case Command::PASS:
-                        play("pass");
-                        break;
-                    case Command::UNDO:
-                        undo(args);
-                        break;
-                    case Command::EXIT:
-                        std::cout << "ok" << std::endl;
-                        return;
-                    default:
-                        error("Invalid command. Try 'help' to see a list of valid commands and how to use them");
-                }
-            } catch (const std::exception& e) {
-                error(e.what());
+        }
+        if (addInfo.find('P')!=-1) {
+            board.addPieceHand(piece{PILLBUG,BLACK,0});
+            board.addPieceHand(piece{PILLBUG,WHITE,0});
+            if (board.type == Base_M) {
+                board.type = Base_MP;
+            } else if (board.type == Base_L) {
+                board.type = Base_LP;
+            } else if (board.type == Base_ML) {
+                board.type = Base_MLP;
+            } else {
+                board.type = Base_P;
             }
         }
     }
 
-    void info() {
-        std::cout << "id AntElligenceEngine v" << VERSION << std::endl;
-        std::cout << "Mosquito;Ladybug;Pillbug" << std::endl;
+    if(gameInfos.size()==1 || gameInfos[1]=="NotStarted"){
+
+        cout<<board.toString()<<endl;
+        return;
+    }
+    //if(gameInfos[1]=="InProgress"){
+    //        board.currentTurn=2*stoi(gameInfos[2].substr(6,gameInfos[2].size()-7));
+    //    if(gameInfos[2][0]=='W'){
+    //        board.currentTurn-=1;
+    //    }
+    // }
+
+    for(int j=3;j<gameInfos.size();j++){
+        board.executeAction(gameInfos[j]);
+    }
+    cout<<board.toString()<<endl;
+    board.state=STARTED;
+}
+   
+
+void Engine::validmoves(){
+
+    vector<action> moves=board.possibleMoves();
+    if(moves.size()==0){
+        cout<<"pass\n";
     }
 
-    void bestmove(string s1, string s2) {
-        if (s1 == "time") {
-
-        } else if (s2 == "depth") {
-
-        }
-        //TODO: complete
+    for(int i=0;i<moves.size()-1;i++){
+        cout<<ActionToString(moves[i])<<";";
     }
+    cout<<ActionToString(moves[moves.size()-1])<<endl;
+}
+void Engine::bestmove(string param){
+    cout<<ActionToString(agent.calculate_best_move(board))<<endl;
+}
 
-    void play(string s) {
-        
-    }
+void Engine::play(string move){
+    board.executeAction(move);
 
-    void undo(vector<string> numbers) {
-        if (numbers.size() == 0) {
-            undoB(1);
-            cout << getBoard() << endl;
-            return;
-        } else if (numbers.size() > 1) {
-            error("Invalid number of arguments for undo");
-            return;
-        }
-        int n = std::stoi(numbers[0]);
-        undoB(n);
-        cout << getBoard() << endl;
-    }
+    cout<<board.toString()<<endl;
+}
 
-    void help(const std::vector<std::string>& arguments) {
-        if (!arguments.empty()) {
-            if (arguments.size() > 1) {
-                error("Too many arguments for command 'help'");
-                return;
-            }
-            
-            try {
-                Command cmd = stringToCommand(arguments[0]);
-                // Print help for specific command
-                printCommandHelp(cmd);
-            } catch (const std::exception&) {
-                error("Unknown command '" + arguments[0] + "'");
-            }
-        } else {
-            std::cout << "Available commands:" << std::endl;
-            // Print all available commands
-            printAllCommands();
-            std::cout << "Try 'help <command>' to see help for a particular Command." << std::endl;
-        }
-    }
-
-
-    void newgame(std::vector<std::string> args) {
-        if (args.size() != 1) {
-            error("Invalid number of arguments for newgame");
-            return;
-        }
-        char* s = new char[args[0].length() + 1]; //TODO: migliora
-        strcpy(s, args[0].c_str());
-        startGame(s);
-        cout << getBoard() << endl;
-    }
-
-    void validmoves() {
-        char* s = validMoves();
-        std::cout << s << std::endl;
-    }
-
-    void options(const std::vector<std::string>& arguments) {
-        if (!arguments.empty()) {
-            try {
-                Command cmd = stringToCommand(arguments[0]);
-                if (cmd == Command::GET && arguments.size() == 2) {
-                    std::cout << getOption(arguments[1]) << std::endl;
-                } else if (cmd == Command::SET && arguments.size() == 3) {
-                    setOption(arguments[1], arguments[2]);
-                    std::cout << getOption(arguments[1]) << std::endl;
-                } else {
-                    error("Invalid options command format");
-                }
-            } catch (const std::exception&) {
-                error("Unknown option '" + arguments[0] + "'");
-            }
-        } else {
-            //We only have one option
-            std::cout << getOption("Strategy") << std::endl;
-        }
-    }
-
-    std::string getOption(const std::string& optionName) {
-        if (optionName == OPTION) {
-            return optionName + ";enum;" + optionToString(current_brain) + ";Random;Random;Minimax;DRL";
-        }
-        throw std::runtime_error("Invalid option name");
-    }
-
-    void setOption(const std::string& optionName, const std::string& optionValue) {
-        if (optionName == OPTION && (optionValue == "Random" || optionValue == "Minimax" || optionValue == "DRL")) {
-            current_brain = stringToStrategyName(optionValue);
-        } else {
-            throw std::runtime_error("Invalid option name or value");
-        }
-    }
-
-    void error(const std::string& message) {
-        std::cout << "err " << message << "." << std::endl;
-    }
-
-    void invalidmove(const std::string& message) {
-        std::cout << "invalidmove " << message << "." << std::endl;
-    }
-
-
-    void printCommandHelp(Command cmd) {
-        // Implementation of help text for each command
-        // This would contain the same text as in the Python version
-        // but formatted for C++ output
-        //TODO: complete
-    }
-
-    void printAllCommands() {
-        // Implementation to print all available commands
-    }
-
-};
-
-int main() {
-    Engine engine;
-    engine.start();
-    return 0;
+void Engine::undo(string arguments="0"){
+    board.undo(stoi(arguments));
+    cout<<board.toString()<<endl;
 }
