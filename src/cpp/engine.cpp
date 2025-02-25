@@ -106,11 +106,16 @@ public:
     }
 
     void play(string s) {
-
+        
     }
 
     void undo(vector<string> numbers) {
-        if (numbers.size() != 1) {
+        if (numbers.size() == 0) {
+            undoB(1);
+            cout << getBoard() << endl;
+            return;
+        } else if (numbers.size() > 1) {
+            error("Invalid number of arguments for undo");
             return;
         }
         int n = std::stoi(numbers[0]);
@@ -142,6 +147,10 @@ public:
 
 
     void newgame(std::vector<std::string> args) {
+        if (args.size() != 1) {
+            error("Invalid number of arguments for newgame");
+            return;
+        }
         char* s = new char[args[0].length() + 1]; //TODO: migliora
         strcpy(s, args[0].c_str());
         startGame(s);

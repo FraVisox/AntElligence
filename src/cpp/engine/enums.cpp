@@ -207,3 +207,39 @@ enum BugType parseBugType(string s){
     if(s=="P") return BugType::PILLBUG;
     throw "Invalid bug type";
 }
+
+
+Command stringToCommand(const std::string& cmd) {
+    if (cmd == "info") return Command::INFO;
+    if (cmd == "help") return Command::HELP;
+    if (cmd == "options") return Command::OPTIONS;
+    if (cmd == "newgame") return Command::NEWGAME;
+    if (cmd == "validmoves") return Command::VALIDMOVES;
+    if (cmd == "bestmove") return Command::BESTMOVE;
+    if (cmd == "play") return Command::PLAY;
+    if (cmd == "pass") return Command::PASS;
+    if (cmd == "undo") return Command::UNDO;
+    if (cmd == "exit") return Command::EXIT;
+    if (cmd == "get") return Command::GET;
+    if (cmd == "set") return Command::SET;
+    return Command::UNKNOWN;
+}
+
+std::string optionToString(StrategyName brain) {
+    switch (brain) {
+        case StrategyName::RANDOM:
+            return "Random";
+        case StrategyName::MINIMAX:
+            return "Minimax";
+        case StrategyName::DRL:
+            return "DRL";
+    }
+    return "No";
+}
+
+StrategyName stringToStrategyName(const std::string& brain) {
+    if (brain == "Random") return StrategyName::RANDOM;
+    if (brain == "Minimax") return StrategyName::MINIMAX;
+    if (brain == "DRL") return StrategyName::DRL;
+    return StrategyName::RANDOM;
+}
