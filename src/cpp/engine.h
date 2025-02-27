@@ -8,19 +8,15 @@ using namespace std;
 
 class Engine{
     public:
-  //  Engine version
+    //  Engine version
     string VERSION="3.0";
 
     Board board;
 
-  // Agent
+    // Agent
     Agent& agent;
-  
-  
     
     Engine(Agent& a):agent(a){}
-
-
 
   void start(){
     //Engine main loop to handle commands.
@@ -52,35 +48,26 @@ class Engine{
         validmoves();
       else if(command=="bestmove")
           bestmove(arg);
-      else if(command=="play"){
+      else if(command=="play")
           play(arg);
-      }
       else if(command=="pass")
           play("pass");
         else if(command=="undo") 
           undo(arg);
-        else if(command=="exit")
+        else if(command=="exit") {
           cout<<"ok"<<endl;
+          break;
+        }
         else
           error("Invalid command. Try 'help' to see a list of valid commands and how to use them");
     }
   }
   void info(string arg){
-    /* 
-   Handles 'info' command.
-    */
     cout<<"id AntElligenceEngine "<<VERSION<<endl;
     cout<<"Mosquito;Ladybug;Pillbug"<<endl;
   }
 
   void help(string arg){
-    /* 
-   Handles 'help' command with arguments.
-
-    :param arguments: Command arguments.
-    :type arguments: list[str]
-    */
-
     if(arg.find(" "))
         error("Too many arguments for command "+arg);
     else if(arg=="info"){
@@ -134,57 +121,40 @@ class Engine{
   }
 
   void options(string arguments){
-    cout<<"NOt implemented\n";
-    /*andles 'options' argument to change AI strategy.
-    *//*
-    if arguments:
-      match arguments[0]:
-        case Command.GET:
-          cout<<self.get_option(arguments[1]))
-        case Command.SET:
-          self.set_option(arguments[1], arguments[2])
-          cout<<self.get_option(arguments[1]))
-        case _:
-          self.error(f"Unknown option '{arguments[0]}'")
-    else:
-      for option in self.OPTIONS:
-        cout<<self.get_option(option))
-        */
-
-  }
-  void get_option(string option_name){
-    /*Handles 'options get' argument to display AI strategy. As this is the only option, there is no need to make it more general.
-    */
-  }
-
-  void set_option(string option_name,int option_value){
+    error("Not available options");
     /*
-    Handles 'options set' argument to change AI strategy.
+    if (!arguments.empty()) {
+        if (arguments == "get") {
+          get_option(arguments);
+        } else if (arguments == "set") {
+          set_option(arguments);
+        }
+        error("Unknown option " + arguments[0]);
+    } else {
+      cout << "Not available options\n";
+    }
     */
+  }
+  void get_option(string arguments){
+  }
+
+  void set_option(string arguments){
   }
 
 
-  void newgame( string arguments);
-   
-
-   
+  void newgame( string arguments);   
   void validmoves();
   void bestmove(string);
-
   void play(string);
   void undo(string arguments);
+
+
    void error(string  error){
-    cerr<<"ERROR:"<<error;
+    cout<<"err "<<error << "\n";
   }
 
   void invalidmove(string error){
-    /*
-    Outputs the invalid move error.
-
-    :param message: Message or exception.
-    :type message: str | Exception
-    */
-    cout<<"invalidmove "<<error;
+    cout<<"invalidmove "<<error << "\n";
   }
 };
 

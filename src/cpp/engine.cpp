@@ -3,13 +3,11 @@
 using namespace std;
 
 void Engine::newgame(string arguments){
-    vector<string> gameInfos;
+    vector<string> gameInfos;    
+    if(arguments.empty())arguments="Base";
 
     int p=0;
-    
-    if(arguments=="")arguments="Base";
-
-    while(p<arguments.size()){
+    while(p < arguments.size()){
         int n=arguments.find(';',p);
         if(n==-1){
             gameInfos.push_back(arguments.substr(p));
@@ -19,9 +17,6 @@ void Engine::newgame(string arguments){
         p=n+1;
     }
     board.state=STARTED;
-
-    
-
     board.reset();
 
     for(PlayerColor col : {BLACK,WHITE}){
@@ -71,7 +66,7 @@ void Engine::newgame(string arguments){
 
     if(gameInfos.size()==1 || gameInfos[1]=="NotStarted"){
 
-        cout<<board.toString()<<endl;
+        cout<<board.toString()<<"\n";
         return;
     }
     //if(gameInfos[1]=="InProgress"){
@@ -84,7 +79,7 @@ void Engine::newgame(string arguments){
     for(int j=3;j<gameInfos.size();j++){
         board.executeAction(gameInfos[j]);
     }
-    cout<<board.toString()<<endl;
+    cout<<board.toString()<<"\n";
     board.state=STARTED;
 }
    
@@ -99,19 +94,19 @@ void Engine::validmoves(){
     for(int i=0;i<moves.size()-1;i++){
         cout<<ActionToString(moves[i])<<";";
     }
-    cout<<ActionToString(moves[moves.size()-1])<<endl;
+    cout<<ActionToString(moves[moves.size()-1])<<"\n";
 }
 void Engine::bestmove(string param){
-    cout<<ActionToString(agent.calculate_best_move(board))<<endl;
+    cout << ActionToString(agent.calculate_best_move(board))<<"\n";
 }
 
 void Engine::play(string move){
     board.executeAction(move);
 
-    cout<<board.toString()<<endl;
+    cout<<board.toString()<<"\n";
 }
 
 void Engine::undo(string arguments="0"){
     board.undo(stoi(arguments));
-    cout<<board.toString()<<endl;
+    cout<<board.toString()<<"\n";
 }

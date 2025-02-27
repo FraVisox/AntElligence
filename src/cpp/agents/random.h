@@ -16,7 +16,7 @@ public:
 
     action calculate_best_move(Board& board) override {
         vector<action> moves = board.possibleMoves(); // Assuming this function exists
-        std::this_thread::sleep_for(std::chrono::seconds(1)); // Wait for 1 second
+        std::this_thread::sleep_for(std::chrono::seconds(1)); // Wait for 1 second. Used for Mzinga Viewer, TODO remove
 
         int random_index = rand() % moves.size(); // Select a random move
         return moves[random_index];
