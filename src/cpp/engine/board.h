@@ -36,6 +36,7 @@ class Board {
     void copy(const Board& b);
 
     int getScore(PlayerColor color);
+    int getScoreBug(piece p);
     int countSurrounding(piece p);
 
     //Current status
@@ -64,6 +65,12 @@ class Board {
     void possibleMoves_Pillbug(piece bug, vector<action> &res);
     void possibleMoves_Mosquito(piece bug, vector<action> &res);
     void possibleMoves_Ladybug(piece bug,vector<action> &res);
+
+    int isPinned(piece bug);
+    int isInPlay(piece bug);
+    int isCovered(piece bug);
+    int friendlyNeighbour(piece bug);
+    int enemyNeighbour(piece bug);
 };
 
 

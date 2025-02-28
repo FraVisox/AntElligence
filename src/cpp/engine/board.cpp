@@ -77,27 +77,41 @@ void Board::copy(const Board& b) {
     isPlacedWQ = b.isPlacedWQ;
 }
 
+/*
+    QUEEN=0,
+    SPIDER=1,
+    BEETLE=2,
+    GRASSHOPPER=3,
+    SOLDIER_ANT=4,
+    MOSQUITO=5,
+    LADYBUG=6,
+    PILLBUG=7
+*/
+
+int kindValue[] = {100, 10, 70, 40, 90, 35, 60, 45};
+
+int Board::getScoreBug(piece p) {
+    int multipl = kindValue[p.kind];
+    if (isPinned(p) || isCovered(p)) {
+        return -multipl;
+    }
+    return multipl*(friendlyNeighbour(p)-enemyNeighbour(p));
+}
 
 int Board::getScore(PlayerColor color) {
+    int res = 0;
     if (isPlacedBQ && isPlacedWQ) {
-        int white_surrounding = 0;
-        int black_surrounding = 0;
         for (piece p: placedBug) {
-            if (p.kind == QUEEN) {
-                if (p.col == WHITE) {
-                    white_surrounding = countSurrounding(p);
-                } else if (p.col == BLACK) {
-                    black_surrounding = countSurrounding(p);
-                }
+            if (p.col == color) {
+                res += getScoreBug(p);
+            } else {
+                res -= getScoreBug(p);
             }
         }
-        if (color == WHITE) {
-            return black_surrounding - white_surrounding;
-        }
-        return white_surrounding - black_surrounding;
     }
-    return 0;
+    return res;
 }
+
 
 int Board::countSurrounding(piece p) {
     position pos = G.getPosition(p);
@@ -1058,4 +1072,34 @@ void Board::possibleMoves_Ladybug(piece bug,vector<action> &res){
         }
         G.addPiece(current, bug);
     }
+}
+
+
+
+int Board::isPinned(piece bug) {
+    return !G.canPieceMove(bug, currentTurn);
+}
+int Board::isInPlay(piece bug) {
+    return inHandPiece.find(bug) == inHandPiece.end();
+}
+int Board::isCovered(piece bug) {
+    return !G.isTop(bug);
+}
+int Board::friendlyNeighbour(piece bug) {
+    int res = 0;
+    for (position adj: G.getPosition(bug).neighbor()) {
+        if (G.isFree(adj) || G.topPiece(adj).col == bug.col) {
+            res++;
+        }
+    }
+    return res;
+}
+int Board::enemyNeighbour(piece bug) {
+    int res = 0;
+    for (position adj: G.getPosition(bug).neighbor()) {
+        if (!G.isFree(adj) && G.topPiece(adj).col != bug.col) {
+            res++;
+        }
+    }
+    return res;
 }

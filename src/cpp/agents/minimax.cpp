@@ -5,6 +5,37 @@
 #include <limits>
 #include <iostream>
 
+//https://github.com/jonthysell/Mzinga/blob/main/src/Mzinga/Core/AI/GameAI.cs
+
+
+/*
+//Noisy means that it moves near to opponent queen
+//Quiet means everything else
+
+
+score += colorValue * metricWeights.Get(bugType, BugTypeWeight.InPlayWeight) * boardMetrics[pieceName].InPlay; //inplay is 0 or 1
+score += colorValue * metricWeights.Get(bugType, BugTypeWeight.IsPinnedWeight) * boardMetrics[pieceName].IsPinned; //ispinned is 0 or 1
+score += colorValue * metricWeights.Get(bugType, BugTypeWeight.IsCoveredWeight) * boardMetrics[pieceName].IsCovered; //iscovered is 0 or 1
+score += colorValue * metricWeights.Get(bugType, BugTypeWeight.NoisyMoveWeight) * boardMetrics[pieceName].NoisyMoveCount; //how many moves he has that are "noisy"
+score += colorValue * metricWeights.Get(bugType, BugTypeWeight.QuietMoveWeight) * boardMetrics[pieceName].QuietMoveCount; //how many moves he has that are "quiet"
+score += colorValue * metricWeights.Get(bugType, BugTypeWeight.FriendlyNeighborWeight) * boardMetrics[pieceName].FriendlyNeighborCount; //how many friendly neighbors
+score += colorValue * metricWeights.Get(bugType, BugTypeWeight.EnemyNeighborWeight) * boardMetrics[pieceName].EnemyNeighborCount; //how many enemy neighbors
+
+If I have not placed pieces
+// Pieces still in hand, blend start and end scores
+double startScore = CalculateBoardScore(boardMetrics, startMetricWeights);
+
+double startRatio = boardMetrics.PiecesInHand / (double)(boardMetrics.PiecesInHand + boardMetrics.PiecesInPlay);
+double endRatio = 1 - startRatio;
+
+return (startRatio * startScore) + (endRatio * endScore);
+
+
+TODO: se alleniamo la NN, possiamo poi semplicemente usare i pesi
+
+*/
+
+
 #include <chrono>
 
 int MinimaxAgent::utility(GameState state, Board& board) {
