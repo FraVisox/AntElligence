@@ -7,7 +7,7 @@
 
 #include <chrono>
 
-int MinimaxAgent::utility(GameState state, const Board& board) {
+int MinimaxAgent::utility(GameState state, Board& board) {
     //TODO: implement a decent heuristic
 
     if (state == GameState::DRAW) {
@@ -16,23 +16,20 @@ int MinimaxAgent::utility(GameState state, const Board& board) {
 
     if (color == PlayerColor::WHITE) {
         if (state == GameState::WHITE_WIN) {
-            return 100;
+            return MAX_EVAL;
         }
         if (state == GameState::BLACK_WIN) {
-            return -100;
+            return MIN_EVAL;
         }
-        
-        return 0;
     } else {
         if (state == GameState::BLACK_WIN) {
-            return 100;
+            return MAX_EVAL;
         }
         if (state == GameState::WHITE_WIN) {
-            return -100;
+            return MIN_EVAL;
         }
-        
-        return 0;
     }
+    return board.getScore(color);
 }
 
 action MinimaxAgent::initiate_minimax(Board& board) {
@@ -48,6 +45,9 @@ action MinimaxAgent::initiate_minimax(Board& board) {
 
     if (!valids.empty()) {
         todo_action = valids[0];
+    }
+    if (valids.size() == 1) {
+        return todo_action;
     }
 
     // For every action available, play it and calculate the utility (recursively)

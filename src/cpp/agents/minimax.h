@@ -16,7 +16,7 @@ private:
     const int MIN_EVAL = -10000;
     const int MAX_EVAL = 10000;
 
-    int utility(GameState state, const Board& board);
+    int utility(GameState state, Board& board);
     action initiate_minimax(Board& board);
     int minmax(GameState state, Board& board, int depth, int alpha, int beta);
 

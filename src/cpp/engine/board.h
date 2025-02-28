@@ -35,6 +35,9 @@ class Board {
     void reset();
     void copy(const Board& b);
 
+    int getScore(PlayerColor color);
+    int countSurrounding(piece p);
+
     //Current status
     string toString();
     PlayerColor currentColor();

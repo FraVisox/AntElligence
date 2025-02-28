@@ -78,6 +78,38 @@ void Board::copy(const Board& b) {
 }
 
 
+int Board::getScore(PlayerColor color) {
+    if (isPlacedBQ && isPlacedWQ) {
+        int white_surrounding = 0;
+        int black_surrounding = 0;
+        for (piece p: placedBug) {
+            if (p.kind == QUEEN) {
+                if (p.col == WHITE) {
+                    white_surrounding = countSurrounding(p);
+                } else if (p.col == BLACK) {
+                    black_surrounding = countSurrounding(p);
+                }
+            }
+        }
+        if (color == WHITE) {
+            return black_surrounding - white_surrounding;
+        }
+        return white_surrounding - black_surrounding;
+    }
+    return 0;
+}
+
+int Board::countSurrounding(piece p) {
+    position pos = G.getPosition(p);
+    int ret = 0;
+    for (position adj: pos.neighbor()) {
+        if (!G.isFree(adj)) {
+            ret += 1;
+        }
+    }
+    return ret;
+}
+    
 
 
 /**
