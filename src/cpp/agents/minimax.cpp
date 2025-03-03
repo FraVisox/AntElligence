@@ -81,11 +81,20 @@ action MinimaxAgent::initiate_minimax(Board& board) {
         return todo_action;
     }
 
+    /*cout << "Initial: ";
+    cout << board.moves.size() << endl;
+    */
+
     // For every action available, play it and calculate the utility (recursively)
     for (int i = 0; i < valids.size(); i++) {
         // Play the move on the copy
         board.executeAction(ActionToString(valids[i]));
 
+        /*cout << "--------------------------UP-----------------------------" << endl;
+
+        cout << "Executing one action: ";
+        cout << board.moves.size() << endl;
+        */
         
         // Try a simplified call first
         int eval = this->minmax(board.state, board, 1, alpha, beta);
@@ -99,6 +108,13 @@ action MinimaxAgent::initiate_minimax(Board& board) {
         alpha = std::max(alpha, max_eval);
 
         board.undo(1);
+
+        /*
+        cout << "Removing the action just tried: ";
+        cout << board.moves.size() << endl;
+
+        cout << "--------------------------DOWN-----------------------------" << endl;
+        */
     }
     
     return todo_action;
@@ -122,28 +138,45 @@ int MinimaxAgent::minmax(GameState state, Board& board, int depth, int alpha, in
     std::vector<action> valid_moves = board.possibleMoves();
 
     
-        int max_eval = MIN_EVAL;
+    int max_eval = MIN_EVAL;
+    
+    for (const auto& action : valid_moves) {
+        // Play the move
+        board.executeAction(ActionToString(action));
+
+        /*
+
+        cout << "--------------------------UP-----------------------------" << endl;
+
+        cout << "Executing one action: ";
+        cout << board.moves.size() << endl;
+
+        */
+
         
-        for (const auto& action : valid_moves) {
-                // Play the move
-                board.executeAction(ActionToString(action));
+        // Recursive call
 
-                
-                // Recursive call
+        int eval = minmax(board.state, board, depth + 1, -beta, -alpha);
+        max_eval = std::max(max_eval, eval);
+        alpha = std::max(alpha, max_eval);
 
-                int eval = minmax(board.state, board, depth + 1, -beta, -alpha);
-                max_eval = std::max(max_eval, eval);
-                alpha = std::max(alpha, max_eval);
+        board.undo(1);
 
-                board.undo(1);
-                
-                // Alpha-beta pruning
-                if (beta <= alpha) {
-                    break;
-                }
+        /*
+
+        cout << "Removing the action just tried: ";
+        cout << board.moves.size() << endl;
+
+        cout << "--------------------------DOWN-----------------------------" << endl;
+        */
+        
+        // Alpha-beta pruning
+        if (beta <= alpha) {
+            break;
         }
+    }
         
-        return max_eval;
+    return max_eval;
 }
 
 action MinimaxAgent::calculate_best_move(Board& board) {
@@ -152,7 +185,7 @@ action MinimaxAgent::calculate_best_move(Board& board) {
     auto start = std::chrono::high_resolution_clock::now();
 
     // Initial moves
-    if (board.currentTurn <= 3) {
+    if (board.currentTurn <= 2) {
         return board.suggestedMove();
     }
 

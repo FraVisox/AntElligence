@@ -112,13 +112,13 @@ int Board::getScore(PlayerColor color) {
     return res;
 }
 
-action Board::suggestedMove() {
+action Board::suggestInitialMove() {
     if (currentTurn == 1) {
         return parseAction("wG1", inHandPiece);
     } else if (currentTurn == 2) {
-        return parseAction("bG1 "+ActionToString(moves[0])+"-", inHandPiece); //TODO: read what is in the previous move
+        return parseAction("bG1 "+ActionToString(moves[0])+"-", inHandPiece);
     } else if (currentTurn == 3) {
-        //based on previous placement of black, decide. It should do an elbow placement
+        //based on previous placement of black, decide. It should do an elbow placement. Here it does a linear opening, not right
         direction d = oppositeDir(moves[1].relativeDir);
         //Should place queen on "wG1" with the direction
         return parseAction(insertDirection("wG1", d), inHandPiece);
@@ -223,10 +223,11 @@ bool Board::placedQueen(){
  */
 ReturnMessage Board::executeAction(string s){
 
-    action a = validMove(s);
-    if (a == INVALID_ACTION) {
-        return INVALID_ARGUMENT;
-    }
+   // action a = validMove(s);
+   // if (a == INVALID_ACTION) {
+   //     return INVALID_ARGUMENT;
+   // }
+   action a = parseAction(s, inHandPiece);
 
     //The move is represented as a Movestring (wS1 -wA1) or as "pass"
 
