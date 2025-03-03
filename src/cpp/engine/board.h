@@ -35,6 +35,7 @@ class Board {
     void reset();
     void copy(const Board& b);
 
+    action suggestedMove();
     int getScore(PlayerColor color);
     int getScoreBug(piece p);
     int countSurrounding(piece p);

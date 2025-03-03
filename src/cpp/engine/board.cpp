@@ -112,6 +112,21 @@ int Board::getScore(PlayerColor color) {
     return res;
 }
 
+action Board::suggestedMove() {
+    if (currentTurn == 1) {
+        return parseAction("wG1", inHandPiece);
+    } else if (currentTurn == 2) {
+        return parseAction("bG1 "+ActionToString(moves[0])+"-", inHandPiece); //TODO: read what is in the previous move
+    } else if (currentTurn == 3) {
+        //based on previous placement of black, decide. It should do an elbow placement
+        direction d = oppositeDir(moves[1].relativeDir);
+        //Should place queen on "wG1" with the direction
+        return parseAction(insertDirection("wG1", d), inHandPiece);
+    } else if (currentTurn == 4) {
+        //based on previous placement of white, decide. It should do an elbow on the other side or in general an elbow placement
+    }
+}
+
 
 int Board::countSurrounding(piece p) {
     position pos = G.getPosition(p);

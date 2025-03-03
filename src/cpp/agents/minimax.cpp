@@ -151,6 +151,11 @@ action MinimaxAgent::calculate_best_move(Board& board) {
     // Get starting timepoint
     auto start = std::chrono::high_resolution_clock::now();
 
+    // Initial moves
+    if (board.currentTurn <= 3) {
+        return board.suggestedMove();
+    }
+
     if (DISABLE_CACHE || _cache == INVALID_ACTION || board.currentTurn != cached_turn) {
         color = board.currentColor();
         cached_turn = board.currentTurn;
@@ -166,8 +171,7 @@ action MinimaxAgent::calculate_best_move(Board& board) {
         // use duration cast method
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
     
-        cout << "Time taken by function: "
-             << duration.count()/1e6 << " seconds" << endl;
+        //cout << "Time taken by function: " << duration.count()/1e6 << " seconds" << endl;
     
     return _cache;
 }

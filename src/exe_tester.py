@@ -13,13 +13,13 @@ if platform.system()=="Linux":
     }
 else:
     files_to_match = {
-        "Random": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\AntElligenceEngine.exe",
-        "Minimax": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\AntElligenceEngine.exe",
+        "Random": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\src\\cpp\\mainRand.exe",
+        "Minimax": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\src\\cpp\\main.exe",
         #"Mzinga": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\MzingaEngine.exe"
     }
 
 options_players = [
-    "options set Strategy Random\n",
+    None,
     None,
     None
 ]
@@ -147,6 +147,10 @@ def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = No
 
             # Simulate the game
             for turn in range(1, turns + 1 if turns > 0 else float('inf')):
+                if (turn%2) == 1: 
+                    print("Rand")
+                else:
+                    print("Minimax")
                 moving_player.stdin.write(bestmove)
                 move = output = moving_player.stdout.readline()
                 while not output.startswith(ending_sequence):
@@ -157,12 +161,25 @@ def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = No
                 moving_player.stdin.write(move_cmd)
 
                 output = moving_player.stdout.readline()
+                print(output)
                 while not output.startswith(ending_sequence):
                     output = moving_player.stdout.readline()
+                    print(output)
+
+                print("---------------------------")
 
                 response = output = opponent.stdout.readline()
+                print(response[:-1])
                 while not output.startswith(ending_sequence):
                     output = opponent.stdout.readline()
+                    print(output)
+
+                print("---------------------------")
+
+                print(turn)
+
+                print("END OF TURN\n\n\n")
+
 
                 # Check for game end
                 if "WhiteWins" in response:
@@ -189,7 +206,6 @@ def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = No
                 # Swap moving player
                 moving_player, opponent = opponent, moving_player
 
-                print(turn)
 
 
         # Close subprocesses

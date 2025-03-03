@@ -27,5 +27,6 @@ direction numberToDirection(int n);
 direction oppositeDir(direction d);
 pair<int,int> associatedDifference(direction d);
 direction extractDirection(string s);
+string insertDirection(string s, direction d);
 
 #endif

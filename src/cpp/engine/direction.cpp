@@ -113,3 +113,16 @@ direction extractDirection(string s){
     if(s[l-1]=='/') return UP_RIGHT;
     return OVER;
 }
+
+string insertDirection(string s, direction d) {
+    switch (d) {
+        case RIGHT: return s+"-";
+        case DOWN_RIGHT: return s+"\\";
+        case DOWN_LEFT: return "/"+s;
+        case LEFT: return "-"+s;
+        case UP_LEFT: return "\\"+s;
+        case UP_RIGHT: return s+"/";
+        case OVER: return s;
+        default: return "";
+    }
+}
