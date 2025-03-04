@@ -49,6 +49,7 @@ class Board {
     action validMove(string s);
     ReturnMessage checkWin();
     bool checkSurrounding(const piece &p);
+    ReturnMessage executeActionUnsafe(action a);
 
     void undo(int amount);
 

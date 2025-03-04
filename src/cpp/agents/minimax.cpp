@@ -53,7 +53,7 @@ action MinimaxAgent::initiate_minimax(Board& board) {
     // For every action available, play it and calculate the utility (recursively)
     for (int i = 0; i < valids.size(); i++) {
         // Play the move on the copy
-        board.executeAction(ActionToString(valids[i]));
+        board.executeActionUnsafe(valids[i]);
 
         
         // Try a simplified call first
@@ -75,7 +75,7 @@ action MinimaxAgent::initiate_minimax(Board& board) {
 
 int MinimaxAgent::minmax(GameState state, Board& board, int depth, int alpha, int beta) {
     // Debug print
-    
+    calledBoard++;
     // Check if we've reached a terminal state or maximum depth
     if (state == GameState::DRAW || 
         state == GameState::WHITE_WIN || 
@@ -95,7 +95,7 @@ int MinimaxAgent::minmax(GameState state, Board& board, int depth, int alpha, in
         
         for (const auto& action : valid_moves) {
                 // Play the move
-                board.executeAction(ActionToString(action));
+                board.executeActionUnsafe(action);
 
                 
                 // Recursive call
@@ -119,6 +119,7 @@ action MinimaxAgent::calculate_best_move(Board& board) {
 
     // Get starting timepoint
     auto start = std::chrono::high_resolution_clock::now();
+    calledBoard=0;
 
     if (DISABLE_CACHE || _cache == INVALID_ACTION || board.currentTurn != cached_turn) {
         color = board.currentColor();
@@ -136,7 +137,7 @@ action MinimaxAgent::calculate_best_move(Board& board) {
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
     
         cout << "Time taken by function: "
-             << duration.count()/1e6 << " seconds" << endl;
+             << duration.count()/1e6 << " seconds with " <<calledBoard << "evaluation" << endl;
     
     return _cache;
 }

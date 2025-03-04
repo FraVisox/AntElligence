@@ -240,6 +240,52 @@ ReturnMessage Board::executeAction(string s){
 }
 
 
+ReturnMessage Board::executeActionUnsafe(action a){
+    if (a == INVALID_ACTION) {
+        return INVALID_ARGUMENT;
+    }
+
+    //The move is represented as a Movestring (wS1 -wA1) or as "pass"
+
+    if (state == STARTED)
+        state = IN_PROGRESS;
+    else if (state != IN_PROGRESS) {
+        return INVALID_GAME_NOT_STARTED;
+    }
+    switch (a.actType) {
+        case MOVEMENT:
+            a.startingPos = G.getPosition(a.bug);
+            G.removePiece(a.bug);
+            G.addPiece(a);
+            moves.push_back(a);
+            break;
+        case PLACE:
+            G.addPiece(a);
+            placedBug.push_back(a.bug);
+            inHandPiece.extract(a.bug);
+            if(a.bug.kind==QUEEN){
+                if(currentColor()==WHITE)isPlacedWQ=true;
+                if(currentColor()==BLACK)isPlacedBQ=true;
+            }
+            moves.push_back(a);
+            break;
+        case PLACEFIRST:
+            G.addPiece(a);
+            placedBug.push_back(a.bug);
+            inHandPiece.extract(a.bug);
+            moves.push_back(a);
+            break;
+        case PASS:
+            moves.push_back(a);
+            break;
+    }
+    currentTurn++;
+
+    possibleMovesVector.clear();
+    return checkWin();
+}
+
+
 /**
  * \brief Validates and parses a given move string.
  *
@@ -586,7 +632,7 @@ void Board::undo(int amount) {
     if (state != IN_PROGRESS) {
         state = IN_PROGRESS;
     }
-    possibleMovesVector.clear();
+    //possibleMovesVector.clear();
     for (int i = 0; i < amount; i++) {
         action move = moves.back();
         moves.pop_back();
@@ -599,7 +645,7 @@ void Board::undo(int amount) {
         if (move.actType == PLACE || move.actType == PLACEFIRST) {
             inHandPiece.insert(move.bug);
             placedBug.pop_back();
-            if (move.bug == QUEEN) {
+            if (move.bug.kind == QUEEN) {
                 if (currentColor() == WHITE) {
                     isPlacedWQ = false;
                 } else {
@@ -662,9 +708,9 @@ void Board::addPieceHand(piece p){
  *         move for the current player.
  */
 vector<action> Board::possibleMoves(){
-    if (!possibleMovesVector.empty()) {
-        return possibleMovesVector;
-    }
+    //if (!possibleMovesVector.empty()) {
+    //    return possibleMovesVector;
+    //}
 
     vector<action> res;
 
