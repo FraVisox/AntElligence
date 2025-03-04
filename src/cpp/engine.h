@@ -43,7 +43,7 @@ class Engine{
       else if(command=="options")
           options(arg);
       else if(command=="newgame")
-        newgame(arg);
+        newgame(arg.c_str());
       else if(command=="validmoves")
         validmoves();
       else if(command=="bestmove")
@@ -142,7 +142,7 @@ class Engine{
   }
 
 
-  void newgame( string arguments);   
+  void newgame(const char* arguments);   
   void validmoves();
   void bestmove(string);
   void play(string);

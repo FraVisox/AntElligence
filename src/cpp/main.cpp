@@ -1,12 +1,12 @@
-#include <iostream>
 #include "engine.h"
 #include "agents/random.h"
 #include "agents/minimax.h"
 
+//Compilation without the following includes: g++ main.cpp engine.cpp agents/*.cpp engine/*.cpp -O3 -o main
+
 #include "engine/action.cpp"
 #include "engine/board.cpp"
 #include "engine/direction.cpp"
-#include "engine/engine_interface.cpp"
 #include "engine/enums.cpp"
 #include "engine/gameboard.cpp"
 #include "engine/piece.cpp"

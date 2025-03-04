@@ -3,8 +3,10 @@ from subprocess import Popen, PIPE
 import platform
 import time
 
-
+# To set
 file_results = "../results/game_results.csv"
+number_of_matches = 7
+number_of_turns_per_match = 100
 
 if platform.system()=="Linux":
     files_to_match = {
@@ -66,7 +68,7 @@ def write_results_to_csv(results, filename):
         "Player 2 Wins (White)", "Turns (White)",
         "Player 2 Wins (Black)", "Turns (Black)",
         "Draws", "Turns (Draw)",
-        "Average Time (Whie)", "Average Time (Black)"
+        "Average Time (White)", "Average Time (Black)"
     ]
 
     with open(filename, mode='w', newline='') as file:
@@ -254,7 +256,7 @@ def test_players(files_to_match, options, file_results):
         for j in range(i + 1, len(keys)):
             pl1 = files_to_match[keys[i]]
             pl2 = files_to_match[keys[j]]
-            results.extend(play_game(pl1, keys[i], pl2, keys[j], matches=7, turns=100, options1=options[i], options2=options[j]))
+            results.extend(play_game(pl1, keys[i], pl2, keys[j], matches=number_of_matches, turns=number_of_turns_per_match, options1=options[i], options2=options[j]))
     write_results_to_csv(results, file_results)
 
 # Run the tests

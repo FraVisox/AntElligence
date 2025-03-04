@@ -186,7 +186,7 @@ action MinimaxAgent::calculate_best_move(Board& board) {
 
     // Initial moves
     if (board.currentTurn <= 2) {
-        return board.suggestedMove();
+        return board.suggestInitialMove();
     }
 
     if (DISABLE_CACHE || _cache == INVALID_ACTION || board.currentTurn != cached_turn) {

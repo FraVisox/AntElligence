@@ -4,8 +4,6 @@
 #include "position.h"
 #include "piece.h"
 #include "direction.h"
-#include <unordered_set>
-
 
 enum TypeAction{
     MOVEMENT,

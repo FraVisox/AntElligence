@@ -65,8 +65,8 @@ void Board::copy(const Board& b) {
     possibleMovesVector = b.possibleMovesVector;
     //Copy the gameboard
     G.bugPosition = b.G.bugPosition;
-    for (int i = 0; i < 100; i++) {
-        for (int j = 0; j < 100; j++) {
+    for (int i = 0; i < 32; i++) {
+        for (int j = 0; j < 32; j++) {
             G.gb[i][j] = b.G.gb[i][j];
         }
     }
@@ -156,23 +156,23 @@ int Board::countSurrounding(piece p) {
  * \return A string containing the current game state.
  */
 string Board::toString() {
-    try {
-        stringstream ss;
-        ss << GameTypeToString(type) << ";";
-        ss << GameStateToString(state) << ";" 
-        << (currentTurn % 2 == 1 ? "White[" : "Black[")
-        << currentPlayerTurn() << "]";
+    string ss = GameTypeToString(type) + ";" 
+                    + GameStateToString(state) + ";";
 
-        for (action move : moves) {
-            ss << ";";
-            ss << ActionToString(move);
-        }
-        
-        return ss.str();
-    }   
-    catch (const std::exception& e) {
-        return "ERROR";
-}
+    if (currentTurn %2 == 1) {
+        ss += "White[" + currentPlayerTurn();
+        ss += "]";
+    } else {
+        ss += "Black[" + currentPlayerTurn();
+        ss += "]";
+    }
+
+    for (action move : moves) {
+        ss += ";";
+        ss += ActionToString(move);
+    }
+    
+    return ss;
 }
 
 /**
@@ -227,6 +227,7 @@ ReturnMessage Board::executeAction(string s){
    // if (a == INVALID_ACTION) {
    //     return INVALID_ARGUMENT;
    // }
+   
    action a = parseAction(s, inHandPiece);
 
     //The move is represented as a Movestring (wS1 -wA1) or as "pass"

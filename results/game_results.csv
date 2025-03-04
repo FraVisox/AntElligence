@@ -1,2 +1,2 @@
-Player 1,Player 2,Player 1 Wins (White),Turns (White),Player 1 Wins (Black),Turns (Black),Player 2 Wins (White),Turns (White),Player 2 Wins (Black),Turns (Black),Draws,Turns (Draw)
-Random,Minimax,0,0,0,0,0,0,0,0,0,0,2.0184202194213867,0.0
+Player 1,Player 2,Player 1 Wins (White),Turns (White),Player 1 Wins (Black),Turns (Black),Player 2 Wins (White),Turns (White),Player 2 Wins (Black),Turns (Black),Draws,Turns (Draw),Average Time (Whie),Average Time (Black)
+Random,Minimax,0,0,0,0,2,58.0,0,0,0,0,5.7535954884120395,15.749796731131417

@@ -19,7 +19,7 @@ using namespace  std;
 class gameboard{
     public:
 
-    stack<piece> gb[100][100];  // Vector of stacks that contain bugs. One stack at each position. The board is thus 100*100
+    stack<piece> gb[32][32];  // Vector of stacks that contain bugs. One stack at each position. The board is thus 32*32
     unordered_map<piece,position> bugPosition = unordered_map<piece,position>(); 
     unordered_set<position> occupied = unordered_set<position>();
 
