@@ -1,5 +1,6 @@
 #include "action.h"
 #include <sstream>
+#include <unordered_set>
 
 //Invalid action (it has an invalid piece)
 action INVALID_ACTION = action(INVALID_PIECE);

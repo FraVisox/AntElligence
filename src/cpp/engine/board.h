@@ -39,6 +39,7 @@ class Board {
     int getScore(PlayerColor color);
     int getScoreBug(piece p);
     int countSurrounding(piece p);
+    int countSurrounding(position pos);
 
     //Current status
     string toString();

@@ -65,6 +65,10 @@ direction oppositeDir(direction d){
     return numberToDirection((d+3)%6);
 }
 
+direction getElbowDir(direction d){
+    return numberToDirection((d+2)%6);
+}
+
 /**
  *   Returns the pair of integers associated with a direction.
  *

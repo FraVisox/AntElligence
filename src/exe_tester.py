@@ -5,8 +5,8 @@ import time
 
 # To set
 file_results = "../results/game_results.csv"
-number_of_matches = 7
-number_of_turns_per_match = 100
+number_of_matches = 21
+number_of_turns_per_match = 1000
 
 if platform.system()=="Linux":
     files_to_match = {

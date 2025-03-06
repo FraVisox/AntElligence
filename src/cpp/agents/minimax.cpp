@@ -185,7 +185,7 @@ action MinimaxAgent::calculate_best_move(Board& board) {
     auto start = std::chrono::high_resolution_clock::now();
 
     // Initial moves
-    if (board.currentTurn <= 2) {
+    if (board.currentTurn <= 4) {
         return board.suggestInitialMove();
     }
 

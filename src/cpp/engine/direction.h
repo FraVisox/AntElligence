@@ -25,6 +25,7 @@ extern pair<int,int> movementCircleClockwise[7];
 string nameDirToString(string name, direction dir);
 direction numberToDirection(int n);
 direction oppositeDir(direction d);
+direction getElbowDir(direction d);
 pair<int,int> associatedDifference(direction d);
 direction extractDirection(string s);
 string insertDirection(string s, direction d);
