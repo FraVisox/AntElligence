@@ -2,9 +2,15 @@
 Hive game engine developed by Francesco Visona' and Matteo Canton.
 
 # TODO:
+Manual implementation:
 - Use perft to check the validity of moves
+- Improve efficiency of C++ code
 - Read Mzinga for the heuristic
 - Read books on Hive
+
+AI implementation:
+- Read AlphaGoZero paper
+- Understand how to train a deep neural network to make the engine work better
 
 ## Useful resources
 
@@ -19,10 +25,6 @@ Useful links:
 
 * [Official rules for Hive](https://docs.google.com/document/u/1/d/e/2PACX-1vRncDO_yAcktXwer0OG46Tp_dqT6ubMcGb_l7nb7BAFkAcPqXZatTUbrsc_5srwoSAW3Xm7-HuBqjDM/pub)
 
-## Interesting resources
-* [Computational complexity of plane tickets](http://www.demarcken.org/carl/papers/ITA-software-travel-complexity/ITA-software-travel-complexity.pdf)
-
-
 
 ## 1st phase: UHP compliant engine
 
@@ -30,7 +32,6 @@ Useful links:
 * [Riccardo's python engine](https://github.com/Crystal-Spider/hivemind)
 * [Construct hexagonal grids](https://www.redblobgames.com/grids/hexagons/)
 
-TODO: remake everything in C++
 
 ### Install Anaconda
 
@@ -63,7 +64,3 @@ pyinstaller ./src/engine.py --name AntElligenceEngine --noconsole --onefile
 
 * [Reinforcement Learning on Hive](https://research.spec.org/icpe_proceedings/2022/proceedings/p145.pdf)
 * [Monte Carlo strategy for Hive](https://theses.liacs.nl/pdf/NilsOUT.pdf)
-
-HEURISTIC
-MONTE CARLO
-ALPHA ZERO

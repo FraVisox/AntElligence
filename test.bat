@@ -1,1 +1,3 @@
-py ./src/tester.py
+cd src
+py exe_tester.py
+cd ..

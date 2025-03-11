@@ -1,0 +1,1 @@
+g++ .\src\cpp\main.cpp -O3 -o .\dist\AntElligenceEngineCpp   
