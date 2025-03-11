@@ -16,12 +16,16 @@ if platform.system()=="Linux":
     }
 else:
     files_to_match = {
-        "Random": "./cpp/mainRand.exe",
-        "Minimax": "./cpp/main.exe",
-        #"Mzinga": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\MzingaEngine.exe"
+        "Random": "../dist/AntElligenceEngineCppRandom.exe",
+        "Minimax": "../dist/AntElligenceEngineCpp.exe",
+        "Python": "../dist/AntElligenceEnginePy.exe",
+        "PyCpp": "../dist/AntElligenceEnginePyCpp.exe",
+        "Mzinga": "../dist/MzingaEngine.exe"
     }
 
 options_players = [
+    None,
+    None,
     None,
     None,
     None
@@ -31,7 +35,7 @@ options_players = [
 game_start = "newgame Base+MLP\n"
 ending_sequence = "ok"
 #bestmove = "bestmove time 00:00:05\n"
-bestmove = "bestmove depth 2\n" # Empirically, the minimax remains under 5 seconds only if depth <= 2. But this doesn't help at all, too few states
+bestmove = "bestmove depth 5\n" # Empirically, the minimax remains under 5 seconds only if depth <= 2. But this doesn't help at all, too few states
 
 
 def write_results_to_csv(results, filename):
@@ -157,7 +161,8 @@ def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = No
 
             # Simulate the game
             for turn in range(1, turns + 1 if turns > 0 else float('inf')):
-                print(turn)
+                if turn % 100 == 0:
+                    print(turn)
 
                 start = time.time()
                 moving_player.stdin.write(bestmove)
@@ -261,4 +266,5 @@ def test_players(files_to_match, options, file_results):
 
 # Run the tests
 if __name__ == "__main__":
+    print("Testing")
     test_players(files_to_match, options_players, file_results)

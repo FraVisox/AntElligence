@@ -4,3 +4,5 @@ src/logic_cpp/out
 **/*.o
 **/__pycache__
 **/*.dll
+*.spec
+dist/*.xml
