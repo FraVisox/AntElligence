@@ -97,6 +97,9 @@ void Engine::validmoves(){
     cout<<ActionToString(moves[moves.size()-1])<<"\n";
 }
 void Engine::bestmove(string param){
+    //TODO: see what is the parameter of the string and pass it to the agent
+    cout << (param);
+    cout << "Param\n";
     cout << ActionToString(agent.calculate_best_move(board))<<"\n";
 }
 
