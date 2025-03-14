@@ -4,6 +4,8 @@
 
 [Github with the code for TicTacToe and Connect 4](https://github.com/foersterrobert/AlphaZeroFromScratch)
 
+[Implementation in Colab with details by Francesco](https://colab.research.google.com/drive/1hxLvOp8wdRoS_2nozuYOsRXwUxZ0tdJ6?usp=sharing)
+
 - Train it
 - Self play
 - Generates training data
@@ -63,3 +65,15 @@ Minimize loss: l = (z-v)^2+pi*log(p)+c(theta)^2 (it also has regularization)
 
 => we obtain a new model, so we can use it to play against itself
 
+## Neural network:
+The state is a board position. We encode it so that we have 3 "encodings":
+- one when +1 played
+- one when -1 played (all the fields where player -1 played are 1, everything else is 0)
+- one when 0 played (means everything is +1 except for where players played)
+
+=> it's like an image, so we put a CNN:
+- Backbone with convolution (resNet architecture, see the paper)
+- We split into:
+    * policy: conf + 9 neurons (as the output are 9) + softmax
+    * value: conf + 1 neuron + tanh
+![Model architecture](image-1.png)
