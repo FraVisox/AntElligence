@@ -156,6 +156,13 @@ void Engine::validmoves(){
 }
 
 void Engine::bestmove(string param){
+    if (param.find("depth")) {
+        agent.set_depth_limit(atoi(param.substr(6).c_str()));
+    } else if (param.find("time")) {
+        //agent.set_time_limit(atoi(param.substr(6).c_str()));
+    } else {
+        error("Invalid command");
+    }
     cout << ActionToString(agent.calculate_best_move(board))<<"\n";
 }
 

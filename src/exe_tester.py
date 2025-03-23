@@ -7,6 +7,14 @@ import time
 file_results = "../results/game_results.csv"
 number_of_matches = 21
 number_of_turns_per_match = 1000
+number_moves_log = 10
+
+# Commands to pass to the engine
+game_start = "newgame Base+MLP\n"
+ending_sequence = "ok"
+#bestmove = "bestmove time 00:00:05\n"
+bestmove = "bestmove depth 5\n" # Empirically, the minimax remains under 5 seconds only if depth <= 2. But this doesn't help at all, too few states
+
 
 if platform.system()=="Linux":
     files_to_match = {
@@ -30,12 +38,6 @@ options_players = [
     None,
     None
 ]
-
-# Commands to pass to the engine
-game_start = "newgame Base+MLP\n"
-ending_sequence = "ok"
-#bestmove = "bestmove time 00:00:05\n"
-bestmove = "bestmove depth 5\n" # Empirically, the minimax remains under 5 seconds only if depth <= 2. But this doesn't help at all, too few states
 
 
 def write_results_to_csv(results, filename):
@@ -161,7 +163,7 @@ def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = No
 
             # Simulate the game
             for turn in range(1, turns + 1 if turns > 0 else float('inf')):
-                if turn % 100 == 0:
+                if turn % number_moves_log == 0:
                     print(turn)
 
                 start = time.time()
