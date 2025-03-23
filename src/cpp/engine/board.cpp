@@ -1,6 +1,6 @@
 #include "board.h"
 #include <regex>
-
+#include <iostream>
 /**
  * \brief Construct a new Board, initializing all members to default values.
  *
@@ -65,8 +65,8 @@ void Board::copy(const Board& b) {
     possibleMovesVector = b.possibleMovesVector;
     //Copy the gameboard
     G.bugPosition = b.G.bugPosition;
-    for (int i = 0; i < 100; i++) {
-        for (int j = 0; j < 100; j++) {
+    for (int i = 0; i < 32; i++) {
+        for (int j = 0; j < 32; j++) {
             G.gb[i][j] = b.G.gb[i][j];
         }
     }
@@ -77,30 +77,79 @@ void Board::copy(const Board& b) {
     isPlacedWQ = b.isPlacedWQ;
 }
 
+/*
+    QUEEN=0,
+    SPIDER=1,
+    BEETLE=2,
+    GRASSHOPPER=3,
+    SOLDIER_ANT=4,
+    MOSQUITO=5,
+    LADYBUG=6,
+    PILLBUG=7
+*/
+
+int kindValue[] = {100, 10, 70, 40, 90, 35, 60, 45};
+
+int Board::getScoreBug(piece p) {
+    int multipl = kindValue[p.kind];
+    if (isPinned(p) || isCovered(p)) {
+        return -multipl;
+    }
+    return multipl*(friendlyNeighbour(p)-enemyNeighbour(p));
+}
 
 int Board::getScore(PlayerColor color) {
+    int res = 0;
     if (isPlacedBQ && isPlacedWQ) {
-        int white_surrounding = 0;
-        int black_surrounding = 0;
         for (piece p: placedBug) {
-            if (p.kind == QUEEN) {
-                if (p.col == WHITE) {
-                    white_surrounding = countSurrounding(p);
-                } else if (p.col == BLACK) {
-                    black_surrounding = countSurrounding(p);
-                }
+            if (p.col == color) {
+                res += getScoreBug(p);
+            } else {
+                res -= getScoreBug(p);
             }
         }
-        if (color == WHITE) {
-            return black_surrounding - white_surrounding;
-        }
-        return white_surrounding - black_surrounding;
     }
-    return 0;
+    return res;
 }
+
+action Board::suggestInitialMove() {
+    if (currentTurn == 1) {
+        return parseAction("wG1", inHandPiece);
+    } else if (currentTurn == 2) {
+        return parseAction("bG1 "+ActionToString(moves[0])+"-", inHandPiece);
+    } else if (currentTurn == 3) {
+        //based on previous placement of black, decide. It should do an elbow placement.
+        direction d = getElbowDir(moves[1].relativeDir);
+        //Should place queen on "wG1" with the direction
+        string move = "wQ "+insertDirection(moves[0].bug.toString(), d); //todo: non mette la queen
+        return parseAction(move, inHandPiece);
+    } 
+
+    //based on previous placement of white, decide. It should do an elbow on the other side or in general an elbow placement
+    position first = G.getPosition(moves[0].bug);
+    position second = G.getPosition(moves[1].bug);
+    vector<position> nears = nearBoth(first, second);
+    if (countSurrounding(nears[0]) == 3) {
+        //Place near nears[1]
+        return parseAction("bQ "+insertDirection(moves[1].bug.toString(), getNextDir(G.getPosition(moves[1].bug), nears[1], G.getPosition(moves[0].bug))), inHandPiece);
+    } 
+    //Place near nears[0]
+    return parseAction("bQ "+insertDirection(moves[1].bug.toString(), getNextDir(G.getPosition(moves[1].bug), nears[0], G.getPosition(moves[0].bug))), inHandPiece);
+}
+
 
 int Board::countSurrounding(piece p) {
     position pos = G.getPosition(p);
+    int ret = 0;
+    for (position adj: pos.neighbor()) {
+        if (!G.isFree(adj)) {
+            ret += 1;
+        }
+    }
+    return ret;
+}
+
+int Board::countSurrounding(position pos) {
     int ret = 0;
     for (position adj: pos.neighbor()) {
         if (!G.isFree(adj)) {
@@ -127,23 +176,24 @@ int Board::countSurrounding(piece p) {
  * \return A string containing the current game state.
  */
 string Board::toString() {
-    try {
-        stringstream ss;
-        ss << GameTypeToString(type) << ";";
-        ss << GameStateToString(state) << ";" 
-        << (currentTurn % 2 == 1 ? "White[" : "Black[")
-        << currentPlayerTurn() << "]";
+    stringstream ss;
+    ss << GameTypeToString(type) << ";" 
+                    << GameStateToString(state) << ";";
 
-        for (action move : moves) {
-            ss << ";";
-            ss << ActionToString(move);
-        }
-        
-        return ss.str();
-    }   
-    catch (const std::exception& e) {
-        return "ERROR";
-}
+    if (currentTurn %2 == 1) {
+        ss << "White[" << currentPlayerTurn();
+        ss << "]";
+    } else {
+        ss << "Black[" << currentPlayerTurn();
+        ss << "]";
+    }
+
+    for (action move : moves) {
+        ss << ";";
+        ss << ActionToString(move);
+    }
+    
+    return ss.str();
 }
 
 /**
@@ -194,10 +244,12 @@ bool Board::placedQueen(){
  */
 ReturnMessage Board::executeAction(string s){
 
-    action a = validMove(s);
-    if (a == INVALID_ACTION) {
-        return INVALID_ARGUMENT;
-    }
+   // action a = validMove(s);
+   // if (a == INVALID_ACTION) {
+   //     return INVALID_ARGUMENT;
+   // }
+   
+   action a = parseAction(s, inHandPiece);
 
     //The move is represented as a Movestring (wS1 -wA1) or as "pass"
 
@@ -1104,4 +1156,34 @@ void Board::possibleMoves_Ladybug(piece bug,vector<action> &res){
         }
         G.addPiece(current, bug);
     }
+}
+
+
+
+int Board::isPinned(piece bug) {
+    return !G.canPieceMove(bug, currentTurn);
+}
+int Board::isInPlay(piece bug) {
+    return inHandPiece.find(bug) == inHandPiece.end();
+}
+int Board::isCovered(piece bug) {
+    return !G.isTop(bug);
+}
+int Board::friendlyNeighbour(piece bug) {
+    int res = 0;
+    for (position adj: G.getPosition(bug).neighbor()) {
+        if (G.isFree(adj) || G.topPiece(adj).col == bug.col) {
+            res++;
+        }
+    }
+    return res;
+}
+int Board::enemyNeighbour(piece bug) {
+    int res = 0;
+    for (position adj: G.getPosition(bug).neighbor()) {
+        if (!G.isFree(adj) && G.topPiece(adj).col != bug.col) {
+            res++;
+        }
+    }
+    return res;
 }

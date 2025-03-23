@@ -194,4 +194,12 @@ vector<position> nearBoth(position &p1, position &p2){
 }
 
 
-
+direction getNextDir(position pos, position pos2, position occupied) {
+    direction d = getMovementDirection(pos, pos2);
+    direction d2 = getMovementDirection(pos, occupied);
+    if ((d2+6)%6 > (d+6)%6) {
+        return allDirections[(d+5)%6];
+    } else {
+        return allDirections[(d+1)%6];
+    }
+}

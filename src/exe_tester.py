@@ -1,34 +1,43 @@
 import csv
 from subprocess import Popen, PIPE
 import platform
+import time
 
-
-file_results = "results\\game_results.csv"
-
-if platform.system()=="Linux":
-    files_to_match = {
-        "Random": "./dist/AntElligenceEngine",
-        "Minimax": "./dist/AntElligenceEngine",
-        #"Mzinga": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\MzingaEngine.exe"
-    }
-else:
-    files_to_match = {
-        "Random": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\AntElligenceEngine.exe",
-        "Minimax": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\AntElligenceEngine.exe",
-        #"Mzinga": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\MzingaEngine.exe"
-    }
-
-options_players = [
-    "options set Strategy Random\n",
-    None,
-    None
-]
+# To set
+file_results = "../results/game_results.csv"
+number_of_matches = 21
+number_of_turns_per_match = 1000
+number_moves_log = 10
 
 # Commands to pass to the engine
 game_start = "newgame Base+MLP\n"
 ending_sequence = "ok"
 #bestmove = "bestmove time 00:00:05\n"
-bestmove = "bestmove depth 2\n" # Empirically, the minimax remains under 5 seconds only if depth <= 2. But this doesn't help at all, too few states
+bestmove = "bestmove depth 5\n" # Empirically, the minimax remains under 5 seconds only if depth <= 2. But this doesn't help at all, too few states
+
+
+if platform.system()=="Linux":
+    files_to_match = {
+        "Random": "../dist/AntElligenceEngine",
+        "Minimax": "../dist/AntElligenceEngine",
+        #"Mzinga": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\MzingaEngine.exe"
+    }
+else:
+    files_to_match = {
+        "Random": "../dist/AntElligenceEngineCppRandom.exe",
+        "Minimax": "../dist/AntElligenceEngineCpp.exe",
+        "Python": "../dist/AntElligenceEnginePy.exe",
+        "PyCpp": "../dist/AntElligenceEnginePyCpp.exe",
+        "Mzinga": "../dist/MzingaEngine.exe"
+    }
+
+options_players = [
+    None,
+    None,
+    None,
+    None,
+    None
+]
 
 
 def write_results_to_csv(results, filename):
@@ -64,7 +73,8 @@ def write_results_to_csv(results, filename):
         "Player 1 Wins (Black)", "Turns (Black)",
         "Player 2 Wins (White)", "Turns (White)",
         "Player 2 Wins (Black)", "Turns (Black)",
-        "Draws", "Turns (Draw)"
+        "Draws", "Turns (Draw)",
+        "Average Time (White)", "Average Time (Black)"
     ]
 
     with open(filename, mode='w', newline='') as file:
@@ -129,7 +139,8 @@ def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = No
             "pl1_wins_black": 0, "pl1_turns_black": 0,
             "pl2_wins_white": 0, "pl2_turns_white": 0,
             "pl2_wins_black": 0, "pl2_turns_black": 0,
-            "draws": 0, "draw_turns": 0
+            "draws": 0, "draw_turns": 0,
+            "pl1_time": 0, "pl2_time": 0
         }
 
         for match in range(1, matches + 1):
@@ -145,12 +156,27 @@ def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = No
             moving_player = player1 if match % 2 == 1 else player2
             opponent = player2 if match % 2 == 1 else player1
 
+            total_time_1 = 0
+            total_time_2 = 0
+
+            # White is player 1 if match % 2 == 1
+
             # Simulate the game
             for turn in range(1, turns + 1 if turns > 0 else float('inf')):
+                if turn % number_moves_log == 0:
+                    print(turn)
+
+                start = time.time()
                 moving_player.stdin.write(bestmove)
                 move = output = moving_player.stdout.readline()
+                end = time.time()
                 while not output.startswith(ending_sequence):
                     output = moving_player.stdout.readline()
+                
+                if match % 2 == 1 and turn % 2 == 1:
+                    total_time_1 += end - start
+                else:
+                    total_time_2 += end - start
 
                 move_cmd = f"play {move.strip()}\n"
                 opponent.stdin.write(move_cmd)
@@ -164,33 +190,39 @@ def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = No
                 while not output.startswith(ending_sequence):
                     output = opponent.stdout.readline()
 
+
                 # Check for game end
                 if "WhiteWins" in response:
-                    if moving_player is player1:
+                    if match & 2 == 1: # White is player 1
                         stats["pl1_wins_white" if match % 2 == 1 else "pl1_wins_black"] += 1
                         stats["pl1_turns_white" if match % 2 == 1 else "pl1_turns_black"] += turn
+                        print("Player 1 wins")
                     else:
                         stats["pl2_wins_white" if match % 2 == 1 else "pl2_wins_black"] += 1
                         stats["pl2_turns_white" if match % 2 == 1 else "pl2_turns_black"] += turn
+                        print("Player 2 wins")
                     break
                 elif "BlackWins" in response:
-                    if moving_player is player1:
+                    if match & 2 == 0: #Black is player 1
                         stats["pl1_wins_black" if match % 2 == 0 else "pl1_wins_white"] += 1
                         stats["pl1_turns_black" if match % 2 == 0 else "pl1_turns_white"] += turn
+                        print("Player 1 wins")
                     else:
                         stats["pl2_wins_black" if match % 2 == 0 else "pl2_wins_white"] += 1
                         stats["pl2_turns_black" if match % 2 == 0 else "pl2_turns_white"] += turn
+                        print("Player 2 wins")
                     break
                 elif "Draw" in response:
                     stats["draws"] += 1
                     stats["draw_turns"] += turn
+                    print("Draw")
                     break
 
                 # Swap moving player
                 moving_player, opponent = opponent, moving_player
 
-                print(turn)
-
+        stats["pl1_time"] += total_time_1
+        stats["pl2_time"] += total_time_2
 
         # Close subprocesses
         player1.stdin.write("exit\n")
@@ -204,7 +236,8 @@ def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = No
             stats["pl1_wins_black"], stats["pl1_turns_black"]/stats["pl1_wins_black"] if stats["pl1_wins_black"] != 0 else 0,
             stats["pl2_wins_white"], stats["pl2_turns_white"]/stats["pl2_wins_white"] if stats["pl2_wins_white"] != 0 else 0,
             stats["pl2_wins_black"], stats["pl2_turns_black"]/stats["pl2_wins_black"] if stats["pl2_wins_black"] != 0 else 0,
-            stats["draws"], stats["draw_turns"]/stats["draws"] if stats["draws"] != 0 else 0
+            stats["draws"], stats["draw_turns"]/stats["draws"] if stats["draws"] != 0 else 0,
+            stats["pl1_time"]/matches, stats["pl2_time"]/matches
         ])
 
     except Exception as e:
@@ -230,9 +263,10 @@ def test_players(files_to_match, options, file_results):
         for j in range(i + 1, len(keys)):
             pl1 = files_to_match[keys[i]]
             pl2 = files_to_match[keys[j]]
-            results.extend(play_game(pl1, keys[i], pl2, keys[j], matches=6, turns=40, options1=options[i], options2=options[j]))
+            results.extend(play_game(pl1, keys[i], pl2, keys[j], matches=number_of_matches, turns=number_of_turns_per_match, options1=options[i], options2=options[j]))
     write_results_to_csv(results, file_results)
 
 # Run the tests
 if __name__ == "__main__":
+    print("Testing")
     test_players(files_to_match, options_players, file_results)

@@ -8,9 +8,10 @@
  * Resets the gameboard by clearing all the positions and by clearing the bugPosition and occupied maps.
  */
 void gameboard::reset() {
-    for (int i = 0; i < 100; i++) {
-        for (int j = 0; j < 100; j++) {
-            gb[i][j] = stack<piece>();
+    for (int i = 0; i < 32; i++) {
+        for (int j = 0; j < 32; j++) {
+            for (int k = 0; k < 8; k++)
+                gb[i][j] = stack<piece>();
         }
     }
     bugPosition.clear();
@@ -26,7 +27,7 @@ void gameboard::reset() {
  * \return A pointer to the stack at the given position. The stack is empty if the position is free.
  */
 stack<piece>* gameboard::at(const position &pos){
-    return &gb[(100+(pos.first%100))%100][(100+(pos.second%100))%100];
+    return &gb[(32+(pos.first%32))%32][(32+(pos.second%32))%32];
 }
 
 /**
@@ -73,7 +74,7 @@ void gameboard::updatePos(const piece &bug, const position &pos){
  */
 void gameboard::popPosition(const position &pos){
     if(!isFree(pos)){
-        updatePos(at(pos)->top(), NULL_POSITION);
+        updatePos(at(pos)->top(), NULL_POSITION); //TODO: make it better
         at(pos)->pop();
     }
     if(isFree(pos))

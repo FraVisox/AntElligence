@@ -5,6 +5,37 @@
 #include <limits>
 #include <iostream>
 
+//https://github.com/jonthysell/Mzinga/blob/main/src/Mzinga/Core/AI/GameAI.cs
+
+
+/*
+//Noisy means that it moves near to opponent queen
+//Quiet means everything else
+
+
+score += colorValue * metricWeights.Get(bugType, BugTypeWeight.InPlayWeight) * boardMetrics[pieceName].InPlay; //inplay is 0 or 1
+score += colorValue * metricWeights.Get(bugType, BugTypeWeight.IsPinnedWeight) * boardMetrics[pieceName].IsPinned; //ispinned is 0 or 1
+score += colorValue * metricWeights.Get(bugType, BugTypeWeight.IsCoveredWeight) * boardMetrics[pieceName].IsCovered; //iscovered is 0 or 1
+score += colorValue * metricWeights.Get(bugType, BugTypeWeight.NoisyMoveWeight) * boardMetrics[pieceName].NoisyMoveCount; //how many moves he has that are "noisy"
+score += colorValue * metricWeights.Get(bugType, BugTypeWeight.QuietMoveWeight) * boardMetrics[pieceName].QuietMoveCount; //how many moves he has that are "quiet"
+score += colorValue * metricWeights.Get(bugType, BugTypeWeight.FriendlyNeighborWeight) * boardMetrics[pieceName].FriendlyNeighborCount; //how many friendly neighbors
+score += colorValue * metricWeights.Get(bugType, BugTypeWeight.EnemyNeighborWeight) * boardMetrics[pieceName].EnemyNeighborCount; //how many enemy neighbors
+
+If I have not placed pieces
+// Pieces still in hand, blend start and end scores
+double startScore = CalculateBoardScore(boardMetrics, startMetricWeights);
+
+double startRatio = boardMetrics.PiecesInHand / (double)(boardMetrics.PiecesInHand + boardMetrics.PiecesInPlay);
+double endRatio = 1 - startRatio;
+
+return (startRatio * startScore) + (endRatio * endScore);
+
+
+TODO: se alleniamo la NN, possiamo poi semplicemente usare i pesi
+
+*/
+
+
 #include <chrono>
 
 int MinimaxAgent::utility(GameState state, Board& board) {
@@ -50,11 +81,20 @@ action MinimaxAgent::initiate_minimax(Board& board) {
         return todo_action;
     }
 
+    /*cout << "Initial: ";
+    cout << board.moves.size() << endl;
+    */
+
     // For every action available, play it and calculate the utility (recursively)
     for (int i = 0; i < valids.size(); i++) {
         // Play the move on the copy
         board.executeActionUnsafe(valids[i]);
 
+        /*cout << "--------------------------UP-----------------------------" << endl;
+
+        cout << "Executing one action: ";
+        cout << board.moves.size() << endl;
+        */
         
         // Try a simplified call first
         int eval = this->minmax(board.state, board, 1, alpha, beta);
@@ -68,6 +108,13 @@ action MinimaxAgent::initiate_minimax(Board& board) {
         alpha = std::max(alpha, max_eval);
 
         board.undo(1);
+
+        /*
+        cout << "Removing the action just tried: ";
+        cout << board.moves.size() << endl;
+
+        cout << "--------------------------DOWN-----------------------------" << endl;
+        */
     }
     
     return todo_action;
@@ -91,28 +138,38 @@ int MinimaxAgent::minmax(GameState state, Board& board, int depth, int alpha, in
     std::vector<action> valid_moves = board.possibleMoves();
 
     
-        int max_eval = MIN_EVAL;
-        
-        for (const auto& action : valid_moves) {
-                // Play the move
-                board.executeActionUnsafe(action);
+    int max_eval = MIN_EVAL;
+    
+    for (const auto& action : valid_moves) {
+        // Play the move
+        board.executeAction(ActionToString(action));
 
-                
-                // Recursive call
+        /*
 
-                int eval = minmax(board.state, board, depth + 1, -beta, -alpha);
-                max_eval = std::max(max_eval, eval);
-                alpha = std::max(alpha, max_eval);
+        cout << "--------------------------UP-----------------------------" << endl;
 
-                board.undo(1);
-                
-                // Alpha-beta pruning
-                if (beta <= alpha) {
-                    break;
-                }
+        cout << "Executing one action: ";
+        cout << board.moves.size() << endl;
+
+        */
+
+              
+        // Recursive call
+
+        int eval = minmax(board.state, board, depth + 1, -beta, -alpha);
+        max_eval = std::max(max_eval, eval);
+        alpha = std::max(alpha, max_eval);
+
+        board.undo(1);
+
+        // Alpha-beta pruning
+        if (beta <= alpha) {
+            break;
         }
+
+    }
         
-        return max_eval;
+    return max_eval;
 }
 
 action MinimaxAgent::calculate_best_move(Board& board) {
@@ -120,6 +177,11 @@ action MinimaxAgent::calculate_best_move(Board& board) {
     // Get starting timepoint
     auto start = std::chrono::high_resolution_clock::now();
     calledBoard=0;
+
+    // Initial moves
+    if (board.currentTurn <= 4) {
+        return board.suggestInitialMove();
+    }
 
     if (DISABLE_CACHE || _cache == INVALID_ACTION || board.currentTurn != cached_turn) {
         color = board.currentColor();
@@ -135,7 +197,6 @@ action MinimaxAgent::calculate_best_move(Board& board) {
         // get duration. To cast it to proper unit
         // use duration cast method
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-    
         cout << "Time taken by function: "
              << duration.count()/1e6 << " seconds with " <<calledBoard << "evaluation" << endl;
     
