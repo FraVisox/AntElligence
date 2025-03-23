@@ -8,10 +8,11 @@
 
 class MinimaxAgent : public Agent {
 private:
+    int calledBoard;
     PlayerColor color;
     action _cache = INVALID_ACTION;
     int cached_turn = 1;
-    bool DISABLE_CACHE = false;
+    bool DISABLE_CACHE = true;
 
     const int MIN_EVAL = -10000;
     const int MAX_EVAL = 10000;
@@ -21,6 +22,7 @@ private:
     int minmax(GameState state, Board& board, int depth, int alpha, int beta);
 
 public:
+
     MinimaxAgent(int tl = 100000, int dl = 5) : Agent(tl, dl), color(PlayerColor::WHITE) {}
 
     action calculate_best_move(Board& board) override;
