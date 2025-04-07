@@ -8,10 +8,11 @@
 
 class MinimaxAgent : public Agent {
 private:
+    int calledBoard;
     PlayerColor color;
     action _cache = INVALID_ACTION;
     int cached_turn = 1;
-    bool DISABLE_CACHE = false;
+    bool DISABLE_CACHE = true;
 
     const int MIN_EVAL = -10000;
     const int MAX_EVAL = 10000;

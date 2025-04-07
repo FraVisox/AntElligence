@@ -88,7 +88,7 @@ action MinimaxAgent::initiate_minimax(Board& board) {
     // For every action available, play it and calculate the utility (recursively)
     for (int i = 0; i < valids.size(); i++) {
         // Play the move on the copy
-        board.executeAction(ActionToString(valids[i]));
+        board.executeActionUnsafe(valids[i]);
 
         /*cout << "--------------------------UP-----------------------------" << endl;
 
@@ -122,7 +122,7 @@ action MinimaxAgent::initiate_minimax(Board& board) {
 
 int MinimaxAgent::minmax(GameState state, Board& board, int depth, int alpha, int beta) {
     // Debug print
-    
+    calledBoard++;
     // Check if we've reached a terminal state or maximum depth
     if (state == GameState::DRAW || 
         state == GameState::WHITE_WIN || 
@@ -154,7 +154,9 @@ int MinimaxAgent::minmax(GameState state, Board& board, int depth, int alpha, in
         */
 
         
-        // Recursive call
+        for (const auto& action : valid_moves) {
+                // Play the move
+                board.executeActionUnsafe(action);
 
         int eval = minmax(board.state, board, depth + 1, -beta, -alpha);
         max_eval = std::max(max_eval, eval);
@@ -183,6 +185,7 @@ action MinimaxAgent::calculate_best_move(Board& board) {
 
     // Get starting timepoint
     auto start = std::chrono::high_resolution_clock::now();
+    calledBoard=0;
 
     // Initial moves
     if (board.currentTurn <= 4) {
@@ -202,9 +205,9 @@ action MinimaxAgent::calculate_best_move(Board& board) {
         // Get duration. Substart timepoints to 
         // get duration. To cast it to proper unit
         // use duration cast method
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-    
-        //cout << "Time taken by function: " << duration.count()/1e6 << " seconds" << endl;
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+
+    cout << "Time taken by function: " << duration.count()/1e6 << " seconds with " <<calledBoard << "evaluation" << endl;
     
     return _cache;
 }
