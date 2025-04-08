@@ -153,8 +153,11 @@ int MinimaxAgent::minmax(GameState state, Board& board, int depth, int alpha, in
 
         */
 
-              
-        // Recursive call
+        
+        for (const auto& action : valid_moves) {
+                // Play the move
+                board.executeActionUnsafe(action);
+        }
 
         int eval = minmax(board.state, board, depth + 1, -beta, -alpha);
         max_eval = std::max(max_eval, eval);
@@ -171,6 +174,7 @@ int MinimaxAgent::minmax(GameState state, Board& board, int depth, int alpha, in
         
     return max_eval;
 }
+
 
 action MinimaxAgent::calculate_best_move(Board& board) {
 
@@ -196,9 +200,9 @@ action MinimaxAgent::calculate_best_move(Board& board) {
         // Get duration. Substart timepoints to 
         // get duration. To cast it to proper unit
         // use duration cast method
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-        cout << "Time taken by function: "
-             << duration.count()/1e6 << " seconds with " <<calledBoard << "evaluation" << endl;
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+
+    cout << "Time taken by function: " << duration.count()/1e6 << " seconds with " <<calledBoard << "evaluation" << endl;
     
     return _cache;
 }

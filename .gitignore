@@ -6,3 +6,4 @@ src/logic_cpp/out
 **/*.dll
 *.spec
 dist/*.xml
+**/.ipynb_checkpoints
