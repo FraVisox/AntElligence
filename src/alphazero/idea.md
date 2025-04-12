@@ -31,7 +31,7 @@ These 4 steps are done at each iteration and this builds the whole tree.
 The number of iterations is chosen at the beginning.
 
 ### Monte Carlo Tree Search for Alpha Zero
-1. Update UBC formula: W/N+policy*c*sqrt(NN)/(1+n). In this case the policy guides us through the tree
+1. Update UBC formula: W/N+policy * c * sqrt(NN)/(1+n). In this case the policy guides us through the tree
 2. We get rid of simulation: we just use the value of our neural network that is given to the new node after the expansion.
 3. Expansion is done in all the possible directions in one step
 => we have a better search
@@ -49,12 +49,14 @@ For each pair we obtain we put W=N=0, while policy P = p (the first of the pair)
 - In backpropagation, for each ancestor of the selected node we add +1 to N and +w to W
 
 ## Self Play
-Initial state = blank
-Perform a MCTS and sample the action with the highest winning ratio.
-Next state and switch player
-Perform a MCTS and sample action with highest winning ratio.
+* Initial state = blank
+* Perform a MCTS and sample the action with the highest winning ratio.
+* Next state and switch player
+* Perform a MCTS and sample action with highest winning ratio.
+
 ...
-We do it until we end the game (WIN, DRAW, LOSE).
+
+* We do it until we end the game (WIN, DRAW, LOSE).
 
 Then we want to save all these infos into the training data. For each state we store the list of the winning ratios and the reward = final outcome for our player (+1 or -1 if we won/lost or 0 if draw).
 
