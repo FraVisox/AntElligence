@@ -79,3 +79,117 @@ The state is a board position. We encode it so that we have 3 "encodings":
     * policy: conf + 9 neurons (as the output are 9) + softmax
     * value: conf + 1 neuron + tanh
 ![Model architecture](image-1.png)
+
+
+# HIVE IMPLEMENTATION
+## State and Action Representation
+### State Representation
+
+* Adjacency Matrix: Rows represent pieces, columns represent connection directions
+* Graph Representation:
+
+    * Nodes: Each piece becomes a node with features (piece type, owner, etc.)
+    * Edges: Connections between pieces in the hexagonal grid
+    * Node Features: [piece_type, owner, other_game_state_info]
+    * Edge Index: List of [source_node, target_node] pairs
+
+
+
+### Action Representation
+
+* Movement: (source_piece_index, destination_position)
+* Placement: (piece_type, position_relative_to_existing_pieces)
+* Each action should be uniquely identifiable and mappable back to the game state
+
+## MCTS Workflow with GNN
+
+* Initialize Root Node
+
+Create root node with current game state
+
+* Graph Conversion
+
+Convert the adjacency matrix state to graph format:
+
+node_features, edge_index = game.get_graph_representation(state)
+
+* Neural Network Evaluation
+
+Feed graph to your GNN model:
+
+node_embeddings, value = model(node_features, edge_index)
+
+Output:
+
+node_embeddings: Tensor of shape [num_nodes, embedding_dim]
+
+value: Scalar evaluation of the current position (-1 to 1)
+
+
+* Action Probability Computation
+
+Get valid moves from the game state
+Use compute_action_probabilities to convert node embeddings to move probabilities:
+
+action_probs = compute_action_probabilities(node_embeddings, valid_moves, state)
+
+Result: Dictionary mapping each valid move to a probability
+
+
+* Node Expansion
+
+Expand the current node with the action probabilities
+Create child nodes for each valid move
+
+
+* Tree Search
+
+Perform multiple iterations of selection, expansion, simulation, and backpropagation
+Use UCB formula to balance exploration and exploitation
+
+
+* Move Selection
+
+Return move probabilities based on visit counts of child nodes
+
+## How to Convert Node Embeddings to Action Probabilities
+The node embeddings from your GNN contain rich information about each piece's position, relationships, and strategic value. We need to transform these embeddings into scores for each possible move. Here's how:
+1. Understanding the Input
+
+Node Embeddings: A tensor of shape [num_nodes, embedding_dim] where each row is a vector representing a piece
+Valid Moves: List of possible moves in your game representation
+Game State: Current state of the game
+
+2. Basic Approach
+For each valid move, we want to compute a score based on:
+
+The piece being moved (source)
+Where it's moving to (destination)
+
+3. The "Move Scorer" - Where the Magic Happens
+The move scorer can be as simple as a dot product or as complex as a multi-layer perceptron:
+
+4. Training the Move Scorer
+You have two main options:
+
+* End-to-end training: The move scorer is part of your GNN model and is trained alongside it through the MCTS self-play loop.
+* Separate training: Train a separate model that predicts the value of moves based on expert games or reinforcement learning.
+
+5. Practical Implementation Tips
+
+* Move representation: Create helper functions to extract source and destination from your move representation
+* Position embeddings: For positions that aren't currently pieces, average the embeddings of adjacent pieces
+* Piece type embeddings: Maintain a learnable embedding for each piece type
+* Edge cases: Handle edge cases like the first move of the game when there are no pieces on the board
+
+6. Intuition Behind This Approach
+Think of node embeddings as capturing "what's important about this piece right now." The move scorer then learns to recognize "what makes a good move" based on:
+
+* The strategic value of the piece being moved
+* The tactical value of the destination position
+* The relationship between these two aspects
+
+By training through self-play, your system will learn which combinations of source and destination embeddings lead to winning positions.
+This is similar to how human players think: "This piece is important, and moving it to that position would be powerful because of the surrounding pieces and their relationships."
+
+## TODO: how to train the move scorer?
