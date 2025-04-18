@@ -1,0 +1,120 @@
+TEST_FLAG := -fdiagnostics-color=always -o3  -g
+
+TEST_FAST_FLAG := -o3
+
+out/action.o:  engine/action.cpp engine/action.h engine/piece.h engine/position.h engine/direction.h
+	g++  engine/action.cpp -c -o out/action.o
+out/board.o: engine/board.cpp engine/board.h engine/action.h engine/gameboard.h
+	g++  engine/board.cpp -c -o out/board.o
+out/direction.o:  engine/direction.cpp engine/direction.h
+	g++  engine/direction.cpp -c -o out/direction.o
+out/enums.o: engine/enums.cpp engine/enums.h
+	g++  engine/enums.cpp -c -o out/enums.o
+out/gameboard.o: engine/gameboard.cpp engine/gameboard.h engine/piece.h engine/position.h engine/enums.h engine/direction.h
+	g++  engine/gameboard.cpp -c -o out/gameboard.o
+out/piece.o: engine/piece.cpp engine/piece.h engine/enums.h
+	g++  engine/piece.cpp -c -o out/piece.o
+out/position.o: engine/position.cpp engine/position.h engine/direction.h engine/enums.h
+	g++ engine/position.cpp -c -o out/position.o
+
+out/action.so:   engine/action.cpp engine/action.h engine/piece.h engine/position.h engine/direction.h
+	g++ -fPIC engine/action.cpp -c -o out/action.so
+out/board.so: engine/board.cpp engine/board.h engine/action.h engine/gameboard.h
+	g++ -fPIC engine/board.cpp -c -o out/board.so
+out/direction.so:  engine/direction.cpp engine/direction.h
+	g++ -fPIC engine/direction.cpp -c -o out/direction.so
+out/enums.so: engine/enums.cpp engine/enums.h
+	g++ -fPIC engine/enums.cpp -c -o out/enums.so
+out/gameboard.so: engine/gameboard.cpp engine/gameboard.h engine/piece.h engine/position.h engine/enums.h engine/direction.h
+	g++ -fPIC engine/gameboard.cpp -c -o out/gameboard.so
+out/piece.so: engine/piece.cpp engine/piece.h engine/enums.h
+	g++ -fPIC engine/piece.cpp -c -o out/piece.so
+out/position.so: engine/position.cpp engine/position.h engine/direction.h engine/enums.h
+	g++ -fPIC engine/position.cpp -c -o out/position.so
+
+
+ 
+
+out/action-test-fast.o:  engine/action.cpp engine/action.h engine/piece.h engine/position.h engine/direction.h
+	g++ $(TEST_FAST_FLAG) engine/action.cpp -c -o out/action-test-fast.o
+out/board-test-fast.o: engine/board.cpp engine/board.h engine/action.h engine/gameboard.h
+	g++ $(TEST_FAST_FLAG) engine/board.cpp -c -o out/board-test-fast.o
+out/direction-test-fast.o:  engine/direction.cpp engine/direction.h
+	g++ $(TEST_FAST_FLAG) engine/direction.cpp -c -o out/direction-test-fast.o
+out/enums-test-fast.o: engine/enums.cpp engine/enums.h
+	g++ $(TEST_FAST_FLAG) engine/enums.cpp -c -o out/enums-test-fast.o
+out/gameboard-test-fast.o: engine/gameboard.cpp engine/gameboard.h engine/piece.h engine/position.h engine/enums.h engine/direction.h
+	g++ $(TEST_FAST_FLAG) engine/gameboard.cpp -c -o out/gameboard-test-fast.o
+out/piece-test-fast.o: engine/piece.cpp engine/piece.h engine/enums.h
+	g++ $(TEST_FAST_FLAG) engine/piece.cpp -c -o out/piece-test-fast.o
+out/position-test-fast.o: engine/position.cpp engine/position.h engine/direction.h engine/enums.h
+	g++ $(TEST_FAST_FLAG) engine/position.cpp -c -o out/position-test-fast.o
+
+ 
+out/action-test.o:  engine/action.cpp engine/action.h engine/piece.h engine/position.h engine/direction.h
+	g++ $(TEST_FLAG) engine/action.cpp -c -o out/action-test.o
+out/board-test.o: engine/board.cpp engine/board.h engine/action.h engine/gameboard.h
+	g++ $(TEST_FLAG) engine/board.cpp -c -o out/board-test.o
+out/direction-test.o:  engine/direction.cpp engine/direction.h
+	g++ $(TEST_FLAG) engine/direction.cpp -c -o out/direction-test.o
+out/enums-test.o: engine/enums.cpp engine/enums.h
+	g++ $(TEST_FLAG) engine/enums.cpp -c -o out/enums-test.o
+out/gameboard-test.o: engine/gameboard.cpp engine/gameboard.h engine/piece.h engine/position.h engine/enums.h engine/direction.h
+	g++ $(TEST_FLAG) engine/gameboard.cpp -c -o out/gameboard-test.o
+out/piece-test.o: engine/piece.cpp engine/piece.h engine/enums.h
+	g++ $(TEST_FLAG) engine/piece.cpp -c -o out/piece-test.o
+out/position-test.o: engine/position.cpp engine/position.h engine/direction.h engine/enums.h
+	g++ $(TEST_FLAG) engine/position.cpp -c -o out/position-test.o
+
+ 
+
+out/build_from_graph.o: build_from_graph.cpp build_from_graph.h engine/board.h graph_board.h
+	g++  build_from_graph.cpp -c -o out/build_from_graph.o
+
+out/graph_board.o: graph_board.cpp graph_board.h 
+	g++  graph_board.cpp -c -o out/graph_board.o
+
+out/build_from_graph.so: build_from_graph.cpp build_from_graph.h engine/board.h graph_board.h
+	g++ -fPIC build_from_graph.cpp -c -o out/build_from_graph.so
+out/graph_board.so: graph_board.cpp graph_board.h
+	g++ -fPIC graph_board.cpp -c -o out/graph_board.so
+
+ 
+
+out/build_from_graph-test.o: build_from_graph.cpp build_from_graph.h engine/board.h graph_board.h
+	g++ $(TEST_FLAG)  build_from_graph.cpp -c -o out/build_from_graph-test.o
+out/graph_board-test.o: graph_board.cpp graph_board.h 
+	g++ $(TEST_FLAG)  graph_board.cpp -c -o out/graph_board-test.o
+
+out/build_from_graph-test-fast.o: build_from_graph.cpp build_from_graph.h engine/board.h graph_board.h
+	g++ $(TEST_FAST_FLAG)  build_from_graph.cpp -c -o out/build_from_graph-test-fast.o
+out/graph_board-test-fast.o: graph_board.cpp graph_board.h 
+	g++ $(TEST_FAST_FLAG)  graph_board.cpp -c -o out/graph_board-test-fast.o
+
+
+graph_elements := out/build_from_graph.o out/graph_board.o
+graph_elements_shared := out/build_from_graph.so out/graph_board.so
+engine_elements_shared := out/position.so out/action.so out/board.so out/direction.so out/enums.so out/gameboard.so out/piece.so
+engine_elements := out/position.o out/action.o out/direction.o out/board.o out/enums.o out/gameboard.o out/piece.o
+
+test_elements := out/build_from_graph-test.o out/graph_board-test.o \
+				 out/position-test.o out/action-test.o out/direction-test.o out/board-test.o out/enums-test.o out/gameboard-test.o out/piece-test.o
+
+test_elements_fast := out/build_from_graph-test-fast.o out/graph_board-test-fast.o \
+				 out/position-test-fast.o out/action-test-fast.o out/direction-test-fast.o out/board-test-fast.o out/enums-test-fast.o out/gameboard-test-fast.o out/piece-test-fast.o
+
+
+
+test: $(test_elements) test.cpp
+	g++ $(TEST_FLAG) test.cpp $(test_elements) -o test
+
+test-fast: $(test_elements_fast) test.cpp
+	g++ $(TEST_FAST_FLAG) test.cpp $(test_elements_fast) -o test-fast
+
+engine.so : $(engine_elements_shared) $(graph_elements_shared) interface.cpp
+	g++ -fPIC -shared -o engine.so interface.cpp $(graph_elements_shared) $(engine_elements_shared)
+				
+
+
+clean:
+	rm out/*
