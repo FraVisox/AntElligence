@@ -4,7 +4,7 @@
 #include <string>
 using namespace std;
 typedef char* boardT;
-typedef int64_t actionT;
+typedef int_fast64_t actionT;
 
 //Return message
 

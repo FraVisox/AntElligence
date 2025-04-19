@@ -16,7 +16,7 @@ action INVALID_ACTION = action(INVALID_PIECE);
  *   :return: Action representing the movement.
  *   :rtype: action
  */
-action movement(piece p, piece other, direction dir){
+action movement(pieceT p, pieceT other, direction dir){
     action a;
     a.bug=p;
 
@@ -39,7 +39,7 @@ action movement(piece p, piece other, direction dir){
  *   :return: Action representing the placement.
  *   :rtype: action
  */
-action placePiece(piece p, piece other, direction d){
+action placePiece(pieceT p, pieceT other, direction d){
     action a;
     a.bug=p;
     a.otherBug = other;
@@ -56,7 +56,7 @@ action placePiece(piece p, piece other, direction d){
  *   :return: Action representing the placement of the first bug.
  *   :rtype: action
  */
-action placeFirst(piece p){
+action placeFirst(pieceT p){
     action a(p);
     a.actType = PLACEFIRST;
     return a;
@@ -86,20 +86,20 @@ action pass(){
  *   :return: Action parsed from the string.
  *   :rtype: action
  */
-action parseAction(string s, const unordered_set<piece>& inHandPiece){
+action parseAction(string s, const unordered_set<pieceT>& inHandPiece){
     if (s == "pass") {
         return pass();
     }
     int end = s.find(' ');
     if ( (long long unsigned int) end == string::npos) {
-        return placeFirst(piece(s));
+        return placeFirst(extractPiece(s));
     }
     string first = s.substr(0, end);
     string second = s.substr(end + 1);
-    if (inHandPiece.find(piece(first)) != inHandPiece.end()) {
-        return placePiece(piece(first), extractPiece(second), extractDirection(second));
+    if (inHandPiece.find(extractPiece(first)) != inHandPiece.end()) {
+        return placePiece(extractPiece(first), extractPiece(second), extractDirection(second));
     }
-    return movement(piece(first), extractPiece(second), extractDirection(second));
+    return movement(extractPiece(first), extractPiece(second), extractDirection(second));
 }
 
 
@@ -113,9 +113,9 @@ action parseAction(string s, const unordered_set<piece>& inHandPiece){
  */
 string MovementToString(const action &a){
     stringstream ss;
-    ss << a.bug.toString();
+    ss << PiecetoString(a.bug);
     ss << " ";
-    ss << nameDirToString(a.otherBug.toString(), a.relativeDir);
+    ss << nameDirToString(PiecetoString(a.otherBug), a.relativeDir);
     return ss.str();
 }
 
@@ -136,7 +136,7 @@ string ActionToString(const action &a){
             return MovementToString(a);
 
         case PLACEFIRST:
-            return a.bug.toString();
+            return PiecetoString(a.bug);
         
         case PASS:
             return "pass";

@@ -21,8 +21,8 @@ class Board {
 
     //Gameboard and pieces
     gameboard G = gameboard();
-    vector<piece> placedBug = vector<piece>();
-    unordered_set<piece> inHandPiece = unordered_set<piece>();
+    vector<pieceT> placedBug = vector<pieceT>();
+    unordered_set<pieceT> inHandPiece = unordered_set<pieceT>();
     bool isPlacedWQ=false;
     bool isPlacedBQ=false;
 
@@ -33,8 +33,8 @@ class Board {
     void reset();
 
     int getScore(PlayerColor color);
-    int getScoreBug(piece p);
-    int countSurrounding(piece p);
+    int getScoreBug(pieceT p);
+    int countSurrounding(pieceT p);
 
     //Current status
     string toString();
@@ -45,27 +45,27 @@ class Board {
     //Make movement
     ReturnMessage executeAction(string s);
     ReturnMessage checkWin();
-    bool checkSurrounding(const piece &p);
+    bool checkSurrounding(const pieceT &p);
 
 
-    void addPieceHand(piece p);
+    void addPieceHand(pieceT p);
 
     vector<action> possibleMoves();
-    void possibleMovesBug(piece b, vector<action> &res);
-    void possibleMoves_Queen(piece bug,vector<action> &res);
-    void possibleMoves_Beetle(piece bug,vector<action> &res);
-    void possibleMoves_Grasshopper(piece bug,vector<action> &res);
-    void possibleMoves_SoldierAnt(piece bug, vector<action> & res);
-    void possibleMoves_Spider(piece bug, vector<action> & res);
-    void possibleMoves_Pillbug(piece bug, vector<action> &res);
-    void possibleMoves_Mosquito(piece bug, vector<action> &res);
-    void possibleMoves_Ladybug(piece bug,vector<action> &res);
+    void possibleMovesBug(pieceT b, vector<action> &res);
+    void possibleMoves_Queen(pieceT bug,vector<action> &res);
+    void possibleMoves_Beetle(pieceT bug,vector<action> &res);
+    void possibleMoves_Grasshopper(pieceT bug,vector<action> &res);
+    void possibleMoves_SoldierAnt(pieceT bug, vector<action> & res);
+    void possibleMoves_Spider(pieceT bug, vector<action> & res);
+    void possibleMoves_Pillbug(pieceT bug, vector<action> &res);
+    void possibleMoves_Mosquito(pieceT bug, vector<action> &res);
+    void possibleMoves_Ladybug(pieceT bug,vector<action> &res);
 
-    int isPinned(piece bug);
-    int isInPlay(piece bug);
-    int isCovered(piece bug);
-    int friendlyNeighbour(piece bug);
-    int enemyNeighbour(piece bug);
+    int isPinned(pieceT bug);
+    int isInPlay(pieceT bug);
+    int isCovered(pieceT bug);
+    int friendlyNeighbour(pieceT bug);
+    int enemyNeighbour(pieceT bug);
     friend Board buildBoardFromGraph(); 
 };
 

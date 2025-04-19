@@ -19,16 +19,16 @@ class action{
         TypeAction actType;
 
         //Bug that moves and its position
-        piece bug;
+        pieceT bug;
         position startingPos;
 
         //Relative direction to the other bug
-        piece otherBug;
+        pieceT otherBug;
         direction relativeDir;
 
         //Constructors
-        action(piece p,position d):bug(p),startingPos(d){}
-        action(piece p):bug(p){}
+        action(pieceT p,position d):bug(p),startingPos(d){}
+        action(pieceT p):bug(p){}
         action(){}
 };
 
@@ -36,14 +36,14 @@ extern action INVALID_ACTION;
 
 //Types of actions
 
-action movement(piece p, piece other, direction dir);
-action placePiece(piece p, piece other, direction d);
-action placeFirst(piece p);
+action movement(pieceT p, pieceT other, direction dir);
+action placePiece(pieceT p, pieceT other, direction d);
+action placeFirst(pieceT p);
 action pass();
 
 //Parsing
 
-action parseAction(string s, const unordered_set<piece>& inHandPiece);
+action parseAction(string s, const unordered_set<pieceT>& inHandPiece);
 string ActionToString(const action &a);
 
 bool operator==(const action &a1,const action &a2);

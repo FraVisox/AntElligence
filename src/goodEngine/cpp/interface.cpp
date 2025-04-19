@@ -35,7 +35,7 @@ void next_state(char* ris,char* state,actionT action){
     findNextState(ris,state,action);
 }
 
-int getActions(char* state,int64_t* actions){  // max 512 mosse
+int getActions(char* state,actionT* actions){  // max 512 mosse
     return getActionsWithExplicitTransiction(state,actions);
 }
 

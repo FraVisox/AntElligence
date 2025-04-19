@@ -19,12 +19,20 @@ using namespace  std;
 class gameboard{
     public:
     
-    piece gb[SIZE_BOARD][SIZE_BOARD][HIGHT_BOARD];  // Vector of stacks that contain bugs. One stack at each position. The board is thus 100*100
-    unordered_map<piece,position> bugPosition = unordered_map<piece,position>(); 
+    pieceT gb[SIZE_BOARD][SIZE_BOARD][HIGHT_BOARD];  // Vector of stacks that contain bugs. One stack at each position. The board is thus 100*100
+    unordered_map<pieceT,position> bugPosition = unordered_map<pieceT,position>(); 
     unordered_set<position> occupied = unordered_set<position>();
     int high[SIZE_BOARD][SIZE_BOARD];
     //Initialization
+    
 
+
+    
+    //And the placing
+    vector<pair<pieceT,direction>> validPositionPlaceNew(PlayerColor color);
+    vector<position> occupiedEdge(position &pos);
+
+    
     gameboard(){}
 
     //Reset
@@ -33,7 +41,6 @@ class gameboard{
 
     //Manage positions
 
-    //piece* at(const position &pos);
     void popPosition(const position &pos);
     bool isFree(const position &pos);
     bool isAtLevel1(const position &pos);
@@ -41,26 +48,22 @@ class gameboard{
 
     //Manage pieces
     
-    position getPosition(const piece &p);
-    void updatePos(const piece &bug,const position &pos);
-    void removePiece(const piece &b);    
+    position getPosition(const pieceT &p);
+    void updatePos(const pieceT &bug,const position &pos);
+    void removePiece(const pieceT &b);    
     void addPiece(const action &a);
-    void addPiece(const position &pos, const piece &b);
-    bool isTop(const piece &bug);
-    bool canPieceMove(const piece &b,int turn);
-    piece topPiece(const position &pos);
+    void addPiece(const position &pos, const pieceT &b);
+    bool isTop(const pieceT &bug);
+    bool canPieceMove(const pieceT &b,int turn);
+    pieceT topPiece(const position &pos);
     int getHight(const position &pos);
 
     //Main function to understand the movements
     bool canHorizontalSlide( position &from,  position &to);
-    pair<piece, direction> getRelativePositionIfCanMove( position &to,  position &from, bool canOver);
-    pair<piece, direction> getSlidingMoveAtLevel1(position &to, position &from);
-    bool canMoveWithoutBreakingHiveRule(const piece &b,int turn);
+    pair<pieceT, direction> getRelativePositionIfCanMove( position &to,  position &from, bool canOver);
+    pair<pieceT, direction> getSlidingMoveAtLevel1(position &to, position &from);
+    bool canMoveWithoutBreakingHiveRule(const pieceT &b,int turn);
 
-
-    //And the placing
-    vector<pair<piece,direction>> validPositionPlaceNew(PlayerColor color);
-    vector<position> occupiedEdge(position &pos);
 
     
     //PRIVATE FUNCTIONS TO FIND ARTICULATION POINTS (HIVE RULE) AND CALCULATE POSITION
@@ -84,7 +87,7 @@ class gameboard{
      * \param d The direction to move the bug in.
      * \return The new position of the bug after moving in the given direction.
      */
-    position calcPosition(const piece &b, direction d){
+    position calcPosition(const pieceT &b, direction d){
         position pos = getPosition(b);
         pos = pos.applayMove(d);
         return pos;

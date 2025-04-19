@@ -1,6 +1,4 @@
-TEST_FLAG := -fdiagnostics-color=always -o3  -g
-
-TEST_FAST_FLAG := -o3
+TEST_FLAG := -g
 
 out/action.o:  engine/action.cpp engine/action.h engine/piece.h engine/position.h engine/direction.h
 	g++  engine/action.cpp -c -o out/action.o
@@ -35,21 +33,6 @@ out/position.so: engine/position.cpp engine/position.h engine/direction.h engine
 
  
 
-out/action-test-fast.o:  engine/action.cpp engine/action.h engine/piece.h engine/position.h engine/direction.h
-	g++ $(TEST_FAST_FLAG) engine/action.cpp -c -o out/action-test-fast.o
-out/board-test-fast.o: engine/board.cpp engine/board.h engine/action.h engine/gameboard.h
-	g++ $(TEST_FAST_FLAG) engine/board.cpp -c -o out/board-test-fast.o
-out/direction-test-fast.o:  engine/direction.cpp engine/direction.h
-	g++ $(TEST_FAST_FLAG) engine/direction.cpp -c -o out/direction-test-fast.o
-out/enums-test-fast.o: engine/enums.cpp engine/enums.h
-	g++ $(TEST_FAST_FLAG) engine/enums.cpp -c -o out/enums-test-fast.o
-out/gameboard-test-fast.o: engine/gameboard.cpp engine/gameboard.h engine/piece.h engine/position.h engine/enums.h engine/direction.h
-	g++ $(TEST_FAST_FLAG) engine/gameboard.cpp -c -o out/gameboard-test-fast.o
-out/piece-test-fast.o: engine/piece.cpp engine/piece.h engine/enums.h
-	g++ $(TEST_FAST_FLAG) engine/piece.cpp -c -o out/piece-test-fast.o
-out/position-test-fast.o: engine/position.cpp engine/position.h engine/direction.h engine/enums.h
-	g++ $(TEST_FAST_FLAG) engine/position.cpp -c -o out/position-test-fast.o
-
  
 out/action-test.o:  engine/action.cpp engine/action.h engine/piece.h engine/position.h engine/direction.h
 	g++ $(TEST_FLAG) engine/action.cpp -c -o out/action-test.o
@@ -68,40 +51,39 @@ out/position-test.o: engine/position.cpp engine/position.h engine/direction.h en
 
  
 
-out/build_from_graph.o: build_from_graph.cpp build_from_graph.h engine/board.h graph_board.h
-	g++  build_from_graph.cpp -c -o out/build_from_graph.o
+out/build_from_graph.o: graph_board/build_from_graph.cpp graph_board/build_from_graph.h engine/board.h graph_board/graph_board.h
+	g++  graph_board/build_from_graph.cpp -c -o out/build_from_graph.o
+out/graph_board.o: graph_board/graph_board.cpp graph_board/graph_board.h 
+	g++  graph_board/graph_board.cpp -c -o out/graph_board.o
 
-out/graph_board.o: graph_board.cpp graph_board.h 
-	g++  graph_board.cpp -c -o out/graph_board.o
-
-out/build_from_graph.so: build_from_graph.cpp build_from_graph.h engine/board.h graph_board.h
-	g++ -fPIC build_from_graph.cpp -c -o out/build_from_graph.so
-out/graph_board.so: graph_board.cpp graph_board.h
-	g++ -fPIC graph_board.cpp -c -o out/graph_board.so
+out/build_from_graph.so: graph_board/build_from_graph.cpp graph_board/build_from_graph.h engine/board.h graph_board/graph_board.h
+	g++ -fPIC graph_board/build_from_graph.cpp -c -o out/build_from_graph.so
+out/graph_board.so: graph_board/graph_board.cpp graph_board/graph_board.h
+	g++ -fPIC graph_board/graph_board.cpp -c -o out/graph_board.so
+out/update_board.so: graph_board/update_board.cpp graph_board/update_board.h engine/board.h graph_board/graph_board.h
+	g++ -fPIC graph_board/update_board.cpp -c -o out/update_board.o
 
  
 
-out/build_from_graph-test.o: build_from_graph.cpp build_from_graph.h engine/board.h graph_board.h
-	g++ $(TEST_FLAG)  build_from_graph.cpp -c -o out/build_from_graph-test.o
-out/graph_board-test.o: graph_board.cpp graph_board.h 
-	g++ $(TEST_FLAG)  graph_board.cpp -c -o out/graph_board-test.o
+out/build_from_graph-test.o: graph_board/build_from_graph.cpp graph_board/build_from_graph.h engine/board.h graph_board/graph_board.h
+	g++ $(TEST_FLAG)  graph_board/build_from_graph.cpp -c -o out/build_from_graph-test.o
+out/graph_board-test.o: graph_board/graph_board.cpp graph_board/graph_board.h 
+	g++ $(TEST_FLAG)  graph_board/graph_board.cpp -c -o out/graph_board-test.o
+out/update_board-test.o: graph_board/update_board.cpp graph_board/update_board.h engine/board.h graph_board/graph_board.h
+	g++ $(TEST_FLAG) graph_board/update_board.cpp -c -o out/update_board-test.o
+out/embadded_board-test.o: embadded_board.cpp embadded_board.h graph_board/update_board.h engine/board.h graph_board/graph_board.h
+	g++ $(TEST_FLAG) embadded_board.cpp -c -o out/embadded_board-test.o
 
-out/build_from_graph-test-fast.o: build_from_graph.cpp build_from_graph.h engine/board.h graph_board.h
-	g++ $(TEST_FAST_FLAG)  build_from_graph.cpp -c -o out/build_from_graph-test-fast.o
-out/graph_board-test-fast.o: graph_board.cpp graph_board.h 
-	g++ $(TEST_FAST_FLAG)  graph_board.cpp -c -o out/graph_board-test-fast.o
 
 
-graph_elements := out/build_from_graph.o out/graph_board.o
-graph_elements_shared := out/build_from_graph.so out/graph_board.so
+graph_elements := out/build_from_graph.o out/graph_board.o out/update_board.o
+graph_elements_shared := out/build_from_graph.so out/graph_board.so out/update_board.so
 engine_elements_shared := out/position.so out/action.so out/board.so out/direction.so out/enums.so out/gameboard.so out/piece.so
 engine_elements := out/position.o out/action.o out/direction.o out/board.o out/enums.o out/gameboard.o out/piece.o
 
-test_elements := out/build_from_graph-test.o out/graph_board-test.o \
+test_elements := out/build_from_graph-test.o out/graph_board-test.o out/update_board-test.o out/embadded_board-test.o\
 				 out/position-test.o out/action-test.o out/direction-test.o out/board-test.o out/enums-test.o out/gameboard-test.o out/piece-test.o
 
-test_elements_fast := out/build_from_graph-test-fast.o out/graph_board-test-fast.o \
-				 out/position-test-fast.o out/action-test-fast.o out/direction-test-fast.o out/board-test-fast.o out/enums-test-fast.o out/gameboard-test-fast.o out/piece-test-fast.o
 
 
 

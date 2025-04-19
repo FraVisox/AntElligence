@@ -1,11 +1,11 @@
 #include <stdint.h>
 #include <iostream>
-
-#include "build_from_graph.h"
 using namespace std;
 
 #ifndef GRAPH_BOARD_H
 #define GRAPH_BOARD_H
+#include "update_board.h"
+#include "build_from_graph.h"
 #define WHITENUM 0
 #define INFOBOARD_SIZE 4
 #define BOARDSIZE 284
@@ -21,16 +21,20 @@ bool isPlaced(boardT board, int n);
 bool isPresent(boardT board, int n);
 bool isInHand(boardT board, int n);
 
+void placePieceG(boardT board, int n);
 void addPieceInHand(boardT board, int n);
-bool getColor(int n);
-int bugNumber(int n);
+
+
+void printBG(gameboard &g);
 int currentTurn(boardT b);
 void setTurn(boardT b,int n);
 int checkWin(boardT b);
 void findNextState(boardT currentBoard, boardT nextBoard,actionT act);
-actionT* getActionsWithExplicitTransiction(char*);
+void getActionsWithExplicitTransiction(char*,actionT*);
 
 void printBoardFancy(boardT board);
 void printActionFancy(actionT a);
 
+
+void checkBoardCoherent(boardT s);
 #endif

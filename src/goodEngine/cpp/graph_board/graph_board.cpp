@@ -7,7 +7,7 @@
 
 inline int opposite(int x){
     if(x<6)
-    return (x+3)%6;
+        return (x+3)%6;
     return 13-x;
 }
 
@@ -20,7 +20,7 @@ bool isPlaced(boardT board, int n){
     return board[x+8]&1;
 }
 
-void placePiece(boardT board, int n){
+void placePieceG(boardT board, int n){
     int x=getStartingPointBug(n);
     board[x+8]|=1;
 }
@@ -41,9 +41,6 @@ bool isInHand(boardT board, int n){
 
 
 
-bool getColor(int n){
-    return n/15;  // da 1 a 14 da 0, da 15 a 28 da 1.
-}
 
 
 /* la board sarà una sequenza di 28*10 short
@@ -97,28 +94,6 @@ d.  5  | 3 |        (i-1,j-1)|(i-1,j)|
 */
 
 
-int bugNumber(int n){
-    n=(n-1)%14;
-    switch (n)
-    {
-    case 0:return 1;    // S1
-    case 1:return 2;    // S2
-    case 2:return 1;    // B1
-    case 3:return 2;    // B2
-    case 4:return 1;    // G1
-    case 5:return 2;    // G2
-    case 6:return 3;    // G3
-    case 7:return 0;    // Q
-    case 8:return 1;    // A1
-    case 9:return 2;    // A2
-    case 10:return 3;   // A3
-    case 11:return 0;   // M
-    case 12:return 0;   // L
-    case 13:return 0;   // P
-    default: 
-        throw "Non è un bug, cosa accade???";
-    }
-}
 
 int currentTurn(boardT b){
     return (int)(u_char)b[TURNPOS]*256+(int)(u_char)b[TURNPOS+1];
@@ -152,8 +127,6 @@ int checkWin(boardT b){
 
 
 void findNextState(boardT currentBoard,boardT nextBoard, actionT action){
-    
-
     int currentBug=action&(0xff);  
     if(currentBug==0) return;
 
@@ -162,7 +135,7 @@ void findNextState(boardT currentBoard,boardT nextBoard, actionT action){
     }
 
 
-    placePiece(nextBoard,currentBug);
+    placePieceG(nextBoard,currentBug);
 
     nextBoard[TURNPOS+1]+=1;
     if(nextBoard[TURNPOS+1]==0)nextBoard[TURNPOS]+=1;
@@ -184,7 +157,7 @@ void findNextState(boardT currentBoard,boardT nextBoard, actionT action){
     }
     if(((action>>56)&(0xff))!=0){
         int nSP=getStartingPointBug((action>>56)&(0xff));
-        nextBoard[nSP+opposite(7)]=currentBug;
+        nextBoard[nSP+6]=currentBug;
     }
 
     for(int i=0;i<6;i++){  // aggiorno con nuovi vicini
@@ -196,6 +169,9 @@ void findNextState(boardT currentBoard,boardT nextBoard, actionT action){
     nextBoard[bugStarting+7]=(action>>56)&(0xff);
     
 }
+
+
+
 
 
 bool seenDBG[32];
@@ -224,6 +200,18 @@ void checkConnected(boardT s){
         }
     
 }
+void checkBoardCoherent(boardT s){
+    for(int i=1;i<=28;i++){
+        int bp=getStartingPointBug(i);
+        for(int j=0;j<8;j++){
+            if(s[bp+j]!=0){
+                if(s[getStartingPointBug(s[bp+j])+opposite(j)]!=i){
+                    throw "Non coerent correlation";
+                }
+            }
+        }
+    }
+}
 
 void checkActionValid(boardT s, actionT a){
     boardT r=(char*)malloc(sizeof(char)*BOARDSIZE);
@@ -231,57 +219,14 @@ void checkActionValid(boardT s, actionT a){
 
     checkConnected(r);
 
-
-
-
+    checkBoardCoherent(r);
     free(r);
 }
 
 
-int64_t*  getActionsWithExplicitTransiction(boardT state){
+void  getActionsWithExplicitTransiction(boardT state, actionT* ris){
     Board b=buildBoardFromGraph(state);
-    
-    vector<action> r=b.possibleMoves();
-    
-    if(r.size()==0){
-        int64_t* ris= (int64_t*)malloc(2+1);
-        ris[0]=1;
-        ris[1]=0;
-        return ris;
-    }
-    int64_t* ris=(int64_t*)malloc(sizeof(int64_t)*r.size()+1);
-
-
-    for(int j=0;j<=r.size();j++){
-        ris[j]=0;
-    }
-    ris[0]=r.size();
-
-    for(int i=1;i<=r.size();i++){
-        action act=r[i-1];
-        ris[i]=PieceToNum(act.bug);
-        position destPos=b.G.getPosition(act.otherBug).applayMove(act.relativeDir);
-        if(act.actType==PLACEFIRST)continue;
-        int resHight=b.G.getHight(destPos);
-
-        for(int j=0;j<6;j++){
-            position posNearJ=destPos.applayMove(numberToDirection(j));
-            if(b.G.getHight(posNearJ)>resHight){
-                piece nextBug=b.G.gb[(posNearJ.first+SIZE_BOARD)%SIZE_BOARD][(posNearJ.second+SIZE_BOARD)%SIZE_BOARD][resHight];
-                if(nextBug!=act.bug)
-                    ris[i]|=PieceToNum(nextBug)<<(8*(j+1));
-            }
-        }
-
-        if(state[getStartingPointBug(PieceToNum(act.bug))+6]!=0)
-            throw "Moving piece with someone on topo";
-        if(resHight!=0){
-            ris[i]|=((int64_t)(PieceToNum(b.G.topPiece(destPos))))<<(56);
-        }
-       // checkActionValid(state,ris[i]);
-    }
-    //DEBUG ONLY
-    return ris;
+    getActionsWithImplicitTransiction(state,b,ris);
 
 }
 
@@ -292,14 +237,14 @@ void printBoardFancy(boardT board){
     cout<<"Turn: "<<currentTurn(board)<<"   Status:"<<checkWin(board)<<endl;
 
     for(int i=1;i<=28;i++){
-        cout<<NumToPiece(i).toString()<<"|"<<isPresent(board,i)<<"|"<<isPlaced(board,i)<<"||";
+        cout<<PiecetoString(i)<<"|"<<isPresent(board,i)<<"|"<<isPlaced(board,i)<<"||";
         int x=getStartingPointBug(i);
         for(int i=0;i<8;i++){
             if((int)board[i+x]==0){
                 cout<< "   |";
             }else{
 
-                cout<<NumToPiece((int)board[i+x]).toString()<<"|";
+                cout<<PiecetoString((int)board[i+x])<<"|";
             }
         }
         cout<<endl;
@@ -312,16 +257,33 @@ void printBoardFancy(boardT board){
 void printActionFancy(actionT a){
 
     
-    cout<<"Act: "<<NumToPiece((a&0xff)).toString()<<"|";
+    cout<<"Act: "<<PiecetoString((a&0xff))<<"|";
 
     for(int i=1;i<7;i++){
         if(( (a>>(8*i))&(0xff))==0)cout<<"   |";
-        else cout<<NumToPiece(( (a>>(8*i))&(0xff))).toString()<<"|";
+        else cout<<PiecetoString(( (a>>(8*i))&(0xff)))<<"|";
     }
-    cout<<( (a>>(56))&(0xff)) <<"|"<< endl;
+    cout<<PiecetoString( (a>>(56))&(0xff)) <<"|"<< endl;
 }
 
-
+void printBG(gameboard &g){
+    for(int i=0;i<SIZE_BOARD;i++){
+        for(int q=0;q<i;q++)cout<<"  ";
+        for(int j=0;j<SIZE_BOARD;j++){
+            if(g.high[i][j]==0){
+                cout<<"   ";
+            }
+            if(g.high[i][j]>1){
+                cout<<"XXX";
+            }
+            if(g.high[i][j]==1){
+                cout<<PiecetoString(g.gb[i][j][0]);
+            }
+            cout<<"|";
+        }
+        cout<<endl;
+    }
+}
 
 
 
