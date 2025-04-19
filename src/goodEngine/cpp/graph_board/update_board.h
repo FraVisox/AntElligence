@@ -1,11 +1,10 @@
-#include "graph_board.h"
 #include "../engine/board.h"
-
+#include "graph_board.h"
 
 void UpdateState(boardT currentBoard, actionT action);
 
-void UpdateBoardE(Board &b,boardT prev, actionT act);
+void UpdateBoardE(Board &b, actionT act);
 
-void UpdateGameboard(gameboard &g, actionT act,boardT prev);
+void UpdateGameboard(gameboard &g, actionT act);
 
-void  getActionsWithImplicitTransiction(boardT state,Board& b, actionT ris);
+void  getActionsWithImplicitTransiction(boardT state,Board& b, actionT* ris);

@@ -2,10 +2,7 @@
 #include <iostream>
 using namespace std;
 
-#ifndef GRAPH_BOARD_H
-#define GRAPH_BOARD_H
-#include "update_board.h"
-#include "build_from_graph.h"
+#include "../engine/board.h"
 #define WHITENUM 0
 #define INFOBOARD_SIZE 4
 #define BOARDSIZE 284
@@ -37,4 +34,3 @@ void printActionFancy(actionT a);
 
 
 void checkBoardCoherent(boardT s);
-#endif

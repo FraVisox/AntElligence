@@ -1,6 +1,7 @@
 #include "gameboard.h"
 #include <iostream>
 
+#include "../graph_board/graph_board.h"
 
 /**
  * \brief Resets the gameboard.
@@ -13,8 +14,10 @@ void gameboard::reset() {
             high[i][j]=0;
         }
     }
-    bugPosition.clear();
+    for(int i=0;i<32;i++)
+    bugPosition[i]=NULL_POSITION;
     occupied.clear();
+    isPlaced.reset();
 }
 
 /**
@@ -35,11 +38,8 @@ void gameboard::reset() {
  * \return The position of the bug on the board, NULL_POSITION if the bug is not on the board.
  */
 position gameboard::getPosition(const pieceT &p){
-    try {
-        return bugPosition.at(p);
-    } catch (const std::out_of_range& oor) {
-        return NULL_POSITION;
-    }
+    return  bugPosition[p];
+
 }
 
 /**
@@ -55,7 +55,7 @@ position gameboard::getPosition(const pieceT &p){
  */
 
 void gameboard::updatePos(const pieceT &bug, const position &pos){
-    bugPosition.insert_or_assign(bug,pos);
+    bugPosition[bug]=pos;
 }
 
 
@@ -90,8 +90,9 @@ void gameboard::popPosition(const position &pos){
  */
 void gameboard::removePiece(const pieceT &b){
     if(isTop(b)){
+        isPlaced.set(b,0);
         popPosition(getPosition(b));
-        bugPosition.extract(b);
+        bugPosition[b]=NULL_POSITION;
     }else{
         throw "Removing a non-top piece";
     }
@@ -109,6 +110,7 @@ void gameboard::removePiece(const pieceT &b){
  *
  * \param a The action specifying how and where to place the piece on the board.
  */
+/*
 void gameboard::addPiece(const action &a){
     position pos;
     switch (a.actType) {
@@ -125,7 +127,7 @@ void gameboard::addPiece(const action &a){
     pieceT b = a.bug;
     addPiece(pos, b);
 }
-
+*/
 
 /**
  * \brief Adds a bug to the gameboard at the specified position.
@@ -138,6 +140,7 @@ void gameboard::addPiece(const action &a){
  * \param b The bug to be added to the gameboard.
  */
 void gameboard::addPiece(const position &pos, const pieceT &b){
+    isPlaced.set(b,1);
     gb[(pos.first+SIZE_BOARD)%SIZE_BOARD][(pos.second+SIZE_BOARD)%SIZE_BOARD][getHight(pos)]=b;
     high[(pos.first+SIZE_BOARD)%SIZE_BOARD][(pos.second+SIZE_BOARD)%SIZE_BOARD]++;
     updatePos(b,pos);
@@ -308,7 +311,7 @@ pair<pieceT, direction> gameboard::getSlidingMoveAtLevel1(position &to, position
  * \param pos The position to check.
  * \return A vector of positions that are adjacent and occupied.
  */
-vector<position> gameboard::occupiedEdge(position &pos){
+vector<position> gameboard::occupiedEdge(position &pos){  // TO CHECK
     vector<position> ris;
     for(auto n: pos.neighbor()){
         if(!isFree(n)){
@@ -409,7 +412,7 @@ bool gameboard::isAtLevel1(const position &pos){
  */
 
 bool gameboard::canMoveWithoutBreakingHiveRule(const pieceT &b,int turn){
-    if(getPosition(b)==NULL_POSITION) //No position
+    if(! isPlaced[b]) //No position
         return true;
     //If there is a bug under this one
     position p=getPosition(b);

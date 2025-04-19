@@ -1,6 +1,8 @@
 
 #include "update_board.h"
 
+#include "graph_board.h"
+#include "build_from_graph.h"
 
 
 void UpdateState(boardT currentBoard, actionT action){
@@ -40,27 +42,28 @@ void UpdateState(boardT currentBoard, actionT action){
 }
 
 
-void UpdateBoardE(Board &b,boardT prev, actionT act){
+void UpdateBoardE(Board &b, actionT act){
+    pieceT p=(actionT)(act&0xff);
+    b.prevMoved[b.currentColor()]=p;
     b.currentTurn++;
     if(act==0)return;
-    pieceT p=(actionT)(act&0xff);
-    if(!isPlaced(prev,p)){
-        b.placedBug.push_back(p);
+    if(!b.G.isPlaced[p]){
+        b.G.isPlaced.set(p,1);
         b.inHandPiece.extract(p);
         if(p==8)b.isPlacedWQ=1;
         if(p==22)b.isPlacedBQ=1;
     }
-    UpdateGameboard(b.G,act,prev);
+    UpdateGameboard(b.G,act);
 }
 
-void UpdateGameboard(gameboard &g, actionT act,boardT prev){
+void UpdateGameboard(gameboard &g, actionT act){
     pieceT p=(char)(act&0xff);
-    if(currentTurn(prev)==1){
+    if(act==p){
         g.addPiece(position{0,0},p);
         return;
     }
     // rimuovo vecchio pezzo
-    if(isPlaced(prev,p)){
+    if(g.bugPosition[p]!=NULL_POSITION){
         g.removePiece(p);
     }
     for(int i=0;i<6;i++){
@@ -80,25 +83,25 @@ void UpdateGameboard(gameboard &g, actionT act,boardT prev){
 
 
 void  getActionsWithImplicitTransiction(boardT state,Board& b,actionT* ris){ 
-    vector<action> r=b.possibleMoves();
+    b.ComputePossibleMoves();
     
-    if(r.size()==0){
+    if(b.numAction==0){
         ris[0]=1;
         ris[1]=0;
         return;
     }
     
 
-    for(int j=0;j<=(int)r.size();j++){
+    for(int j=0;j<=b.numAction;j++){
         ris[j]=0;
     }
-    ris[0]=r.size();
+    ris[0]=b.numAction;
 
-    for(int i=1;i<=(int)r.size();i++){
-        action act=r[i-1];
+    for(int i=1;i<=b.numAction;i++){
+        action act=b.resAction[i-1];
         ris[i]=(actionT)act.bug;
-        position destPos=b.G.getPosition(act.otherBug).applayMove(act.relativeDir);
         if(act.actType==PLACEFIRST)continue;
+        position destPos=b.G.getPosition(act.otherBug).applayMove(act.relativeDir);
         int resHight=b.G.getHight(destPos);
 
         for(int j=0;j<6;j++){

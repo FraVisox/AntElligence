@@ -1,4 +1,4 @@
-TEST_FLAG := -g
+TEST_FLAG :=-g
 
 out/action.o:  engine/action.cpp engine/action.h engine/piece.h engine/position.h engine/direction.h
 	g++  engine/action.cpp -c -o out/action.o

@@ -8,6 +8,7 @@
 #include <map>
 #include <unordered_map>
 #include <unordered_set>
+#include <bitset>
 #include "piece.h"
 #include "position.h"
 #include "enums.h"
@@ -20,12 +21,13 @@ class gameboard{
     public:
     
     pieceT gb[SIZE_BOARD][SIZE_BOARD][HIGHT_BOARD];  // Vector of stacks that contain bugs. One stack at each position. The board is thus 100*100
-    unordered_map<pieceT,position> bugPosition = unordered_map<pieceT,position>(); 
+    position bugPosition[32];
     unordered_set<position> occupied = unordered_set<position>();
     int high[SIZE_BOARD][SIZE_BOARD];
+
+    bitset<32> isPlaced;
     //Initialization
     
-
 
     
     //And the placing
@@ -51,7 +53,7 @@ class gameboard{
     position getPosition(const pieceT &p);
     void updatePos(const pieceT &bug,const position &pos);
     void removePiece(const pieceT &b);    
-    void addPiece(const action &a);
+    //void addPiece(const action &a);
     void addPiece(const position &pos, const pieceT &b);
     bool isTop(const pieceT &bug);
     bool canPieceMove(const pieceT &b,int turn);

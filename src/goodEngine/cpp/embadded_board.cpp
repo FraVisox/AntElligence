@@ -1,5 +1,6 @@
 #include "embadded_board.h"
-
+#include "graph_board/build_from_graph.h"
+#include "graph_board/update_board.h"
 
 EBoard::EBoard(GameType gt){
 
@@ -34,7 +35,7 @@ EBoard::EBoard(GameType gt){
 }
 
 void EBoard::applyAction(actionT action){
-    UpdateBoardE(board_exp,graph_board,action);
+    board_exp.applayAction(action);
     UpdateState(graph_board,action);
 }
 

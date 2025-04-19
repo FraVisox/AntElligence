@@ -3,7 +3,7 @@
 #include "../engine/board.h"
 #include "graph_board.h"
 
-void DFSPlace(boardT board, gameboard& gb, position pos, int n);
+void DFSPlace(boardT board, gameboard& gb, position pos, pieceT n);
 gameboard buildGameBoardFromGraph(boardT board);
 Board buildBoardFromGraph(boardT board);
 

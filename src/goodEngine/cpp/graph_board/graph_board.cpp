@@ -1,5 +1,6 @@
 #include "graph_board.h"
-
+#include "update_board.h"
+#include "build_from_graph.h"
 
 #ifndef GRAPH_BOARD_CPP
 #define GRAPH_BOARD_CPP

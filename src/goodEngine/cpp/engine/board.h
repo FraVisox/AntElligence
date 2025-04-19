@@ -1,6 +1,6 @@
 #ifndef BOARD_H
 #define BOARD_H
-
+#include <bitset>
 #include "gameboard.h"
 #include "action.h"
 #include <unordered_set>
@@ -21,11 +21,14 @@ class Board {
 
     //Gameboard and pieces
     gameboard G = gameboard();
-    vector<pieceT> placedBug = vector<pieceT>();
+    //vector<pieceT> placedBug = vector<pieceT>();
     unordered_set<pieceT> inHandPiece = unordered_set<pieceT>();
     bool isPlacedWQ=false;
     bool isPlacedBQ=false;
+    action resAction[MAX_ACTIONS_SIZE];
+    int numAction;
 
+    pieceT prevMoved[2];
     //Initialization
 
     Board();
@@ -43,23 +46,23 @@ class Board {
     bool placedQueen();
 
     //Make movement
-    ReturnMessage executeAction(string s);
-    ReturnMessage checkWin();
-    bool checkSurrounding(const pieceT &p);
-
+    //ReturnMessage executeAction(string s);
+    //ReturnMessage checkWin();
+    //bool checkSurrounding(const pieceT &p);
+    void applayAction(actionT a);
 
     void addPieceHand(pieceT p);
 
-    vector<action> possibleMoves();
-    void possibleMovesBug(pieceT b, vector<action> &res);
-    void possibleMoves_Queen(pieceT bug,vector<action> &res);
-    void possibleMoves_Beetle(pieceT bug,vector<action> &res);
-    void possibleMoves_Grasshopper(pieceT bug,vector<action> &res);
-    void possibleMoves_SoldierAnt(pieceT bug, vector<action> & res);
-    void possibleMoves_Spider(pieceT bug, vector<action> & res);
-    void possibleMoves_Pillbug(pieceT bug, vector<action> &res);
-    void possibleMoves_Mosquito(pieceT bug, vector<action> &res);
-    void possibleMoves_Ladybug(pieceT bug,vector<action> &res);
+    void ComputePossibleMoves();
+    void possibleMovesBug(pieceT b);
+    void possibleMoves_Queen(pieceT bug);
+    void possibleMoves_Beetle(pieceT bug);
+    void possibleMoves_Grasshopper(pieceT bug);
+    void possibleMoves_SoldierAnt(pieceT bugs);
+    void possibleMoves_Spider(pieceT bugs);
+    void possibleMoves_Pillbug(pieceT bug);
+    void possibleMoves_Mosquito(pieceT bug);
+    void possibleMoves_Ladybug(pieceT bug);
 
     int isPinned(pieceT bug);
     int isInPlay(pieceT bug);

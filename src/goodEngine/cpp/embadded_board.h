@@ -1,7 +1,6 @@
 
 #ifndef EBOARD_H
 #define EBOARD_H
-#include "engine/board.h"
 #include "graph_board/graph_board.h"
 #include "engine/board.h"
 class EBoard{
