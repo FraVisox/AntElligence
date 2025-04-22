@@ -3,9 +3,7 @@
 #include <bitset>
 #include "gameboard.h"
 #include "action.h"
-#include <unordered_set>
 #include <queue>
-#include <algorithm>
 #include <string.h>
 #include <sstream>
 
@@ -22,18 +20,15 @@ class Board {
     //Gameboard and pieces
     gameboard G = gameboard();
     //vector<pieceT> placedBug = vector<pieceT>();
-    unordered_set<pieceT> inHandPiece = unordered_set<pieceT>();
-    bool isPlacedWQ=false;
-    bool isPlacedBQ=false;
+    bitset<32> inHandPiece;
     action resAction[MAX_ACTIONS_SIZE];
     int numAction;
-
     pieceT prevMoved[2];
     //Initialization
 
     Board();
 
-    void reset();
+    void copy(Board&);
 
     int getScore(PlayerColor color);
     int getScoreBug(pieceT p);
@@ -65,7 +60,6 @@ class Board {
     void possibleMoves_Ladybug(pieceT bug);
 
     int isPinned(pieceT bug);
-    int isInPlay(pieceT bug);
     int isCovered(pieceT bug);
     int friendlyNeighbour(pieceT bug);
     int enemyNeighbour(pieceT bug);

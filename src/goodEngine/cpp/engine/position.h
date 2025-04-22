@@ -14,11 +14,13 @@ class position{
     position(int x,int y);
     position(const position &p);
     position();
+    position(int k);
 
     //Relative positions
 
     vector<position> neighbor();
     position applayMove(direction d);
+     int toInt() const;
 };
 
 extern position NULL_POSITION;
@@ -29,6 +31,7 @@ vector<position> nearBoth(position &p1, position &p2);
 
 bool operator==(const position &p1,const position& p2);
 bool operator!=(const position &p1,const position& p2);
+bool operator<(const position &p1,const position& p2);
 
 
 template<>

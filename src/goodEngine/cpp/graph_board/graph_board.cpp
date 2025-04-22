@@ -6,7 +6,7 @@
 #define GRAPH_BOARD_CPP
 
 
-inline int opposite(int x){
+int opposite(int x){
     if(x<6)
         return (x+3)%6;
     return 13-x;
@@ -294,61 +294,6 @@ void printBG(gameboard &g){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-/*
-
-vector<piece> placedBug = vector<piece>();
-unordered_set<piece> inHandPiece = unordered_set<piece>();
-
-    //Initialization
-
-    Board();
-
-    void reset();
-    void copy(const Board& b);
-
-    //Current status
-    string toString();
-    PlayerColor currentColor();
-    int currentPlayerTurn();
-    bool placedQueen();
-
-    //Make movement
-    ReturnMessage executeAction(string s);
-    action validMove(string s);
-    ReturnMessage checkWin();
-    bool checkSurrounding(const piece &p);
-
-    void undo(int amount);
-
-    void addPieceHand(piece p);
-
-    vector<action> possibleMoves();
-    void possibleMovesBug(piece b, vector<action> &res);
-    void possibleMoves_Queen(piece bug,vector<action> &res);
-    void possibleMoves_Beetle(piece bug,vector<action> &res);
-    void possibleMoves_Grasshopper(piece bug,vector<action> &res);
-    void possibleMoves_SoldierAnt(piece bug, vector<action> & res);
-    void possibleMoves_Spider(piece bug, vector<action> & res);
-    void possibleMoves_Pillbug(piece bug, vector<action> &res);
-    void possibleMoves_Mosquito(piece bug, vector<action> &res);
-    void possibleMoves_Ladybug(piece bug,vector<action> &res);
-};
-
-
-#endif
-
-*/
 
 
 #endif

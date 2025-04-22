@@ -11,7 +11,7 @@ using namespace std;
 
 
 
-inline int opposite(int x);
+int opposite(int x);
 int getStartingPointBug(int bugNumber );
 
 bool isPlaced(boardT board, int n);

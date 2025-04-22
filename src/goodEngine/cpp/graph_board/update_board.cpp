@@ -49,9 +49,7 @@ void UpdateBoardE(Board &b, actionT act){
     if(act==0)return;
     if(!b.G.isPlaced[p]){
         b.G.isPlaced.set(p,1);
-        b.inHandPiece.extract(p);
-        if(p==8)b.isPlacedWQ=1;
-        if(p==22)b.isPlacedBQ=1;
+        b.inHandPiece.set(p,0);
     }
     UpdateGameboard(b.G,act);
 }

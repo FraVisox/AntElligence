@@ -4,7 +4,7 @@
 #include "position.h"
 #include "piece.h"
 #include "direction.h"
-#include <unordered_set>
+#include <set>
 
 
 enum TypeAction{
@@ -43,7 +43,7 @@ action pass();
 
 //Parsing
 
-action parseAction(string s, const unordered_set<pieceT>& inHandPiece);
+//action parseAction(string s, const set<pieceT>& inHandPiece);
 string ActionToString(const action &a);
 
 bool operator==(const action &a1,const action &a2);

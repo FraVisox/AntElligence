@@ -3,31 +3,15 @@
 
 #include "../graph_board/graph_board.h"
 
-/**
- * \brief Resets the gameboard.
- *
- * Resets the gameboard by clearing all the positions and by clearing the bugPosition and occupied maps.
- */
-void gameboard::reset() {
-    for (int i = 0; i < SIZE_BOARD; i++) {
-        for (int j = 0; j < SIZE_BOARD; j++) {
-            high[i][j]=0;
-        }
-    }
+
+gameboard::gameboard(){
+    memset(high, 0, sizeof(high));
     for(int i=0;i<32;i++)
-    bugPosition[i]=NULL_POSITION;
-    occupied.clear();
+        bugPosition[i]=NULL_POSITION;
+    
+    occupied.reset();
     isPlaced.reset();
 }
-
-/**
- * \brief Gets the stack at the given position.
- *
- * This function returns a pointer to the stack that contains the pieces at the given position.
- *
- * \param pos The position to get the stack at.
- * \return A pointer to the stack at the given position. The stack is empty if the position is free.
- */
 
 /**
  * \brief Gets the position of a bug on the board.
@@ -75,7 +59,7 @@ void gameboard::popPosition(const position &pos){
         high[(pos.first+SIZE_BOARD)%SIZE_BOARD][(pos.second+SIZE_BOARD)%SIZE_BOARD]--;
     }
     if(isFree(pos))
-        occupied.extract(pos);
+        occupied.set(pos.toInt(),0);
 }
 
 
@@ -144,7 +128,7 @@ void gameboard::addPiece(const position &pos, const pieceT &b){
     gb[(pos.first+SIZE_BOARD)%SIZE_BOARD][(pos.second+SIZE_BOARD)%SIZE_BOARD][getHight(pos)]=b;
     high[(pos.first+SIZE_BOARD)%SIZE_BOARD][(pos.second+SIZE_BOARD)%SIZE_BOARD]++;
     updatePos(b,pos);
-    occupied.insert(pos);
+    occupied.set(pos.toInt(),1);
 }
 
 
@@ -161,6 +145,19 @@ bool gameboard::isFree(const position &pos){
     return getHight(pos)==0;
 }
 
+
+void gameboard::copy(gameboard& g){
+    for(int i=0;i<32;i++)
+        this->bugPosition[i]=g.bugPosition[i];
+
+    for(int i=0;i<SIZE_BOARD;i++)
+        for(int j=0;j<SIZE_BOARD;j++){
+            for(int h=0;h<HIGHT_BOARD;h++)
+                this->gb[i][j][h]=g.gb[i][j][h];
+    }
+    this->occupied=g.occupied;
+    this->isPlaced=g.isPlaced;
+}
 /**
  * \brief Checks if the given bug is at the top of the stack.
  *
@@ -354,16 +351,19 @@ pieceT gameboard::topPiece(const position &pos){
  *         position to place a new piece.
  */
 vector<pair<pieceT,direction>> gameboard::validPositionPlaceNew(PlayerColor color){
-    unordered_set<position> seen;
+    bitset<SIZE_BOARD*SIZE_BOARD> seen;
+    seen.reset();
     vector<pair<pieceT,direction>> valid;
-    for(position op : occupied){
+    for(int IPos=0;IPos<SIZE_BOARD*SIZE_BOARD;IPos++){
+        if(occupied[IPos]){
+        position op(IPos);
         pieceT p = topPiece(op);
         if(col(p) == color){
             for(position possiblePosition:op.neighbor()){
-                if(seen.count(possiblePosition)) 
+                if(seen[possiblePosition.toInt()]) 
                     continue;
 
-                seen.insert(possiblePosition);
+                seen.set(possiblePosition.toInt(),1);
 
                 if(isFree(possiblePosition)){
                     bool hasOtherColor=false;
@@ -378,6 +378,7 @@ vector<pair<pieceT,direction>> gameboard::validPositionPlaceNew(PlayerColor colo
                     }
                 }
             }
+        }
         }
     }
     return valid;
@@ -425,5 +426,5 @@ bool gameboard::canMoveWithoutBreakingHiveRule(const pieceT &b,int turn){
         find_articulation();
     }
 
-    return not_movable_position.count(getPosition(b)) == 0;
+    return not_movable_position[getPosition(b).toInt()] == 0;
 }

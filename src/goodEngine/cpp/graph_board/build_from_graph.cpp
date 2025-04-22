@@ -36,7 +36,6 @@ void DFSPlace(boardT board, gameboard& gb, position pos, pieceT n){
 
 gameboard buildGameBoardFromGraph(boardT board){ 
     gameboard g;
-    g.reset();
     
     int sb=0;
     for(int i=1;i<=28;i++){
@@ -68,12 +67,10 @@ Board buildBoardFromGraph(boardT board){
             b.G.isPlaced.set(i,1);
         }
         if(isInHand(board,i)){
-            b.inHandPiece.insert(i);
+            b.inHandPiece.set(i,1);
         }
     }
 
-    b.isPlacedWQ=(isPlaced(board,8));
-    b.isPlacedBQ=(isPlaced(board,22));
     return b;
 }
 

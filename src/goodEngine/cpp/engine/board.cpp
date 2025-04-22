@@ -18,8 +18,13 @@
  * black nor white queens have been placed on the board yet.
  */
 Board::Board(){ 
-    reset();
-    state = NOT_STARTED;
+
+    currentTurn = 1;
+    state = STARTED;
+    //We do not change the type of game
+    inHandPiece.reset();
+    prevMoved[0]=0;
+    prevMoved[1]=0;
 };
 
 
@@ -37,20 +42,6 @@ Board::Board(){
  * All bugs that are currently on the board are placed back in the player's hand.
  * The placed bug vector is cleared.
  */
-void Board::reset() {
-    currentTurn = 1;
-    state = STARTED;
-    //We do not change the type of game
-    isPlacedBQ = false;
-    isPlacedWQ = false;
-    G.reset();
-    for (pieceT p=1;p<=28;p++) {
-        if(G.isPlaced[p])
-            inHandPiece.insert(p);
-    }
-    prevMoved[0]=0;
-    prevMoved[1]=0;
-}
 
 /**
  * \brief Copy the given board into this one.
@@ -83,7 +74,7 @@ int Board::getScoreBug(pieceT p) {
 
 int Board::getScore(PlayerColor color) {
     int res = 0;
-    if (isPlacedBQ && isPlacedWQ) {
+    if (G.isPlaced[22] && G.isPlaced[8]) {
         for (pieceT p=1;p<=28;p++) {
             if(G.isPlaced[p]){
                 if (col(p) == color) {
@@ -147,6 +138,20 @@ PlayerColor Board::currentColor(){
 int Board::currentPlayerTurn(){
     return (currentTurn-1)/2+1;
 }
+
+void Board::copy(Board &b){
+    this->G.copy(b.G);
+    this->currentTurn=b.currentTurn;
+    this->inHandPiece=b.inHandPiece;
+    this->numAction=b.numAction;
+    this->prevMoved[0]=b.prevMoved[0];
+    this->prevMoved[1]=b.prevMoved[1];
+    for(int i=0;i<256;i++)
+        this->resAction[i]=b.resAction[i];
+    this->state=b.state;
+    this->type=b.type;
+}
+
 
 
 /**
@@ -275,7 +280,7 @@ bool Board::checkSurrounding(const pieceT &p) {
  */
 
 void Board::addPieceHand(pieceT p){
-    inHandPiece.insert(p);
+    inHandPiece.set(p,1);
 }
 
 void Board::applayAction(actionT a){
@@ -323,10 +328,12 @@ void Board::ComputePossibleMoves(){
     numAction=0;    
     // 1 If turn == 1, then place something that is not the queen
     if(currentTurn==1){
-        for(pieceT b:inHandPiece){
+        for(int b=0;b<32;b++){
+            if(inHandPiece[b]){
             if(col(b)==currentColor() && kind(b) != QUEEN && (numInc(b) == 0 || numInc(b) == 1)) {
                 resAction[numAction]=placeFirst(b);
                 numAction++;
+            }
             }
         }
         return;
@@ -334,12 +341,14 @@ void Board::ComputePossibleMoves(){
 
     // 2 If turn == 2 , then place something near white;
     if(currentTurn == 2){
-        for(pieceT b: inHandPiece){
+        for(int  b=0;b<32;b++){
+            if(inHandPiece[b]){
             if(col(b)==currentColor() && kind(b) != QUEEN && (numInc(b) == 0 || numInc(b) == 1)){
                 for(direction dir : allDirections){
                     resAction[numAction]=placePiece(b, prevMoved[0]+prevMoved[1], dir);
                     numAction++;
                 }
+            }
             }
         }
         return;
@@ -358,12 +367,14 @@ void Board::ComputePossibleMoves(){
     // 4 - Place pieces in our hand
     pieceT inHandCol[8] = {INVALID_PIECE,INVALID_PIECE,INVALID_PIECE,INVALID_PIECE,INVALID_PIECE,INVALID_PIECE,INVALID_PIECE,INVALID_PIECE};
     bool toPlace = false;
-    for(auto p : inHandPiece){
+    for(int p=0;p<32;p++){
+        if(inHandPiece[p]){
         if(col(p)==currentColor()){
             if (inHandCol[kind(p)] == INVALID_PIECE || numInc(inHandCol[kind(p)]) > numInc(p)){ 
                 inHandCol[kind(p)] = p;
                 toPlace = true;
             }
+        }
         }
     }
     if(toPlace){
@@ -487,26 +498,27 @@ void Board::possibleMoves_Grasshopper(pieceT bug){
 void Board::possibleMoves_SoldierAnt(pieceT bug){
     if (G.canPieceMove(bug,currentTurn)) {
 
-        unordered_set<position> inQueue;
+        bitset<SIZE_BOARD*SIZE_BOARD> inQueue;
+        inQueue.reset();
         queue<position> q;
 
         position startPos=G.getPosition(bug);
         q.push(startPos);
-        inQueue.insert(startPos);
+        inQueue.set(startPos.toInt(),1);
         G.removePiece(bug);
 
         while(!q.empty()){
             position f=q.front();
             q.pop();
             for(auto n:f.neighbor()){
-                if(inQueue.count(n)) 
+                if(inQueue[n.toInt()]) 
                     continue;
                 pair<pieceT,direction> relativeDir = G.getSlidingMoveAtLevel1(n, f);
                 if (relativeDir.second != INVALID) {
                     resAction[numAction]=(movement(bug,relativeDir.first,relativeDir.second));
                     numAction++;
                     q.push(n);
-                    inQueue.insert(n);
+                    inQueue.set(n.toInt(),1);
                 }
             }
         }
@@ -517,12 +529,13 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
 
 void Board::possibleMoves_Spider(pieceT bug){
     if (G.canPieceMove(bug,currentTurn)) {
-        unordered_set<position> inQueue;
+        bitset<SIZE_BOARD*SIZE_BOARD> inQueue;
+        inQueue.reset();
         queue<pair<position,int>> q;
 
         position startPos=G.getPosition(bug);
         q.push(make_pair(startPos,0));
-        inQueue.insert(startPos);
+        inQueue.set(startPos.toInt(),1);
         G.removePiece(bug);
 
         while(!q.empty()){
@@ -531,7 +544,7 @@ void Board::possibleMoves_Spider(pieceT bug){
             position f=PI.first;
             int d = PI.second;
             for(auto n:f.neighbor()){
-                if(inQueue.count(n)) 
+                if(inQueue[n.toInt()]) 
                     continue;
                 pair<pieceT,direction> relativeDir = G.getSlidingMoveAtLevel1(n, f);
                 if (relativeDir.second != INVALID) {
@@ -541,7 +554,7 @@ void Board::possibleMoves_Spider(pieceT bug){
                     }
                     else{
                         q.push(make_pair(n,d+1));
-                        inQueue.insert(n);
+                        inQueue.set(n.toInt(),1);
                     }
                 }
             }
@@ -644,28 +657,31 @@ void Board::possibleMoves_Mosquito(pieceT bug){
         return;
     }
 
-    set<BugType> copied;
+    bitset<10> copied;
     for(position n: G.getPosition(bug).neighbor()){
         if(!G.isFree(n) && kind(G.topPiece(n)) != MOSQUITO){
-            copied.insert(kind(G.topPiece(n)));
+            copied.set(kind(G.topPiece(n)),1);
         }
     }
 
     bool pill = false;
     position current = G.getPosition(bug);
     G.removePiece(bug);
-    for(BugType k : copied){ 
-        if (k == PILLBUG) {
-            pill = true;
-            continue;  
+    for(int kBT=0;kBT<10;kBT++){
+        if(copied[kBT]){
+            BugType k=(BugType)kBT;
+            if (k == PILLBUG) {
+                pill = true;
+                continue;  
+            }
+            pieceT new_bug = 29; //this signals the bug is copied
+            isSimulatingPiece=true,
+            simulatedPiece = getCandidateForKind(k,col(bug));
+            G.addPiece(current, new_bug);
+            possibleMovesBug(new_bug);
+            G.removePiece(new_bug);
+            isSimulatingPiece=false;
         }
-        pieceT new_bug = 29; //this signals the bug is copied
-        isSimulatingPiece=true,
-        simulatedPiece = getCandidateForKind(k,col(bug));
-        G.addPiece(current, new_bug);
-        possibleMovesBug(new_bug);
-        G.removePiece(new_bug);
-        isSimulatingPiece=false;
     }
     //In this way, we are almost certain we don't have duplicates
     if (pill) {
@@ -695,8 +711,9 @@ void Board::possibleMoves_Ladybug(pieceT bug){
         //The set of seen positions is used to avoid going to the same destination twice. 
         //It contains only the starting position and the final ones (if we put also the intermediate ones, then we can't reach the final
         //destinations reachable if I go on another piece and then move to the piece as a second move and then descending)
-        unordered_set<position> seen = unordered_set<position>{};
-        seen.insert(G.getPosition(bug));
+        bitset<SIZE_BOARD*SIZE_BOARD> seen;
+        seen.reset();
+        seen.set(G.getPosition(bug).toInt(),1);
         position current = G.getPosition(bug);
         G.removePiece(bug);
         while(!queue.empty()){
@@ -706,16 +723,16 @@ void Board::possibleMoves_Ladybug(pieceT bug){
             int d = PI.second;
             G.addPiece(f, bug); //Add the bug on top of f to see if it can move
             for (position n: f.neighbor()){
-                if (seen.count(n))
+                if (seen[n.toInt()])
                     continue;
 
                 pair<pieceT,direction> relativeDir = G.getRelativePositionIfCanMove(n, f, true);
             
                 if (relativeDir.second != INVALID) {
-                    if (G.isFree(n) && d == 2 && !seen.count(n)) { //TODO: It must do exactly 3 steps right?
+                    if (G.isFree(n) && d == 2 && !seen[n.toInt()]) { //TODO: It must do exactly 3 steps right?
                         resAction[numAction]=(movement(bug, relativeDir.first, relativeDir.second));
                         numAction++;
-                        seen.insert(n);
+                        seen.set(n.toInt(),1);
                     } else if (d == 1 && !G.isFree(n)) {
                         queue.push_back(make_pair(n, d + 1));
                     }
@@ -732,9 +749,7 @@ void Board::possibleMoves_Ladybug(pieceT bug){
 int Board::isPinned(pieceT bug) {
     return !G.canPieceMove(bug, currentTurn);
 }
-int Board::isInPlay(pieceT bug) {
-    return inHandPiece.find(bug) == inHandPiece.end();
-}
+
 int Board::isCovered(pieceT bug) {
     return !G.isTop(bug);
 }

@@ -5,9 +5,7 @@
 #include <string>
 #include <vector>
 #include <stack>
-#include <map>
-#include <unordered_map>
-#include <unordered_set>
+#include <set>
 #include <bitset>
 #include "piece.h"
 #include "position.h"
@@ -19,12 +17,12 @@ using namespace  std;
 
 class gameboard{
     public:
-    
+    gameboard();
     pieceT gb[SIZE_BOARD][SIZE_BOARD][HIGHT_BOARD];  // Vector of stacks that contain bugs. One stack at each position. The board is thus 100*100
     position bugPosition[32];
-    unordered_set<position> occupied = unordered_set<position>();
+    bitset<SIZE_BOARD*SIZE_BOARD> occupied;
     int high[SIZE_BOARD][SIZE_BOARD];
-
+    
     bitset<32> isPlaced;
     //Initialization
     
@@ -35,11 +33,9 @@ class gameboard{
     vector<position> occupiedEdge(position &pos);
 
     
-    gameboard(){}
 
     //Reset
-
-    void reset();
+    void copy(gameboard& g);
 
     //Manage positions
 
@@ -74,9 +70,9 @@ class gameboard{
 
     int timer=0;
     int lastUpdateTurn=-1;
-    unordered_set<position> not_movable_position;
-    unordered_set<position> visited_dfs;
-    unordered_map<position,int> disc,low;
+    bitset<SIZE_BOARD*SIZE_BOARD> not_movable_position;
+    bitset<SIZE_BOARD*SIZE_BOARD> visited_dfs;
+    int disc[SIZE_BOARD*SIZE_BOARD],low[SIZE_BOARD*SIZE_BOARD];
 
     /**
      * \brief Calculate the position of a bug given its current position and a direction.
@@ -105,18 +101,22 @@ class gameboard{
      * bug can be moved without breaking the hive rule.
      */
     void find_articulation(){
-        if(occupied.empty())
+        if(occupied.none())
             return;
 
-        not_movable_position.clear();
-        visited_dfs.clear();
+        not_movable_position.reset();
+        visited_dfs.reset();
 
-        for(position e: occupied){
-            disc[e]=-1; //discovered time
-            low[e]=-1; //lowest discovered time
+        position startPos;
+        for(pieceT p=0;p<32;p++){
+            if(isPlaced[p]){
+                position e=bugPosition[p];
+                startPos=e;
+                disc[e.toInt()]=-1; //discovered time
+                low[e.toInt()]=-1; //lowest discovered time
+            }
         }
 
-        position startPos=*(occupied.begin());
         dfs(startPos);
     }
 
@@ -133,31 +133,31 @@ class gameboard{
     void dfs(position &v, const position &p = NULL_POSITION) {
 
         //Mark this as visited
-        visited_dfs.insert(v);
+        visited_dfs.set(v.toInt(),1);
 
         //Set the discovery time and low time as current time
-        disc[v] = low[v] = timer++;
+        disc[v.toInt()] = low[v.toInt()] = timer++;
 
         int children=0;
         for (position to : occupiedEdge(v)) {
             //If this is a back edge, update low
-            if (visited_dfs.count(to)) {
-                low[v] = min(low[v], disc[to]);
+            if (visited_dfs[to.toInt()]) {
+                low[v.toInt()] = min(low[v.toInt()], disc[to.toInt()]);
             } else {
                 //Make it a children of this node and visit it
                 dfs(to, v);
                 //Check if the subtree rooted at v has a connection to one of the ancestors of u
-                low[v] = min(low[v], low[to]);
+                low[v.toInt()] = min(low[v.toInt()], low[to.toInt()]);
                 
                 //If the subtree rooted at to has not a connection to one of the ancestors of u, this is an articulation point
-                if (low[to] >= disc[v] && p!=NULL_POSITION)
-                    not_movable_position.insert(v);
+                if (low[to.toInt()] >= disc[v.toInt()] && p!=NULL_POSITION)
+                    not_movable_position.set(v.toInt(),1);
                 
                 ++children;
             }
         }
         if(p == NULL_POSITION && children > 1)
-            not_movable_position.insert(v);
+            not_movable_position.set(v.toInt(),1);
     }
 
 };

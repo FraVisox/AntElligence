@@ -154,6 +154,11 @@ bool operator!=(const position &p1,const position& p2){
     return !(p1==p2);
 }
 
+bool operator<(const position &p1,const position& p2){
+    if(p1.first!=p2.first) return p1.first<p2.first;
+    return p1.second<p2.second;
+}   
+
 /**
  * \brief Checks if two positions are adjacent.
  *
@@ -169,6 +174,15 @@ bool isNear(const position &p1, const position &p2){
     if(getMovementDirection(p1,p2)!=INVALID) 
         return true;
     return false;
+}
+
+position::position(int k){
+    first=k%SIZE_BOARD;
+    second=k/SIZE_BOARD;
+}
+
+int position::toInt() const{
+    return first+second*SIZE_BOARD;
 }
 
 /**

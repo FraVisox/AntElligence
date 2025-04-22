@@ -5,10 +5,7 @@
 
 #ifndef INTERFACE_CPP
 #define INTERFACE_CPP
-#include "graph_board.h"
-#include "graph_board.h"
-#include "build_from_graph.h"
-
+#include "embadded_board.h"
 
 /*#include "engine/action.cpp"
 #include "engine/board.cpp"
@@ -28,35 +25,53 @@
 #endif
 
 
-
-char voidBoard[282];
-
-void next_state(char* ris,char* state,actionT action){
-    findNextState(ris,state,action);
+EBoard* base_state(int gt){
+    return new EBoard((GameType)gt);
 }
 
-int getActions(char* state,actionT* actions){  // max 512 mosse
-    return getActionsWithExplicitTransiction(state,actions);
+EBoard* copyBoard(EBoard* b){
+    return new EBoard(b);
+}
+
+void next_state(EBoard* state,actionT action){
+    state->applyAction(action);
+}
+
+void getActions(EBoard* state,int64_t* actions){  // max 256 mosse
+    state->getNextsActions(actions);    
 }
 
 
-char* baseGame(){
-    char* ris=(char*)calloc(BOARDSIZE,sizeof(char));
-        
-    setTurn(ris,1);
-    for(int i=1;i<12;i++){
-        addPieceInHand(ris,i);
-        addPieceInHand(ris,i+14);
+int checkStatus(EBoard* board){
+    return board->getState();
+}
+
+char* toVectorNear(EBoard* b){
+    return b->graph_board;
+}
+
+void PrintBoard(EBoard* b){
+    printBoardFancy(b->graph_board);
+}
+
+
+char* actionToString(actionT a){
+    char b=a&0xff;
+    string s=PiecetoString(b);
+    for(int i=1;i<=7;i++){
+        char can=((a>>(i*8))&0xff);
+        if(can!=0){
+            s+=" "+nameDirToString(PiecetoString(can),allDirections[opposite(i-1)]);
+            break;
+        }
     }
-    return ris;
+    char* r=(char*)malloc(sizeof(char)*s.size()+1);
+    for(int i=0;i<s.size();i++){
+        r[i]=s[i];
+    }
+    r[s.size()]=0;
+    return r;
 }
-
-
-char checkStatus(char* board){
-    return checkWin(board);
-}
-
-
 
 
 /*

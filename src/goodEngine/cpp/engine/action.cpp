@@ -86,7 +86,8 @@ action pass(){
  *   :return: Action parsed from the string.
  *   :rtype: action
  */
-action parseAction(string s, const unordered_set<pieceT>& inHandPiece){
+/*
+action parseAction(string s, const set<pieceT>& inHandPiece){
     if (s == "pass") {
         return pass();
     }
@@ -101,7 +102,7 @@ action parseAction(string s, const unordered_set<pieceT>& inHandPiece){
     }
     return movement(extractPiece(first), extractPiece(second), extractDirection(second));
 }
-
+*/
 
 /**
  *   Converts an action to a string representation of a movement.

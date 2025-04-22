@@ -43,6 +43,13 @@ void EBoard::getNextsActions(actionT* ris){
     getActionsWithImplicitTransiction(graph_board,board_exp,ris);
 }
 
+EBoard::EBoard(EBoard* b){
+    for(int i=0;i<284;i++){
+        this->graph_board[i]=b->graph_board[i];
+    }
+    this->board_exp.copy(b->board_exp);
+}
+
 int EBoard::getState(){
     return checkWin(graph_board);
 }
@@ -62,7 +69,7 @@ void EBoard::checkConsistency(){
         }
         if(isPlaced(graph_board,i)){
             int of=getStartingPointBug(i);
-            position posBase=board_exp.G.getPosition(of);
+            position posBase=board_exp.G.getPosition(i);
             if(board_exp.G.gb[(posBase.first+SIZE_BOARD)%SIZE_BOARD][(posBase.second+SIZE_BOARD)%SIZE_BOARD][0]!=i)continue;
 
             for(int j=0;j<6;j++){

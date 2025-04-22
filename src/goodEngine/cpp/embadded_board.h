@@ -6,7 +6,7 @@
 class EBoard{
     public:
     EBoard(GameType);
-
+    EBoard(EBoard*);
     Board board_exp;
     char graph_board[BOARDSIZE];
     void applyAction(actionT a);

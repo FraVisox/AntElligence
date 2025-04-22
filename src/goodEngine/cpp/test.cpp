@@ -26,7 +26,23 @@ int main(){
     int i=0;
     int totMov=0;
     actionT ris[256];
-    for(int rt=0;rt<1000;rt++){
+    EBoard eb(GameType::Base);
+    i=0;
+    eb.getNextsActions(ris);
+    cout<<"NO1"<<endl;
+    eb.applyAction(ris[1]);
+    cout<<"NO2"<<endl;
+    eb.getNextsActions(ris);
+    cout<<"NO3"<<endl;
+    cout<<ris[0]<<endl;
+    for(int i=1;i<=ris[0];i++){
+        cout<<ris[i]<<endl;
+    }
+
+    cout<<"NOENDO";
+        
+    /*
+    for(int rt=0;rt<10000;rt++){
         EBoard eb(GameType::Base);
         i=0;
         while(1){
@@ -42,20 +58,22 @@ int main(){
             int m=rand()%ris[0]+1;
             eb.applyAction(ris[m]);
             if(eb.getState()!=1){
-                cout<<i<<endl;
                 totMov+=i;
                 break;
             }
-            ///eb.checkConsistency();
+            //eb.checkConsistency();
             i++;
         }
-        if(totMov>100000){
+        if(totMov>1000000){
 
             auto t_end=chrono::high_resolution_clock::now();  
             cout<<"Tempo totale mossa  "<<chrono::duration<double,milli>(t_end-t_start).count()/((double)totMov)<<endl;
             break;
         }
     }
-
++7*/
     cout<<(mbs);
 }
+
+
+// LOOK SEED seed:1745067833
