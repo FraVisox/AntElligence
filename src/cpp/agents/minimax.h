@@ -22,7 +22,6 @@ private:
     int minmax(GameState state, Board& board, int depth, int alpha, int beta);
 
 public:
-
     MinimaxAgent(int tl = 100000, int dl = 5) : Agent(tl, dl), color(PlayerColor::WHITE) {}
 
     action calculate_best_move(Board& board) override;
