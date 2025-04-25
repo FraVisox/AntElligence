@@ -271,14 +271,14 @@ void printBG(gameboard &g){
     for(int i=0;i<SIZE_BOARD;i++){
         for(int q=0;q<i;q++)cout<<"  ";
         for(int j=0;j<SIZE_BOARD;j++){
-            if(g.high[i][j]==0){
+            if(g.high[(i-16+SIZE_BOARD)%SIZE_BOARD][(j-16+SIZE_BOARD)%SIZE_BOARD]==0){
                 cout<<"   ";
             }
-            if(g.high[i][j]>1){
+            if(g.high[(i-16+SIZE_BOARD)%SIZE_BOARD][(j-16+SIZE_BOARD)%SIZE_BOARD]>1){
                 cout<<"XXX";
             }
-            if(g.high[i][j]==1){
-                cout<<PiecetoString(g.gb[i][j][0]);
+            if(g.high[(i-16+SIZE_BOARD)%SIZE_BOARD][(j-16+SIZE_BOARD)%SIZE_BOARD]==1){
+                cout<<PiecetoString(g.gb[(i-16+SIZE_BOARD)%SIZE_BOARD][(j-16+SIZE_BOARD)%SIZE_BOARD][0]);
             }
             cout<<"|";
         }

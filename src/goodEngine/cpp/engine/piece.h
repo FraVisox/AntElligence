@@ -4,7 +4,7 @@
 #include "enums.h"
 
 
-typedef char pieceT;
+typedef int8_t pieceT;
 
 extern const pieceT INVALID_PIECE;
 pieceT extractPiece(string s);

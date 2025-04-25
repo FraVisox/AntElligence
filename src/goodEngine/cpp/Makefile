@@ -1,7 +1,7 @@
 # Compiler and flags
-CXX = g++
-SHARED_FLAG = -fPIC -shared
-TEST_FLAG = -g
+CXX = g++ 
+SHARED_FLAG = -fPIC -shared -O3
+TEST_FLAG =-O3 -g # -g -Wall -fsanitize=address -fsanitize=null -fsanitize=leak
 OUT_DIR = out
 
 # Sources
@@ -81,6 +81,8 @@ clean:
 	rm -f $(OUT_DIR)/*.o $(OUT_DIR)/*.so test engine.so interface.so
 
 
+test-fast:  test.cpp  embadded_board.cpp embadded_board.h $(GRAPH_H) $(ENGINE_H)
+	$(CXX) -O3 test.cpp engine/*.cpp graph_board/*.cpp graph_board/*.h embadded_board.* -o test-fast
 
 #TEST_FLAG :=-O3
 #BUILD_FLAG := -O3 

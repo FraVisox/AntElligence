@@ -1,6 +1,17 @@
 #include "direction.h"
 #include "position.h"
-direction allDirections[] = {RIGHT,DOWN_RIGHT,DOWN_LEFT,LEFT,UP_LEFT,UP_RIGHT};
+
+
+
+
+const int RIGHT=0;
+const int DOWN_RIGHT=1;
+const int DOWN_LEFT=2;
+const int LEFT=3;
+const int UP_LEFT=4;
+const int UP_RIGHT=5;
+const int OVER=6;
+
 
 pair<int,int> movementCircleClockwise[]={
     make_pair(+1,0),
@@ -34,20 +45,7 @@ string nameDirToString(string name, direction dir){
         default: return "";
     }
 }
-/**
- *   Converts an integer to a direction.
- *
- *   The integer is expected to be in the range 0 to 5. The corresponding direction
- *   is returned.
- *
- *   :param n: Integer to convert.
- *   :type n: int
- *   :return: Direction.
- *   :rtype: direction
- */
-direction numberToDirection(int n){
-    return allDirections[n];
-}
+
 
 
 /**
@@ -62,7 +60,7 @@ direction numberToDirection(int n){
  *   :rtype: direction
  */
 direction oppositeDir(direction d){
-    return numberToDirection((d+3)%6);
+    return ((d+3)%6);
 }
 
 /**
@@ -76,53 +74,20 @@ direction oppositeDir(direction d){
  *   :return: The pair of integers associated with the direction.
  *   :rtype: pair<int,int>
  */
-pair<int,int> associatedDifference(direction d){
-    return make_pair((movementCircleClockwise[d].first+SIZE_BOARD)%SIZE_BOARD,(movementCircleClockwise[d].second+SIZE_BOARD)%SIZE_BOARD);
+
+
+
+pair<unsigned int,unsigned int> associatedDifferenceV[]={
+    make_pair(+1,0),
+    make_pair(0,+1),
+    make_pair(31,+1),
+    make_pair(31,0),
+    make_pair(0,31),
+    make_pair(+1,31),
+    make_pair(0,0)
+};
+pair<unsigned int,unsigned int> associatedDifference(direction d){
+    
+    return associatedDifferenceV[d];
 }
 
-/**
- *   Extracts a direction from a string, given a string representation of
- *   a move.
- *
- *   Given a string representation of a move, this function extracts the
- *   direction moved, which is the first character of the string.
- *
- *   The function checks if the first character of the string is a '-', '\\'
- *   or '/' character, and if so, returns the direction represented by the
- *   second character of the string.
- *
- *   If the first character is not one of the above, the function looks for
- *   the first occurrence of '-', '\\', or '/' in the string, and returns
- *   the direction represented by the substring from the beginning of the string
- *   to the found character.
- *
- *   If no such character is found, the function returns the direction OVER.
- *
- *   :param s: String representation of the move.
- *   :type s: string
- *   :return: Direction moved, represented as a direction object.
- *   :rtype: direction
- */
-direction extractDirection(string s){
-    if(s[0]=='-') return LEFT;
-    if(s[0]=='/') return DOWN_LEFT;
-    if(s[0]=='\\') return UP_LEFT;
-    int l=s.length();
-    if(s[l-1]=='-') return RIGHT;
-    if(s[l-1]=='\\') return DOWN_RIGHT;
-    if(s[l-1]=='/') return UP_RIGHT;
-    return OVER;
-}
-
-string insertDirection(string s, direction d) {
-    switch (d) {
-        case RIGHT: return s+"-";
-        case DOWN_RIGHT: return s+"\\";
-        case DOWN_LEFT: return "/"+s;
-        case LEFT: return "-"+s;
-        case UP_LEFT: return "\\"+s;
-        case UP_RIGHT: return s+"/";
-        case OVER: return s;
-        default: return "";
-    }
-}

@@ -28,20 +28,6 @@ Board::Board(){
 };
 
 
-/**
- * \brief Reset the board to the default state.
- *
- * Reset the board to the default state, initializing all members to default values.
- * This method is called by the constructor to initialize a new board.
- * The state of the board is set to STARTED, indicating that the game has started.
- * The current turn is set to 1, indicating that it is White's turn to play.
- * The possible moves vector is cleared.
- * The game board and pieces are reset using the reset() method.
- * The isPlacedBQ and isPlacedWQ flags are set to false, indicating that neither the
- * black nor white queens have been placed on the board yet.
- * All bugs that are currently on the board are placed back in the player's hand.
- * The placed bug vector is cleared.
- */
 
 /**
  * \brief Copy the given board into this one.
@@ -93,7 +79,8 @@ int Board::getScore(PlayerColor color) {
 int Board::countSurrounding(pieceT p) {
     position pos = G.getPosition(p);
     int ret = 0;
-    for (position adj: pos.neighbor()) {
+    for (direction dir=0;dir<6;dir++){
+        position adj= pos.applayMove(dir);
         if (!G.isFree(adj)) {
             ret += 1;
         }
@@ -102,21 +89,6 @@ int Board::countSurrounding(pieceT p) {
 }
     
 
-
-/**
- * \brief Convert the board to a string representation.
- *
- * This method converts the board into a string, which can be used to store the
- * current state of the game in a file or database, or to send it over a network.
- *
- * The string is a semicolon-separated list of the following elements:
- * - The game type (Base, Base_M, Base_L, Base_P, Base_ML, Base_MP, Base_LP, Base_MLP)
- * - The game state (NOT_STARTED, STARTED, IN_PROGRESS, DRAW, WHITE_WIN, BLACK_WIN)
- * - The current turn number, prefixed by "White[" or "Black[", depending on whose turn it is.
- * - A list of the moves made so far, each move being a MoveString.
- *
- * \return A string containing the current game state.
- */
 
 /**
  * \brief Return the color of the current player.
@@ -166,108 +138,6 @@ bool Board::placedQueen(){
 }
 
 
-/**
- * \brief Execute a move in the game.
- *
- * Given a string representing a move, this function executes it in the current game.
- * The string should be a valid MoveString, which is a concatenation of a bug piece
- * to be moved and its relative position and direction. The relative position and
- * direction are represented by a single string, which is the concatenation of the
- * relative position bug piece and the direction indicator.
- *
- * \param s The string representing the move.
- * \return 0 if the move was successful, an error code otherwise.
- */
-
-/*ReturnMessage Board::executeAction(string s){
-
-   // action a = validMove(s);
-   // if (a == INVALID_ACTION) {
-   //     return INVALID_ARGUMENT;
-   // }
-   action a = parseAction(s, inHandPiece);
-
-    //The move is represented as a Movestring (wS1 -wA1) or as "pass"
-
-    if (state == STARTED)
-        state = IN_PROGRESS;
-    else if (state != IN_PROGRESS) {
-        return INVALID_GAME_NOT_STARTED;
-    }
-    switch (a.actType) {
-        case MOVEMENT:
-            a.startingPos = G.getPosition(a.bug);
-            G.removePiece(a.bug);
-            G.addPiece(a);
-            break;
-        case PLACE:
-            G.addPiece(a);
-            placedBug.push_back(a.bug);
-            inHandPiece.extract(a.bug);
-            if(kind(a.bug)==QUEEN){
-                if(currentColor()==WHITE)isPlacedWQ=true;
-                if(currentColor()==BLACK)isPlacedBQ=true;
-            }
-            break;
-        case PLACEFIRST:
-            G.addPiece(a);
-            placedBug.push_back(a.bug);
-            inHandPiece.extract(a.bug);
-            break;
-        case PASS:
-            break;
-    }
-    currentTurn++;
-
-    return checkWin();
-}
-
-ReturnMessage Board::checkWin() {
-    bool white_surrounded = false;
-    bool black_surrounded = false;
-    if (isPlacedBQ && isPlacedWQ) { //can't win without placing the queens
-        for (pieceT p: placedBug) {
-            if (kind(p) == QUEEN) {
-                if (col(p) == WHITE && checkSurrounding(p)) {
-                    white_surrounded = true;
-                } else if (col(p) == BLACK && checkSurrounding(p)) {
-                    black_surrounded = true;
-                }
-            }
-        }
-    }
-    if (black_surrounded && white_surrounded) {
-        state = DRAW;
-        return GAME_OVER_DRAW;
-    } else if (black_surrounded) {
-        state = WHITE_WIN;
-        return GAME_OVER_WHITE_WINS;
-    } else if (white_surrounded) {
-        state = BLACK_WIN;
-        return GAME_OVER_BLACK_WINS;
-    }
-    return OK;
-}*/
-
-/**
- * \brief Checks if a piece is surrounded by other pieces.
- *
- * Checks if all of a piece's neighbors are not free. If so, the
- * piece is considered surrounded and the method returns true.
- *
- * \param p The piece to check.
- * \return True if the piece is surrounded, false otherwise.
- */
-/*
-bool Board::checkSurrounding(const pieceT &p) {
-    position pos = G.getPosition(p);
-    for (position adj: pos.neighbor()) {
-        if (G.isFree(adj)) {
-            return false;
-        }
-    }
-    return true;
-}*/
 /**
  * \brief Adds a piece to the in-hand pieces set.
  *
@@ -344,8 +214,8 @@ void Board::ComputePossibleMoves(){
         for(int  b=0;b<32;b++){
             if(inHandPiece[b]){
             if(col(b)==currentColor() && kind(b) != QUEEN && (numInc(b) == 0 || numInc(b) == 1)){
-                for(direction dir : allDirections){
-                    resAction[numAction]=placePiece(b, prevMoved[0]+prevMoved[1], dir);
+                for(int dir=0;dir<6;dir++){
+                    resAction[numAction]=placePiece(b,position{0,0}.applayMove(dir),G);
                     numAction++;
                 }
             }
@@ -358,7 +228,7 @@ void Board::ComputePossibleMoves(){
     if(!placedQueen() && currentPlayerTurn()>3){
         auto positions = G.validPositionPlaceNew(currentColor());
         for(auto pos: positions){
-            resAction[numAction]=placePiece(buildPiece(QUEEN,currentColor()),pos.first, pos.second);
+            resAction[numAction]=placePiece(((currentColor()==PlayerColor::WHITE)?8:22),pos,G);
             numAction++;
         }
         return;
@@ -369,12 +239,12 @@ void Board::ComputePossibleMoves(){
     bool toPlace = false;
     for(int p=0;p<32;p++){
         if(inHandPiece[p]){
-        if(col(p)==currentColor()){
-            if (inHandCol[kind(p)] == INVALID_PIECE || numInc(inHandCol[kind(p)]) > numInc(p)){ 
-                inHandCol[kind(p)] = p;
-                toPlace = true;
+            if(col(p)==currentColor()){
+                if (inHandCol[kind(p)] == INVALID_PIECE || numInc(inHandCol[kind(p)]) > numInc(p)){ 
+                    inHandCol[kind(p)] = p;
+                    toPlace = true;
+                }
             }
-        }
         }
     }
     if(toPlace){
@@ -384,7 +254,7 @@ void Board::ComputePossibleMoves(){
                 continue;
             }
             for(auto pos : positions){
-                resAction[numAction]=(placePiece(p, pos.first, pos.second));
+                resAction[numAction]=placePiece(p, pos,G);
                 numAction++;
             }
         }
@@ -395,11 +265,10 @@ void Board::ComputePossibleMoves(){
         pieceT mosq = INVALID_PIECE;
         pieceT pillb = INVALID_PIECE;
 
-        pieceT previous = INVALID_PIECE;
 
         for(pieceT b=1;b<=28;b++){
             if(!G.isPlaced[b])continue;
-            if (b == prevMoved[0] || b == prevMoved[1]) continue;
+            if (b == prevMoved[currentColor()]) continue;
             if (kind(b) != PILLBUG && kind(b) != MOSQUITO){ 
                 possibleMovesBug(b);
             } else if (kind(b) == MOSQUITO && col(b) == currentColor()){
@@ -451,12 +320,11 @@ void Board::possibleMovesBug(pieceT b){
 
 void Board::possibleMoves_Queen(pieceT bug){
     if (G.canPieceMove(bug,currentTurn)) {
-        for(position dest: G.getPosition(bug).neighbor()){
-            position pos = G.getPosition(bug);
-            pair<pieceT,direction> relativeDir = G.getRelativePositionIfCanMove(dest, pos, false);
-            if (relativeDir.second != INVALID) {
-                resAction[numAction]=(movement(bug,relativeDir.first,relativeDir.second));
-                numAction++;
+        position pos = G.getPosition(bug);
+        for(int i=0;i<6;i++){
+            if(G.isFree(pos.applayMove(i))&&G.canSlideToFree(pos,pos.applayMove(i))){
+                    resAction[numAction]=movement(bug,pos.applayMove(i),G);
+                    numAction++;
             }
         }
     }
@@ -464,13 +332,22 @@ void Board::possibleMoves_Queen(pieceT bug){
 
 
 void Board::possibleMoves_Beetle(pieceT bug){
-    if (G.canPieceMove(bug, currentTurn)) {
-        for(position dest : G.getPosition(bug).neighbor()){
-            position pos = G.getPosition(bug);
-            pair<pieceT,direction> relativeDir = G.getRelativePositionIfCanMove(dest, pos, true);
-            if (relativeDir.second != INVALID) {
-                resAction[numAction]=(movement(bug,relativeDir.first,relativeDir.second));
+    if (G.canPieceMove(bug, currentTurn)){
+        position pos = G.getPosition(bug);
+        int h=G.getHight(pos)-1;
+        for(int i=0;i<6;i++){
+            
+            position dest=pos.applayMove(i);
+            position p1=pos.applayMove((i+1)%6);
+            position p2=pos.applayMove((i+5)%6);
+
+            if(!G.isFree(p1) || !G.isFree(p2) || !G.isFree(dest) || h>0){
+                int maxH=max(h,G.getHight(dest));
+                
+                if(G.getHight(p1)<=maxH || G.getHight(p2)<=maxH){
+                resAction[numAction]=(movement(bug, dest,G));
                 numAction++;
+                }
             }
         }
     }
@@ -479,45 +356,49 @@ void Board::possibleMoves_Beetle(pieceT bug){
 void Board::possibleMoves_Grasshopper(pieceT bug){
     if (G.canPieceMove(bug,currentTurn)) {
         position from=G.getPosition(bug);
-        for(direction dir : allDirections){
+        for(direction dir=0;dir<6;dir++){
             position next = from.applayMove(dir);
-            position old_next = next;
             if(!G.isFree(next)){
                 do{
-                    old_next = next;
                     next=next.applayMove(dir);
                 } while(!G.isFree(next));
-                resAction[numAction]=(movement(bug, G.topPiece(old_next), getMovementDirection(old_next, next)));
+                resAction[numAction]=(movement(bug, next,G));
                 numAction++;
             }
         }
     }
 }
 
+position quePM[1024];
+int vQ[1024];
 
+bitset<SIZE_BOARD*SIZE_BOARD> inQueue;
 void Board::possibleMoves_SoldierAnt(pieceT bug){
     if (G.canPieceMove(bug,currentTurn)) {
 
-        bitset<SIZE_BOARD*SIZE_BOARD> inQueue;
+        int fQ=0;
+        int bQ=0;
         inQueue.reset();
-        queue<position> q;
+        inQueue|=G.occupied;
 
         position startPos=G.getPosition(bug);
-        q.push(startPos);
+        quePM[fQ]=startPos;
+        fQ++;
         inQueue.set(startPos.toInt(),1);
         G.removePiece(bug);
-
-        while(!q.empty()){
-            position f=q.front();
-            q.pop();
-            for(auto n:f.neighbor()){
+        position f, n;
+        while(fQ!=bQ){
+            f=quePM[bQ];
+            bQ++;
+            for(int dir=0;dir<6;dir++){
+                n=f.applayMove(dir);
                 if(inQueue[n.toInt()]) 
                     continue;
-                pair<pieceT,direction> relativeDir = G.getSlidingMoveAtLevel1(n, f);
-                if (relativeDir.second != INVALID) {
-                    resAction[numAction]=(movement(bug,relativeDir.first,relativeDir.second));
+                if(G.canSlideToFree(f,n) ){
+                    resAction[numAction]=(movement(bug,n,G));
                     numAction++;
-                    q.push(n);
+                    quePM[fQ]=n;
+                    fQ++;
                     inQueue.set(n.toInt(),1);
                 }
             }
@@ -529,37 +410,88 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
 
 void Board::possibleMoves_Spider(pieceT bug){
     if (G.canPieceMove(bug,currentTurn)) {
+
         bitset<SIZE_BOARD*SIZE_BOARD> inQueue;
         inQueue.reset();
-        queue<pair<position,int>> q;
+
+        position posReachD0[6];
+        position posReachD1[12];
+
 
         position startPos=G.getPosition(bug);
-        q.push(make_pair(startPos,0));
+
+        int iP0=0;
+        
         inQueue.set(startPos.toInt(),1);
         G.removePiece(bug);
+        inQueue|=G.occupied;
 
+        position next;
+        for(int i=0;i<6;i++){
+            next=startPos.applayMove(i);
+            if(!inQueue[next.toInt()] &&G.canSlideToFree(startPos,next)){
+                inQueue.set(next.toInt(),1);
+                posReachD0[iP0]=next;
+                iP0++;
+            }
+        }
+
+        int iP1;position curr;
+        for(int j=0;j<iP0;j++){
+            curr=posReachD0[j];
+            for(int i=0;i<6;i++){
+                next=curr.applayMove(i);
+                if(!inQueue[next.toInt()] &&G.canSlideToFree(curr,next)){
+                    inQueue.set(next.toInt(),1);
+                    posReachD1[iP1]=next;
+                }
+            }   
+        }
+
+        for(int j=0;j<iP1;j++){
+            position curr=posReachD1[j];
+            for(int i=0;i<6;i++){
+                next=curr.applayMove(i);
+                if(!inQueue[next.toInt()] &&G.canSlideToFree(curr,next)){
+                    resAction[numAction]=movement(bug,next,G);
+                    numAction++;
+                }
+            }   
+        }
+        G.addPiece(startPos,bug);
+        return;
+        /*
+        
+
+
+        q.push(make_pair(startPos,0));
+        
         while(!q.empty()){
             pair<position,int> PI = q.front();
             q.pop();
             position f=PI.first;
             int d = PI.second;
-            for(auto n:f.neighbor()){
+            for(direction dir=0;dir<6;dir++){
+                position n=f.applayMove(dir);
                 if(inQueue[n.toInt()]) 
                     continue;
-                pair<pieceT,direction> relativeDir = G.getSlidingMoveAtLevel1(n, f);
-                if (relativeDir.second != INVALID) {
+                if(G.canSlideToFree(f,n)){
                     if(d==2) {
-                        resAction[numAction]=(movement(bug,relativeDir.first,relativeDir.second));
+                        resAction[numAction]=(movement(bug,n,G));
                         numAction++;
+                        inQueue.set(n.toInt(),1);
                     }
                     else{
                         q.push(make_pair(n,d+1));
                         inQueue.set(n.toInt(),1);
                     }
+                    
                 }
+                
             }
         }
         G.addPiece(startPos,bug);
+        */
     }
 }
 
@@ -568,25 +500,24 @@ void Board::possibleMoves_Pillbug(pieceT bug){
     if (!G.isAtLevel1(G.getPosition(bug))) {
         return;
     }
+    position pos = G.getPosition(bug);
 
     // The pillbug can move as a queen. Check if the move is already present as the pillbug could be moved by the mosquito.
     if (G.canPieceMove(bug,currentTurn)) {
         for(position dest: G.getPosition(bug).neighbor()){
-            position pos = G.getPosition(bug);
-            pair<pieceT,direction> relativeDir = G.getRelativePositionIfCanMove(dest, pos, false);
             //TODO: is it necessary to check inside for duplicate moves?
-            if (relativeDir.second != INVALID ) { 
+            if (!G.isGate(pos,dest)) { 
                 bool already_in = false;
-                
+                actionT act=movement(bug, dest,G);
                 for (int iAct=0;iAct<numAction;iAct++){
-                    action pair=resAction[iAct];
-                    if (pair.bug == bug && G.getPosition(pair.otherBug).applayMove(pair.relativeDir) == G.getPosition(relativeDir.first).applayMove(relativeDir.second)){
+                    actionT pair=resAction[iAct];
+                    if (pair==act){
                         already_in = true;
                         break;
                     }
                 }
                 if (!already_in) {
-                    resAction[numAction]=(movement(bug, relativeDir.first, relativeDir.second));
+                    resAction[numAction]=act;
                     numAction++;
                 }
             }
@@ -598,51 +529,58 @@ void Board::possibleMoves_Pillbug(pieceT bug){
     position places_to_move[6];
     int i = 0;
     int j = 0;
-    for(position dest: G.getPosition(bug).neighbor()){
-        if(!G.isFree(dest) && G.isAtLevel1(dest)){
-            pieceT possible_piece = G.topPiece(dest);
-            if (G.canMoveWithoutBreakingHiveRule(possible_piece, currentTurn)){
+    // find all the bugs that i can move
+    for(int dir=0;dir<6;dir++){
+        position N=pos.applayMove(dir);
+        position p1=pos.applayMove((dir+1)%6);
+        position p2=pos.applayMove((dir+5)%6);
+        if (G.getHight(p1)>=2 && G.getHight(p2)>=2) continue;
+                
+        if(!G.isFree(N) && G.getHight(N)==1){
+            pieceT possible_piece = G.topPiece(N);
+            if (G.canMoveWithoutBreakingHiveRule(possible_piece, currentTurn) && possible_piece!=prevMoved[1-currentColor()]){
                 //If valid, this piece can be moved over the pillbug
-                position pos = G.getPosition(bug);
-                pair<pieceT,direction> relativeDir = G.getRelativePositionIfCanMove(pos, dest, true);
-                if (relativeDir.second != INVALID) {
-                    bugs_to_move[i] = possible_piece;
-                    i++;
-                }
+                bugs_to_move[i] = possible_piece;
+                i++;
+                
             }
-        } else if (G.isFree(dest)){
-            places_to_move[j] = dest;
+        } else if (G.isFree(N)){
+            places_to_move[j] = N;
             j++;
         }
     }
     if (i > 0 && j > 0){
         for(int k = 0; k < i; k++){
+            for(int h=0;h<j;h++){
+                resAction[numAction]=movement(bugs_to_move[k],places_to_move[h],G);
+                numAction++;
+            }
+            /*          WHY ALL THIS? Was 
             pieceT to_move = bugs_to_move[k];
             position old = G.getPosition(to_move);
             G.removePiece(to_move);
             G.addPiece(G.getPosition(bug), to_move); //already checked this can be done
             for (int l = 0; l < j; l++){
                 position pos = G.getPosition(bug);
-                pair<pieceT,direction> relativeDir = G.getRelativePositionIfCanMove(places_to_move[l], pos, false);
-                if (relativeDir.second != INVALID) {
+                if (G.checIfCanMove(places_to_move[l],pos,false)) {
+                    actionT risA=movement(to_move, places_to_move[l],G);
                     //Check if this movement is already inside of the vector TODO: is it necessary to check for duplicate moves????
-                    bool already_in = false;
+                    bool already_in=false;
                     for (int iAct=0;iAct<numAction;iAct++){
-                        action pair=resAction[iAct];
-                        if (pair.bug == to_move && G.getPosition(pair.otherBug).applayMove(pair.relativeDir) == G.getPosition(relativeDir.first).applayMove(relativeDir.second)){
+                        if (risA==resAction[iAct]){
                             already_in = true;
                             break;
                         }
                     }
                     if (!already_in) {
-                        resAction[numAction]=(movement(to_move, relativeDir.first, relativeDir.second));
+                        resAction[numAction]=risA;
                         numAction++;
                     }
                 }
             }
             G.removePiece(to_move);
             G.addPiece(old, to_move);
-
+            */
         }
     }
 }
@@ -701,8 +639,7 @@ void Board::possibleMoves_Ladybug(pieceT bug){
         for(position dest: G.getPosition(bug).neighbor()){
             if(!G.isFree(dest)){
                 position pos = G.getPosition(bug);
-                pair<pieceT,direction> relativeDir = G.getRelativePositionIfCanMove(dest, pos, true);
-                if (relativeDir.second != INVALID) {
+                if (G.canSlideToFree(dest,pos)) {
                     queue.push_back(make_pair(dest, 1));
                 }
             }
@@ -725,12 +662,10 @@ void Board::possibleMoves_Ladybug(pieceT bug){
             for (position n: f.neighbor()){
                 if (seen[n.toInt()])
                     continue;
-
-                pair<pieceT,direction> relativeDir = G.getRelativePositionIfCanMove(n, f, true);
             
-                if (relativeDir.second != INVALID) {
+                if (G.canSlideToFree(n,f)) {
                     if (G.isFree(n) && d == 2 && !seen[n.toInt()]) { //TODO: It must do exactly 3 steps right?
-                        resAction[numAction]=(movement(bug, relativeDir.first, relativeDir.second));
+                        resAction[numAction]=(movement(bug, n,G));
                         numAction++;
                         seen.set(n.toInt(),1);
                     } else if (d == 1 && !G.isFree(n)) {

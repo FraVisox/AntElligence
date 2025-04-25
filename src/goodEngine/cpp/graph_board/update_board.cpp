@@ -68,7 +68,7 @@ void UpdateGameboard(gameboard &g, actionT act){
         if(((act>>(8*(i+1)))&(0xff))!=0){
             pieceT ob=(act>>(8*(i+1)))&(0xff);
             position nbPos=g.getPosition(ob);
-            position myPosition=nbPos.applayMove(numberToDirection(opposite(i)));
+            position myPosition=nbPos.applayMove((opposite(i)));
             g.addPiece(myPosition,p);
             return;
         }
@@ -96,9 +96,9 @@ void  getActionsWithImplicitTransiction(boardT state,Board& b,actionT* ris){
     ris[0]=b.numAction;
 
     for(int i=1;i<=b.numAction;i++){
-        action act=b.resAction[i-1];
-        ris[i]=(actionT)act.bug;
-        if(act.actType==PLACEFIRST)continue;
+        //action act=b.resAction[i-1];
+        ris[i]=b.resAction[i-1];
+        /*if(act.actType==PLACEFIRST)continue;
         position destPos=b.G.getPosition(act.otherBug).applayMove(act.relativeDir);
         int resHight=b.G.getHight(destPos);
 
@@ -116,6 +116,7 @@ void  getActionsWithImplicitTransiction(boardT state,Board& b,actionT* ris){
         if(resHight!=0){
             ris[i]|=((actionT)(((actionT)(b.G.topPiece(destPos)))))<<(56);
         }
+        */
         //checkActionValid(state,ris[i]);
     }
     //DEBUG ONLY

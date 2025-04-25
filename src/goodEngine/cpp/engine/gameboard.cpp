@@ -22,6 +22,10 @@ gameboard::gameboard(){
  * \return The position of the bug on the board, NULL_POSITION if the bug is not on the board.
  */
 position gameboard::getPosition(const pieceT &p){
+    if(bugPosition[p].first!=10000  && bugPosition[p].first>=32 && bugPosition[p].first<0)
+        throw "Out of pos";
+    if(bugPosition[p].second!=10000  && bugPosition[p].second>=32 && bugPosition[p].second<0)
+        throw "Out of pos";
     return  bugPosition[p];
 
 }
@@ -81,37 +85,6 @@ void gameboard::removePiece(const pieceT &b){
         throw "Removing a non-top piece";
     }
 }
-
-/**
- * \brief Adds a piece to the gameboard based on the given action.
- *
- * This function places a bug on the gameboard according to the specified action.
- * For a PLACEFIRST action, the piece is placed at the initial position (0,0).
- * For PLACE and MOVEMENT actions, the position is calculated relative to another
- * bug and direction specified in the action. If the action is a PASS, no piece is
- * added. The function then delegates the actual placement to another version of
- * addPiece that takes a position and a piece as arguments.
- *
- * \param a The action specifying how and where to place the piece on the board.
- */
-/*
-void gameboard::addPiece(const action &a){
-    position pos;
-    switch (a.actType) {
-        case PLACEFIRST:
-            pos = position{0,0};
-            break;
-        case PLACE:
-        case MOVEMENT:
-            pos = calcPosition(a.otherBug, a.relativeDir);
-            break;
-        case PASS:
-            return;
-    }
-    pieceT b = a.bug;
-    addPiece(pos, b);
-}
-*/
 
 /**
  * \brief Adds a bug to the gameboard at the specified position.
@@ -205,18 +178,27 @@ int gameboard::getHight(const position &pos){
  * \param to The destination position of the bug.
  * \return True if the bug can be moved horizontally, false otherwise.
  */
-bool gameboard::canHorizontalSlide( position &from, position &to){
-    if(getHight(from)-1==getHight(to) && isNear(to, from)){
-        vector<position> v= nearBoth(from,to);
-        position p1=v[0], p2=v[1];
-        //If both are at an higher level than this one, we can't move
-        if(getHight(p1) >= getHight(from) && getHight(p2) >= getHight(from))
-            return false;
-        return true;
-    }
-    return false;
+
+
+
+bool gameboard::canSlideToFree( position &from, position to){
+    return (!isGate(from,to)) && isJoined(from,to);
 }
 
+bool gameboard::isGate(position &from,position &to){
+    direction n = getMovementDirection(from,to);
+    position p1=from.applayMove((n+1)%6);
+    position p2=from.applayMove((n+5)%6);
+    int minH=min(getHight(from),getHight(to));
+    return (getHight(p1)>minH && getHight(p2)>minH);
+}
+
+bool gameboard::isJoined(position &from,position &to){
+    direction n = getMovementDirection(from,to);
+    position p1=from.applayMove((n+1)%6);
+    position p2=from.applayMove((n+5)%6);
+    return ( (!isFree(p1)) || (!isFree(p2)));
+}
 
 /**
  * \brief Finds the relative position if the bug at position 'from' can move to position 'to'.
@@ -230,28 +212,25 @@ bool gameboard::canHorizontalSlide( position &from, position &to){
  * \param canOver Whether the bug can be moved over other pieces.
  * \return A pair containing the relative piece and direction if the bug can be moved, otherwise a pair containing the invalid piece and direction.
  */
-pair<pieceT, direction> gameboard::getRelativePositionIfCanMove(position &to, position &from, bool canOver){
 
-    //TODO: check the logic of this function
 
-    //If I'm at level 1
+
+// TOD FIX IT:
+/*
+bool gameboard::checIfCanMove(position &to, position &from, bool canOver){
+    if(!isNear(to,from))return false;
+
     if(isAtLevel1(from) && canHorizontalSlide(from,to)){
-        vector<position> v = nearBoth(to,from);
-        position p1 = v[0], p2 = v[1];
-        if(isFree(p1) && !isFree(p2)) //I slide around p2
-            return {topPiece(p2), getMovementDirection(p2, to)};
-        else if(!isFree(p1) && isFree(p2)) //I slide around p1
-            return {topPiece(p1), getMovementDirection(p1, to)};
-    } 
-    else if (canOver && isNear(to, from) && !isFree(to)) {
+            return true;
+    }
+    if (canOver && isNear(to, from) && !isFree(to)) {
         vector<position> v= nearBoth(from,to);
         position p1=v[0], p2=v[1];
         //If I am climbing to reach that spot
         if(getHight(p1) <= getHight(to)|| getHight(p2) <= getHight(to)) {
-            return {topPiece(to), OVER};
+            return true;
         }
     }
-    //If I am coming down from an upper position
     if (isNear(to,from)) {
         vector<position> v= nearBoth(from,to);
         position p1=v[0], p2=v[1];
@@ -263,12 +242,14 @@ pair<pieceT, direction> gameboard::getRelativePositionIfCanMove(position &to, po
             gb[(from.first+SIZE_BOARD)%SIZE_BOARD][(from.second+SIZE_BOARD)%SIZE_BOARD][getHight(from)]=current;
             high[(from.first+SIZE_BOARD)%SIZE_BOARD][(from.second+SIZE_BOARD)%SIZE_BOARD]++;
 
-            return {other, dir};
+            return true;
         }
     }
-    return {INVALID_PIECE, INVALID};
-}
+    return false;
 
+    
+}
+*/
 /**
  * \brief Determines the sliding move at level 1 from one position to another.
  *
@@ -284,6 +265,7 @@ pair<pieceT, direction> gameboard::getRelativePositionIfCanMove(position &to, po
  *         a valid sliding move is possible, otherwise a pair containing the 
  *         invalid piece and direction.
  */
+/*
 pair<pieceT, direction> gameboard::getSlidingMoveAtLevel1(position &to, position &from) {
     if(isFree(to) && isNear(from, to)){
         vector<position> v= nearBoth(from,to);
@@ -297,7 +279,7 @@ pair<pieceT, direction> gameboard::getSlidingMoveAtLevel1(position &to, position
     return {INVALID_PIECE, INVALID};
 }
 
-
+*/
 /**
  * \brief Finds the occupied adjacent positions of a given position.
  *
@@ -350,38 +332,35 @@ pieceT gameboard::topPiece(const position &pos){
  * \return A vector of pairs containing the piece and direction for each valid
  *         position to place a new piece.
  */
-vector<pair<pieceT,direction>> gameboard::validPositionPlaceNew(PlayerColor color){
-    bitset<SIZE_BOARD*SIZE_BOARD> seen;
-    seen.reset();
-    vector<pair<pieceT,direction>> valid;
+vector<position> gameboard::validPositionPlaceNew(PlayerColor color){  // there is a faster way using bit map, but is boring
+    bitset<SIZE_BOARD*SIZE_BOARD> hasOneNearSame, hasOneNearOpp;
+    hasOneNearSame.reset();
+    hasOneNearOpp.reset();
+    
+    vector<position> ris;
     for(int IPos=0;IPos<SIZE_BOARD*SIZE_BOARD;IPos++){
         if(occupied[IPos]){
-        position op(IPos);
-        pieceT p = topPiece(op);
-        if(col(p) == color){
-            for(position possiblePosition:op.neighbor()){
-                if(seen[possiblePosition.toInt()]) 
-                    continue;
-
-                seen.set(possiblePosition.toInt(),1);
-
-                if(isFree(possiblePosition)){
-                    bool hasOtherColor=false;
-                    for(auto n:possiblePosition.neighbor()){
-                        if(!isFree(n) && col(topPiece(n))!=color){
-                            hasOtherColor=true;
-                            break;
-                        }
-                    }
-                    if(!hasOtherColor){
-                        valid.push_back(make_pair(p,getMovementDirection(op, possiblePosition)));
-                    }
+            position pos(IPos);
+            pieceT x=topPiece(pos);
+            if(col(x)==color){
+                for(int i=0;i<6;i++){
+                    hasOneNearSame.set(pos.applayMove(i).toInt(),true);
+                }
+            }else{
+                for(int i=0;i<6;i++){
+                    hasOneNearOpp.set(pos.applayMove(i).toInt(),true);
                 }
             }
         }
+    }
+
+    for(int IPos=0;IPos<SIZE_BOARD*SIZE_BOARD;IPos++){
+        if((!occupied[IPos])  && (hasOneNearSame[IPos]) &&(!hasOneNearOpp[IPos])){
+            ris.push_back(position{IPos});
         }
     }
-    return valid;
+    
+    return ris;
 }
 
 

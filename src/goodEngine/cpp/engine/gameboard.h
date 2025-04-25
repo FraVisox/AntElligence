@@ -2,15 +2,12 @@
 #define GAMEBOARD_H
 
 #include <set>
-#include <string>
 #include <vector>
 #include <stack>
-#include <set>
 #include <bitset>
 #include "piece.h"
 #include "position.h"
 #include "enums.h"
-#include "action.h"
 #include "direction.h"
 using namespace  std;
 #define HIGHT_BOARD 6
@@ -25,11 +22,11 @@ class gameboard{
     
     bitset<32> isPlaced;
     //Initialization
-    
+    //bool checIfCanMove(position &to, position &from, bool canOver);
 
     
     //And the placing
-    vector<pair<pieceT,direction>> validPositionPlaceNew(PlayerColor color);
+    vector<position> validPositionPlaceNew(PlayerColor color);
     vector<position> occupiedEdge(position &pos);
 
     
@@ -49,7 +46,6 @@ class gameboard{
     position getPosition(const pieceT &p);
     void updatePos(const pieceT &bug,const position &pos);
     void removePiece(const pieceT &b);    
-    //void addPiece(const action &a);
     void addPiece(const position &pos, const pieceT &b);
     bool isTop(const pieceT &bug);
     bool canPieceMove(const pieceT &b,int turn);
@@ -57,13 +53,11 @@ class gameboard{
     int getHight(const position &pos);
 
     //Main function to understand the movements
-    bool canHorizontalSlide( position &from,  position &to);
-    pair<pieceT, direction> getRelativePositionIfCanMove( position &to,  position &from, bool canOver);
-    pair<pieceT, direction> getSlidingMoveAtLevel1(position &to, position &from);
+    bool canSlideToFree(position &from,position to);
     bool canMoveWithoutBreakingHiveRule(const pieceT &b,int turn);
 
-
-    
+    bool isGate(position &p1,position &p2);
+    bool isJoined(position &p1,position &p2);
     //PRIVATE FUNCTIONS TO FIND ARTICULATION POINTS (HIVE RULE) AND CALCULATE POSITION
 
     private:
@@ -74,22 +68,6 @@ class gameboard{
     bitset<SIZE_BOARD*SIZE_BOARD> visited_dfs;
     int disc[SIZE_BOARD*SIZE_BOARD],low[SIZE_BOARD*SIZE_BOARD];
 
-    /**
-     * \brief Calculate the position of a bug given its current position and a direction.
-     *
-     * Given a bug and a direction, this function returns the position that the
-     * bug would be at if it were moved in the given direction. Used to calculate
-     * the position of a bug after a move.
-     *
-     * \param b The bug to calculate the new position of.
-     * \param d The direction to move the bug in.
-     * \return The new position of the bug after moving in the given direction.
-     */
-    position calcPosition(const pieceT &b, direction d){
-        position pos = getPosition(b);
-        pos = pos.applayMove(d);
-        return pos;
-    }
 
     /**
      * \brief Find the articulation points of the occupied positions.
@@ -139,7 +117,9 @@ class gameboard{
         disc[v.toInt()] = low[v.toInt()] = timer++;
 
         int children=0;
-        for (position to : occupiedEdge(v)) {
+        for (int dir=0;dir<6;dir++){
+            position to=v.applayMove(dir);
+            if(isFree(to))continue;
             //If this is a back edge, update low
             if (visited_dfs[to.toInt()]) {
                 low[v.toInt()] = min(low[v.toInt()], disc[to.toInt()]);

@@ -8,8 +8,8 @@
  * \throws string If the color is invalid.
  */
 string ColorToString(PlayerColor c){
-    if(c==BLACK) return "b";
-    if(c==WHITE) return "w";
+    if(c==PlayerColor::BLACK) return "b";
+    if(c==PlayerColor::WHITE) return "w";
     throw "Invalid color";
 }
 
@@ -100,21 +100,21 @@ GameState parseState(string s){
 string GameTypeToString(GameType gt){
     switch (gt)
     {
-        case Base:
+        case GameType::Base:
             return "Base";
-        case Base_L:
+        case GameType::Base_L:
             return "Base+L";
-        case Base_M:
+        case GameType::Base_M:
             return "Base+M";
-        case Base_P:
+        case GameType::Base_P:
             return "Base+P";
-        case Base_ML:
+        case GameType::Base_ML:
             return "Base+ML";
-        case Base_MP:
+        case GameType::Base_MP:
             return "Base+MP";
-        case Base_LP:
+        case GameType::Base_LP:
             return "Base+LP";
-        case Base_MLP:
+        case GameType::Base_MLP:
             return "Base+MLP";
     }
     throw "Invalid game type";
@@ -225,7 +225,7 @@ Command stringToCommand(const std::string& cmd) {
     return Command::UNKNOWN;
 }
 
-std::string optionToString(StrategyName brain) {
+string optionToString(StrategyName brain) {
     switch (brain) {
         case StrategyName::RANDOM:
             return "Random";

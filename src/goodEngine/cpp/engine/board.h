@@ -21,7 +21,7 @@ class Board {
     gameboard G = gameboard();
     //vector<pieceT> placedBug = vector<pieceT>();
     bitset<32> inHandPiece;
-    action resAction[MAX_ACTIONS_SIZE];
+    actionT resAction[MAX_ACTIONS_SIZE];
     int numAction;
     pieceT prevMoved[2];
     //Initialization

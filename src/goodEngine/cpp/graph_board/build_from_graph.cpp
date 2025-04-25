@@ -20,7 +20,7 @@ void DFSPlace(boardT board, gameboard& gb, position pos, pieceT n){
     int startPos=getStartingPointBug(n);
     for(int i=0;i<6;i++){
         if(board[i+startPos]!=0){
-            DFSPlace(board,gb,pos.applayMove(numberToDirection(i)),board[i+startPos]);
+            DFSPlace(board,gb,pos.applayMove((i)),board[i+startPos]);
         }
     }
 

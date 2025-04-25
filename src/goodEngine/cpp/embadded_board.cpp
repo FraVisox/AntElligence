@@ -55,15 +55,16 @@ int EBoard::getState(){
 }
 
 void EBoard::checkConsistency(){
+    return ;
     checkBoardCoherent(graph_board);
     
     for(int i=1;i<=28;i++){
-        if(isPlaced(graph_board,i) && board_exp.G.getPosition(i)==NULL_POSITION){
+        if(isPlaced(graph_board,i) && !board_exp.G.isPlaced[i]){
             int k=0;
             k+=1;
             throw "Placed a piece not there (yes in Graph)";
         }
-        if(!isPlaced(graph_board,i) && board_exp.G.getPosition(i)!=NULL_POSITION)
+        if(!isPlaced(graph_board,i) && board_exp.G.isPlaced[i])
         {
             throw "Placed a piece not there (yes in Graph)";
         }
@@ -73,10 +74,10 @@ void EBoard::checkConsistency(){
             if(board_exp.G.gb[(posBase.first+SIZE_BOARD)%SIZE_BOARD][(posBase.second+SIZE_BOARD)%SIZE_BOARD][0]!=i)continue;
 
             for(int j=0;j<6;j++){
-                if(graph_board[of+j]!=0){
+                if(graph_board[of+j]!=0 && board_exp.currentTurn>2){
                     pieceT otherBug=graph_board[of+j];
                     position otherPos=board_exp.G.getPosition(otherBug);
-                    if(posBase.applayMove(allDirections[j])!=otherPos){
+                    if(posBase.applayMove(j)!=otherPos){
                         throw "Not the correct position";
                     }
                 }

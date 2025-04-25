@@ -31,7 +31,7 @@ class DLLGameRule(game_rule):
         self.checkGameStatus = dll._Z11checkStatusP6EBoard
         self.actionToString = dll._Z14actionToStringl
         self.printAct = dll._Z16printActionFancyl
-
+        self.PrintBoard = dll._Z10PrintBoardP6EBoard  
         # Set argument/return types
         self.getBoard.argtypes = [ctypes.c_int]  # the type of game, define in engine/enums.h
         self.getBoard.restype = ctypes.c_void_p
@@ -54,7 +54,6 @@ class DLLGameRule(game_rule):
         self.printAct.argtypes = [ctypes.c_int64]
         self.printAct.restype = None
 
-        self.PrintBoard = dll._Z10PrintBoardP6EBoard  
         self.PrintBoard.argtypes = [ctypes.c_void_p]  
         self.PrintBoard.restype = None 
 
@@ -62,14 +61,13 @@ class DLLGameRule(game_rule):
         return self.getBoard(0)  # default game type
 
     def next_state(self, state, action):
-        new_state = self.copyBoard(state)
-        self.updateState(new_state, ctypes.c_int64(action))
-        return new_state
+        self.updateState(state, ctypes.c_int64(action))
 
     def getActions(self, state):
         MAX_ACTIONS = 256
         actions = (ctypes.c_int64 * MAX_ACTIONS)()
         self.getAction(state, actions)
+        return actions
         return [actions[i+1] for i in range(actions[0])]
 
     def checkStatus(self, state):
@@ -80,7 +78,7 @@ class DLLGameRule(game_rule):
             2: "GAME_OVER_WHITE_WINS or DRAW",
             3: "GAME_OVER_BLACK_WINS"
         }
-        return status_map.get(code, f"UNKNOWN({code})")
+        return code
 
     def action_to_str(self, action):
         return self.actionToString(ctypes.c_int64(action)).decode('utf-8')

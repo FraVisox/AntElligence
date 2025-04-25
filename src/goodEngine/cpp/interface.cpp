@@ -61,7 +61,7 @@ char* actionToString(actionT a){
     for(int i=1;i<=7;i++){
         char can=((a>>(i*8))&0xff);
         if(can!=0){
-            s+=" "+nameDirToString(PiecetoString(can),allDirections[opposite(i-1)]);
+            s+=" "+nameDirToString(PiecetoString(can),opposite(i-1));
             break;
         }
     }
