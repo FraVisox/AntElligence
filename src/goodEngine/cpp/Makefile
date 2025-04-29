@@ -68,6 +68,11 @@ $(OUT_DIR)/embadded_board-test.o: embadded_board.cpp embadded_board.h $(GRAPH_H)
 test: $(TEST_OBJS) test.cpp
 	$(CXX) $(TEST_FLAG) test.cpp $(TEST_OBJS) -o test
 
+test-1: $(TEST_OBJS) test-1.cpp interface.cpp interface.h
+	$(CXX) $(TEST_FLAG) test-1.cpp interface.cpp  $(TEST_OBJS) -o test-1
+
+
+
 engine.so: $(ENGINE_SOS) $(GRAPH_SOS) interface.cpp
 	$(CXX) -fPIC -shared interface.cpp $(ENGINE_SOS) $(GRAPH_SOS) -o engine.so
 
@@ -83,6 +88,7 @@ clean:
 
 test-fast:  test.cpp  embadded_board.cpp embadded_board.h $(GRAPH_H) $(ENGINE_H)
 	$(CXX) -O3 test.cpp engine/*.cpp graph_board/*.cpp graph_board/*.h embadded_board.* -o test-fast
+
 
 #TEST_FLAG :=-O3
 #BUILD_FLAG := -O3 

@@ -127,6 +127,7 @@ void gameboard::copy(gameboard& g){
         for(int j=0;j<SIZE_BOARD;j++){
             for(int h=0;h<HIGHT_BOARD;h++)
                 this->gb[i][j][h]=g.gb[i][j][h];
+            this->high[i][j]=g.high[i][j];
     }
     this->occupied=g.occupied;
     this->isPlaced=g.isPlaced;

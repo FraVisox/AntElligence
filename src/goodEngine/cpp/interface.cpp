@@ -74,6 +74,60 @@ char* actionToString(actionT a){
 }
 
 
+double boardEval(EBoard* b, double w[]){
+    PlayerColor MyCol=b->board_exp.currentColor();
+    pieceT myQueen=(MyCol==PlayerColor::WHITE)?8:22;
+    pieceT oppositeQueen=30-myQueen;
+    
+
+    int nearMyQueen=0;
+    int nearOpposite=0;
+    int sM=getStartingPointBug(myQueen);
+    int sO=getStartingPointBug(oppositeQueen);
+    for(int i=0;i<6;i++){
+        if(b->graph_board[sM+i]!=0){
+            nearMyQueen++;
+        }
+        if(b->graph_board[sO+i]!=0){
+            nearOpposite++;
+        }
+    }
+
+    int pressureOnOwnQueen=(b->graph_board[sM+7]!=0)?1:0;
+    int pressureOnOpponentQueen=(b->graph_board[sO+7]!=0)?1:0;
+
+    int movableSelf=0, movableOpp=0;
+    int unplacedMy=0, unplacedOpp=0;
+    int t=currentTurn(b->graph_board);
+    for(int p=1;p<=28;p++){
+        if(isPlaced(b->graph_board,p)&& b->board_exp.G.canMoveWithoutBreakingHiveRule(p,t+1))
+        {
+            if(col(p)==MyCol)movableSelf++;
+            else movableOpp++;
+        }else if(isInHand(b->graph_board,p)){
+            
+            if(col(p)==MyCol)unplacedMy++;
+            else     unplacedOpp++;
+        }
+    }
+
+    double score = 0.0;
+    
+    score += w[0] * pressureOnOpponentQueen;
+    score += w[1] * pressureOnOwnQueen;
+    score += w[2] * movableSelf;
+    score += w[3] * movableOpp ;
+    score += w[4] * nearMyQueen;
+    score += w[5] * nearOpposite;
+    
+    return score;
+}
+
+
+void delBoard(EBoard* b){
+    free(b);
+}
+
 /*
     OK = 0
     INVALID_GAME_NOT_STARTED = 1

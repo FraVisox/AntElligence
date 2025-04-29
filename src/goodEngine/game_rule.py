@@ -32,6 +32,8 @@ class DLLGameRule(game_rule):
         self.actionToString = dll._Z14actionToStringl
         self.printAct = dll._Z16printActionFancyl
         self.PrintBoard = dll._Z10PrintBoardP6EBoard  
+        self.evalBoard = dll._Z9boardEvalP6EBoardPd
+        self.delBoardC=dll._Z8delBoardP6EBoard
         # Set argument/return types
         self.getBoard.argtypes = [ctypes.c_int]  # the type of game, define in engine/enums.h
         self.getBoard.restype = ctypes.c_void_p
@@ -54,8 +56,9 @@ class DLLGameRule(game_rule):
         self.printAct.argtypes = [ctypes.c_int64]
         self.printAct.restype = None
 
-        self.PrintBoard.argtypes = [ctypes.c_void_p]  
-        self.PrintBoard.restype = None 
+
+        self.evalBoard.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_double)]
+        self.evalBoard.restype = ctypes.c_double 
 
     def init_state(self):
         return self.getBoard(0)  # default game type
@@ -68,7 +71,6 @@ class DLLGameRule(game_rule):
         actions = (ctypes.c_int64 * MAX_ACTIONS)()
         self.getAction(state, actions)
         return actions
-        return [actions[i+1] for i in range(actions[0])]
 
     def checkStatus(self, state):
         code = self.checkGameStatus(state)
@@ -89,6 +91,10 @@ class DLLGameRule(game_rule):
     def PrintState(self, state):
         self.PrintBoard(state)
 
+    def calcVal(self,state,w):
+        return self.evalBoard(state,w)
+    def delBoard(self,state):
+        self.delBoardC(state)
 """
 import ctypes
 import os
