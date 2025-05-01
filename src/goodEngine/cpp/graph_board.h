@@ -1,0 +1,36 @@
+#include <stdint.h>
+#include <iostream>
+
+#include "build_from_graph.h"
+using namespace std;
+
+#ifndef GRAPH_BOARD_H
+#define GRAPH_BOARD_H
+#define WHITENUM 0
+#define INFOBOARD_SIZE 4
+#define BOARDSIZE 284
+#define INFOPOS 0
+#define TURNPOS 2
+
+
+
+inline int opposite(int x);
+int getStartingPointBug(int bugNumber );
+
+bool isPlaced(boardT board, int n);
+bool isPresent(boardT board, int n);
+bool isInHand(boardT board, int n);
+
+void addPieceInHand(boardT board, int n);
+bool getColor(int n);
+int bugNumber(int n);
+int currentTurn(boardT b);
+void setTurn(boardT b,int n);
+int checkWin(boardT b);
+void findNextState(boardT currentBoard, boardT nextBoard,actionT act);
+actionT* getActionsWithExplicitTransiction(char*);
+
+void printBoardFancy(boardT board);
+void printActionFancy(actionT a);
+
+#endif
