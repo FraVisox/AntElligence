@@ -9,8 +9,10 @@ import Agent
 
 class MinimaxAgentCPP:
     
-    def __init__(self,typeGame=0,weight=(ctypes.c_double * 6)(0,0,0,1,-2,30),depth=4) -> None:
-        self.w=weight
+    def __init__(self,typeGame=0,weight=[0,0,0,1,-2,30],depth=4) -> None:
+        self.w=(ctypes.c_double * 6)()
+        for i in range(6):
+            self.w[i]=weight[i]
         self.currentTurn=1
         self.depth=depth
         self.gametype=typeGame

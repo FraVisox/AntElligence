@@ -31,14 +31,13 @@ int main(){
         while (i < 3000) {
 
             actionT best_action;
-            getActions(state,actions);
             evN=0;
             if(i%2==colS){
-                p=minimax(state,4,true,w1);
+                p=minimax(state,5,true,w1);
                 best_action=p.second;
             }else{
-                p=minimax(state,4,true,w2);
-                best_action=p.second;
+                getActions(state,actions);
+                best_action=actions[1];
             
             }
 
@@ -92,11 +91,10 @@ minimax(EBoard* state,
     int status = checkStatus(state);
     if (status != 1) {
         // status==3/4 → immediate win/loss
-        int t = currentTurn(state->graph_board) % 2 == 0;
-        if ((status == 3 && t == 0) || (status == 4 && t == 1))
-            return { +1000, -1 };
+        if(maximizing_player)
+            return { 1000, -1 };
         else
-            return { -1000, -1 };
+            return { 1000, -1 };
     }
 
     // 2) THEN, if we’ve hit the depth cutoff, do a static evaluation
@@ -112,7 +110,7 @@ minimax(EBoard* state,
     int n = actions[0];
 
     if (maximizing_player) {
-        double max_eval = -1e9;
+        double max_eval = -1000;
         for (int i = 1; i <= n; ++i) {
             EBoard* child = copyBoard(state);
             next_state(child, actions[i]);
@@ -128,7 +126,7 @@ minimax(EBoard* state,
         }
         return { max_eval, best_action };
     } else {
-        double min_eval = +1e9;
+        double min_eval = +1000;
         for (int i = 1; i <= n; ++i) {
             EBoard* child = copyBoard(state);
             next_state(child, actions[i]);
