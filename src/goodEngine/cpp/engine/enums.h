@@ -5,7 +5,7 @@
 using namespace std;
 typedef char* boardT;
 typedef int64_t actionT;
-
+const  int MAX_ACTIONS_SIZE=256;
 //Return message
 
 enum ReturnMessage{ //TODO: add more errors

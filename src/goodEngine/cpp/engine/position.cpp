@@ -1,4 +1,5 @@
-#include <string>
+#include <iostream>
+
 #include <vector>
 #include "position.h"
 using namespace std;
@@ -36,7 +37,7 @@ position NULL_POSITION(10000, 10000);
  * \param x The x coordinate of the position.
  * \param y The y coordinate of the position.
  */
-position::position(int x,int y){
+position::position(unsigned int x,unsigned int y){
     first=x;
     second=y;
 }
@@ -76,13 +77,17 @@ position::position(){
  */
 vector<position> position::neighbor(){
     vector<position> v;
-    
+    for(direction dir=0;dir<6;dir++){
+        v.push_back(applayMove(dir));
+    }
+    /*
     v.emplace_back((first  +SIZE_BOARD)%SIZE_BOARD,(second+1+SIZE_BOARD)%SIZE_BOARD);
     v.emplace_back((first+1+SIZE_BOARD)%SIZE_BOARD,(second  +SIZE_BOARD)%SIZE_BOARD);
     v.emplace_back((first+1+SIZE_BOARD)%SIZE_BOARD,(second-1+SIZE_BOARD)%SIZE_BOARD);
     v.emplace_back((first  +SIZE_BOARD)%SIZE_BOARD,(second-1+SIZE_BOARD)%SIZE_BOARD);
     v.emplace_back((first-1+SIZE_BOARD)%SIZE_BOARD,(second  +SIZE_BOARD)%SIZE_BOARD);
     v.emplace_back((first-1+SIZE_BOARD)%SIZE_BOARD,(second+1+SIZE_BOARD)%SIZE_BOARD);
+    */
     return v;       
 }
 
@@ -95,9 +100,8 @@ vector<position> position::neighbor(){
  * \param d The direction of the movement.
  * \return The resulting position of the movement.
  */
-position position::applayMove(direction d){
-    pair<int,int> delta = associatedDifference(d);
-    position p((first+delta.first+SIZE_BOARD)%SIZE_BOARD,(second+delta.second+SIZE_BOARD)%SIZE_BOARD);
+position position::applayMove(direction d)const {
+    position p((first+adF[d])&31,(second+adS[d])&31);
     return p;
 }
 
@@ -114,16 +118,13 @@ position position::applayMove(direction d){
  * \param to The destination position.
  * \return The direction from 'from' to 'to'. Returns INVALID if no valid direction is found.
  */
-direction getMovementDirection(const position &from, const position &to){
-    pair<int,int> diff((to.first-from.first+SIZE_BOARD)%SIZE_BOARD,(to.second-from.second+SIZE_BOARD)%SIZE_BOARD);
 
-    for (int i = 0; i<6; i++){
-        pair<int,int> p = movementCircleClockwise[i]; 
-        if((p.first+SIZE_BOARD)%SIZE_BOARD==(diff.first+SIZE_BOARD)%SIZE_BOARD && (p.second+SIZE_BOARD)%SIZE_BOARD==(diff.second+SIZE_BOARD)%SIZE_BOARD){
-            return numberToDirection(i);
-        }
-    }
-    return INVALID;
+const int r[]={6,1,6,4,0,6,6,5,6,6,6,6,3,2};
+direction getMovementDirection(const position &from, const position &to){
+    unsigned int f=(to.first-from.first)&3;
+    unsigned int s=(to.second-from.second)&3;
+    unsigned int ris=f*4+s;
+    return r[ris];
 }
 
 /**
@@ -137,7 +138,14 @@ direction getMovementDirection(const position &from, const position &to){
  * \return True if both positions have the same coordinates, false otherwise.
  */
 bool operator==(const position &p1,const position& p2){
-    return ((p1.first+SIZE_BOARD)%SIZE_BOARD==(p2.first+SIZE_BOARD)%SIZE_BOARD && (p1.second+SIZE_BOARD)%SIZE_BOARD==(p2.second+SIZE_BOARD)%SIZE_BOARD);
+    if(p1.first==10000 && p2.first==10000){
+        return true;
+    }
+    if(p1.first==10000 || p2.first==10000)
+        return false;
+    
+        
+    return ((p1.first&31)==(p2.first&31) && (p1.second%31)==(p2.second&31));
 }
 
 /**
@@ -154,6 +162,11 @@ bool operator!=(const position &p1,const position& p2){
     return !(p1==p2);
 }
 
+bool operator<(const position &p1,const position& p2){
+    if(p1.first!=p2.first) return p1.first<p2.first;
+    return p1.second<p2.second;
+}   
+
 /**
  * \brief Checks if two positions are adjacent.
  *
@@ -166,32 +179,18 @@ bool operator!=(const position &p1,const position& p2){
  */
 
 bool isNear(const position &p1, const position &p2){
-    if(getMovementDirection(p1,p2)!=INVALID) 
+    if(getMovementDirection(p1,p2)) 
         return true;
     return false;
 }
 
-/**
- * \brief Computes the two positions between which p1 and p2 are located.
- *
- * Given two positions p1 and p2, this function returns the two positions
- * between which p1 and p2 are located. The positions are computed by looking
- * for the two directions that are adjacent to the direction between p1 and
- * p2.
- *
- * \param p1 The first position.
- * \param p2 The second position.
- * \return A vector containing the two positions between p1 and p2.
- */
-vector<position> nearBoth(position &p1, position &p2){
-    direction dir = getMovementDirection(p1,p2);
-    int n=dir;
-    int m1=(n+1)%6;
-    int m2=(n+5)%6;
-    vector<position> ris;
-    ris.push_back(p1.applayMove(numberToDirection(m1)));
-    ris.push_back(p1.applayMove(numberToDirection(m2)));
-    return ris;
+position::position(int k){
+    first=k&31;
+    second=k>>5;
+}
+
+unsigned int position::toInt() const{
+    return first+(second<<5);
 }
 
 

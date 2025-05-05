@@ -1,11 +1,9 @@
 #ifndef BOARD_H
 #define BOARD_H
-
+#include <bitset>
 #include "gameboard.h"
 #include "action.h"
-#include <unordered_set>
 #include <queue>
-#include <algorithm>
 #include <string.h>
 #include <sstream>
 
@@ -21,20 +19,20 @@ class Board {
 
     //Gameboard and pieces
     gameboard G = gameboard();
-    vector<piece> placedBug = vector<piece>();
-    unordered_set<piece> inHandPiece = unordered_set<piece>();
-    bool isPlacedWQ=false;
-    bool isPlacedBQ=false;
-
+    //vector<pieceT> placedBug = vector<pieceT>();
+    bitset<32> inHandPiece;
+    actionT resAction[MAX_ACTIONS_SIZE];
+    int numAction;
+    pieceT prevMoved[2];
     //Initialization
 
     Board();
 
-    void reset();
+    void copy(Board&);
 
     int getScore(PlayerColor color);
-    int getScoreBug(piece p);
-    int countSurrounding(piece p);
+    int getScoreBug(pieceT p);
+    int countSurrounding(pieceT p);
 
     //Current status
     string toString();
@@ -42,30 +40,31 @@ class Board {
     int currentPlayerTurn();
     bool placedQueen();
 
+
+    bitset<1024> movesAnt;
     //Make movement
-    ReturnMessage executeAction(string s);
-    ReturnMessage checkWin();
-    bool checkSurrounding(const piece &p);
+    //ReturnMessage executeAction(string s);
+    //ReturnMessage checkWin();
+    //bool checkSurrounding(const pieceT &p);
+    void applayAction(actionT a);
 
+    void addPieceHand(pieceT p);
 
-    void addPieceHand(piece p);
+    void ComputePossibleMoves();
+    void possibleMovesBug(pieceT b);
+    void possibleMoves_Queen(pieceT bug);
+    void possibleMoves_Beetle(pieceT bug);
+    void possibleMoves_Grasshopper(pieceT bug);
+    void possibleMoves_SoldierAnt(pieceT bugs);
+    void possibleMoves_Spider(pieceT bugs);
+    void possibleMoves_Pillbug(pieceT bug);
+    void possibleMoves_Mosquito(pieceT bug);
+    void possibleMoves_Ladybug(pieceT bug);
 
-    vector<action> possibleMoves();
-    void possibleMovesBug(piece b, vector<action> &res);
-    void possibleMoves_Queen(piece bug,vector<action> &res);
-    void possibleMoves_Beetle(piece bug,vector<action> &res);
-    void possibleMoves_Grasshopper(piece bug,vector<action> &res);
-    void possibleMoves_SoldierAnt(piece bug, vector<action> & res);
-    void possibleMoves_Spider(piece bug, vector<action> & res);
-    void possibleMoves_Pillbug(piece bug, vector<action> &res);
-    void possibleMoves_Mosquito(piece bug, vector<action> &res);
-    void possibleMoves_Ladybug(piece bug,vector<action> &res);
-
-    int isPinned(piece bug);
-    int isInPlay(piece bug);
-    int isCovered(piece bug);
-    int friendlyNeighbour(piece bug);
-    int enemyNeighbour(piece bug);
+    int isPinned(pieceT bug);
+    int isCovered(pieceT bug);
+    int friendlyNeighbour(pieceT bug);
+    int enemyNeighbour(pieceT bug);
     friend Board buildBoardFromGraph(); 
 };
 

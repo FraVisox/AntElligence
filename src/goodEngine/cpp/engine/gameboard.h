@@ -2,38 +2,40 @@
 #define GAMEBOARD_H
 
 #include <set>
-#include <string>
 #include <vector>
 #include <stack>
-#include <map>
-#include <unordered_map>
-#include <unordered_set>
+#include <bitset>
 #include "piece.h"
 #include "position.h"
 #include "enums.h"
-#include "action.h"
 #include "direction.h"
 using namespace  std;
 #define HIGHT_BOARD 6
 
 class gameboard{
     public:
-    
-    piece gb[SIZE_BOARD][SIZE_BOARD][HIGHT_BOARD];  // Vector of stacks that contain bugs. One stack at each position. The board is thus 100*100
-    unordered_map<piece,position> bugPosition = unordered_map<piece,position>(); 
-    unordered_set<position> occupied = unordered_set<position>();
+    gameboard();
+    pieceT gb[SIZE_BOARD][SIZE_BOARD][HIGHT_BOARD];  // Vector of stacks that contain bugs. One stack at each position. The board is thus 100*100
+    position bugPosition[32];
+    bitset<SIZE_BOARD*SIZE_BOARD> occupied;
     int high[SIZE_BOARD][SIZE_BOARD];
+    
+    bitset<32> isPlaced;
     //Initialization
+    //bool checIfCanMove(position &to, position &from, bool canOver);
 
-    gameboard(){}
+    
+    //And the placing
+    vector<position> validPositionPlaceNew(PlayerColor color);
+    vector<position> occupiedEdge(position &pos);
+
+    
 
     //Reset
-
-    void reset();
+    void copy(gameboard& g);
 
     //Manage positions
 
-    //piece* at(const position &pos);
     void popPosition(const position &pos);
     bool isFree(const position &pos);
     bool isAtLevel1(const position &pos);
@@ -41,54 +43,35 @@ class gameboard{
 
     //Manage pieces
     
-    position getPosition(const piece &p);
-    void updatePos(const piece &bug,const position &pos);
-    void removePiece(const piece &b);    
-    void addPiece(const action &a);
-    void addPiece(const position &pos, const piece &b);
-    bool isTop(const piece &bug);
-    bool canPieceMove(const piece &b,int turn);
-    piece topPiece(const position &pos);
+    position getPosition(const pieceT &p);
+    void updatePos(const pieceT &bug,const position &pos);
+    void removePiece(const pieceT &b);    
+    void addPiece(const position &pos, const pieceT &b);
+    bool isTop(const pieceT &bug);
+    bool canPieceMove(const pieceT &b,int turn);
+    pieceT topPiece(const position &pos);
     int getHight(const position &pos);
 
     //Main function to understand the movements
-    bool canHorizontalSlide( position &from,  position &to);
-    pair<piece, direction> getRelativePositionIfCanMove( position &to,  position &from, bool canOver);
-    pair<piece, direction> getSlidingMoveAtLevel1(position &to, position &from);
-    bool canMoveWithoutBreakingHiveRule(const piece &b,int turn);
+    bool canSlideToFree(position &from,position to);
+    bool canMoveWithoutBreakingHiveRule(const pieceT &b,int turn);
 
+    bool canSlideToFreeDir(const position &from,const position &to,const direction n);
+    bool isGateDir(const position &from,const position &to,const direction n);
+    bool isJoinedDir(const position &from,const position &to,const direction n);
 
-    //And the placing
-    vector<pair<piece,direction>> validPositionPlaceNew(PlayerColor color);
-    vector<position> occupiedEdge(position &pos);
-
-    
+    bool isGate(position &p1,position &p2);
+    bool isJoined(position &p1,position &p2);
     //PRIVATE FUNCTIONS TO FIND ARTICULATION POINTS (HIVE RULE) AND CALCULATE POSITION
 
     private:
 
     int timer=0;
     int lastUpdateTurn=-1;
-    unordered_set<position> not_movable_position;
-    unordered_set<position> visited_dfs;
-    unordered_map<position,int> disc,low;
+    bitset<SIZE_BOARD*SIZE_BOARD> not_movable_position;
+    bitset<SIZE_BOARD*SIZE_BOARD> visited_dfs;
+    int disc[SIZE_BOARD*SIZE_BOARD],low[SIZE_BOARD*SIZE_BOARD];
 
-    /**
-     * \brief Calculate the position of a bug given its current position and a direction.
-     *
-     * Given a bug and a direction, this function returns the position that the
-     * bug would be at if it were moved in the given direction. Used to calculate
-     * the position of a bug after a move.
-     *
-     * \param b The bug to calculate the new position of.
-     * \param d The direction to move the bug in.
-     * \return The new position of the bug after moving in the given direction.
-     */
-    position calcPosition(const piece &b, direction d){
-        position pos = getPosition(b);
-        pos = pos.applayMove(d);
-        return pos;
-    }
 
     /**
      * \brief Find the articulation points of the occupied positions.
@@ -100,18 +83,22 @@ class gameboard{
      * bug can be moved without breaking the hive rule.
      */
     void find_articulation(){
-        if(occupied.empty())
+        if(occupied.none())
             return;
 
-        not_movable_position.clear();
-        visited_dfs.clear();
+        not_movable_position.reset();
+        visited_dfs.reset();
 
-        for(position e: occupied){
-            disc[e]=-1; //discovered time
-            low[e]=-1; //lowest discovered time
+        position startPos;
+        for(pieceT p=0;p<32;p++){
+            if(isPlaced[p]){
+                position e=bugPosition[p];
+                startPos=e;
+                disc[e.toInt()]=-1; //discovered time
+                low[e.toInt()]=-1; //lowest discovered time
+            }
         }
 
-        position startPos=*(occupied.begin());
         dfs(startPos);
     }
 
@@ -128,31 +115,33 @@ class gameboard{
     void dfs(position &v, const position &p = NULL_POSITION) {
 
         //Mark this as visited
-        visited_dfs.insert(v);
+        visited_dfs.set(v.toInt(),1);
 
         //Set the discovery time and low time as current time
-        disc[v] = low[v] = timer++;
+        disc[v.toInt()] = low[v.toInt()] = timer++;
 
         int children=0;
-        for (position to : occupiedEdge(v)) {
+        for (int dir=0;dir<6;dir++){
+            position to=v.applayMove(dir);
+            if(isFree(to))continue;
             //If this is a back edge, update low
-            if (visited_dfs.count(to)) {
-                low[v] = min(low[v], disc[to]);
+            if (visited_dfs[to.toInt()]) {
+                low[v.toInt()] = min(low[v.toInt()], disc[to.toInt()]);
             } else {
                 //Make it a children of this node and visit it
                 dfs(to, v);
                 //Check if the subtree rooted at v has a connection to one of the ancestors of u
-                low[v] = min(low[v], low[to]);
+                low[v.toInt()] = min(low[v.toInt()], low[to.toInt()]);
                 
                 //If the subtree rooted at to has not a connection to one of the ancestors of u, this is an articulation point
-                if (low[to] >= disc[v] && p!=NULL_POSITION)
-                    not_movable_position.insert(v);
+                if (low[to.toInt()] >= disc[v.toInt()] && p!=NULL_POSITION)
+                    not_movable_position.set(v.toInt(),1);
                 
                 ++children;
             }
         }
         if(p == NULL_POSITION && children > 1)
-            not_movable_position.insert(v);
+            not_movable_position.set(v.toInt(),1);
     }
 
 };

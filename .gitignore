@@ -2,6 +2,7 @@
 build
 src/logic_cpp/out
 **/*.o
+**/*.so
 **/__pycache__
 **/*.dll
 *.spec
