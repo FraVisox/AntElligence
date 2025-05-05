@@ -47,9 +47,9 @@ int main(){
                     cout<<"Duration of get actions: "<<chrono::duration<double,milli>(t2-t1).count()<<endl;
                 }
                 int m=rand()%ris[0]+1;
+                m=1;
                 
                 
-
                 eb.applyAction(ris[m]);
 
                 eb.checkConsistency();
@@ -65,7 +65,7 @@ int main(){
         }
         auto t_end=chrono::high_resolution_clock::now();  
         cout<<"Tempo totale mossa  "<<chrono::duration<double,milli>(t_end-t_start).count()/1000.0/((double)totMov)<<endl;
-            
+            cout<<"Mosse eseguite:"<<totMov<<endl;
         }catch (exception e){
             cout<<"ERRORE :"<<e.what()<<endl;
             cout<<"More info : i="<<i<<", rt="<<rt<<", seed="<<seed<<endl;

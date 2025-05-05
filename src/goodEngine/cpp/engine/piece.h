@@ -15,6 +15,7 @@ pieceT buildPiece(enum BugType k,PlayerColor c,int numIncr=0);
 string PiecetoString(pieceT p);
 pieceT getCandidateForKind(BugType t,PlayerColor col);
 
+pieceT decodeBug(char* c);
 extern pieceT simulatedPiece;
 extern bool isSimulatingPiece;
 

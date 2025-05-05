@@ -14,5 +14,6 @@ void PrintBoard(EBoard* b);
 char* actionToString(actionT a);
 double boardEval(EBoard* b, double w[]);
 void delBoard(EBoard* b);
+actionT stringToAction(EBoard* b,char* str);
 
 #endif

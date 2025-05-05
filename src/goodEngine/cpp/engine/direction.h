@@ -26,5 +26,6 @@ extern pair<int,int> movementCircleClockwise[7];
 string nameDirToString(string name, direction dir);
 direction oppositeDir(direction d);
 pair<unsigned int,unsigned int> associatedDifference(direction d);
+const extern unsigned int adF[],adS[];
 
 #endif

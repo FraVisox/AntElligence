@@ -11,6 +11,7 @@ const int LEFT=3;
 const int UP_LEFT=4;
 const int UP_RIGHT=5;
 const int OVER=6;
+const int UNDER=7;
 
 
 pair<int,int> movementCircleClockwise[]={
@@ -41,7 +42,7 @@ string nameDirToString(string name, direction dir){
         case LEFT: return "-"+name;
         case UP_LEFT: return "\\"+name;
         case UP_RIGHT: return name+"/";
-        case OVER: return name;
+        case UNDER: return name;
         default: return "";
     }
 }
@@ -86,8 +87,11 @@ pair<unsigned int,unsigned int> associatedDifferenceV[]={
     make_pair(+1,31),
     make_pair(0,0)
 };
+
+
+const unsigned int adF[]={1,0,31,31,0,1,0,0};
+const unsigned int adS[]={0,1,1,0,31,31,0,0};
 pair<unsigned int,unsigned int> associatedDifference(direction d){
-    
     return associatedDifferenceV[d];
 }
 

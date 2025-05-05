@@ -147,6 +147,24 @@ string PiecetoString(pieceT p){
     return PIECE_STRING_RAPP[(int)p];
 
 }
+pieceT decodeBug(char* s){
+    PlayerColor col=((s[0]=='w')?PlayerColor::WHITE : PlayerColor::BLACK);
+    BugType bt;
+    int numInc=0;
+    switch (s[1])
+    {
+    case 'S': numInc=(s[2]-'0'); bt=BugType::SPIDER; break;
+    case 'B': numInc=(s[2]-'0'); bt=BugType::BEETLE; break;
+    case 'G': numInc=(s[2]-'0'); bt=BugType::GRASSHOPPER; break;
+    case 'A': numInc=(s[2]-'0'); bt=BugType::SOLDIER_ANT; break;
+    case 'Q': numInc=0; bt=BugType::QUEEN; break;
+    case 'M': numInc=0; bt=BugType::MOSQUITO; break;
+    case 'L': numInc=0; bt=BugType::LADYBUG; break;
+    case 'P': numInc=0; bt=BugType::PILLBUG; break;
+    }
+    return buildPiece(bt,col,numInc);
+}
+
 
 
 

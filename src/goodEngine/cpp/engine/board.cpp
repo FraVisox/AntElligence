@@ -194,7 +194,6 @@ void Board::applayAction(actionT a){
 
 
 void Board::ComputePossibleMoves(){
-
     numAction=0;    
     // 1 If turn == 1, then place something that is not the queen
     if(currentTurn==1){
@@ -345,8 +344,8 @@ void Board::possibleMoves_Beetle(pieceT bug){
                 int maxH=max(h,G.getHight(dest));
                 
                 if(G.getHight(p1)<=maxH || G.getHight(p2)<=maxH){
-                resAction[numAction]=(movement(bug, dest,G));
-                numAction++;
+                    resAction[numAction]=(movement(bug, dest,G));
+                    numAction++;
                 }
             }
         }
@@ -381,29 +380,48 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
         inQueue.reset();
         inQueue|=G.occupied;
 
-        position startPos=G.getPosition(bug);
-        quePM[fQ]=startPos;
-        fQ++;
+        const position startPos=G.getPosition(bug);
+        quePM[fQ++]=startPos;
+        position neighbors[6];
+        int hights[6];
+        bool frees[6];
         inQueue.set(startPos.toInt(),1);
         G.removePiece(bug);
-        position f, n;
+        
+
         while(fQ!=bQ){
-            f=quePM[bQ];
-            bQ++;
-            for(int dir=0;dir<6;dir++){
-                n=f.applayMove(dir);
-                if(inQueue[n.toInt()]) 
+            
+            const position& current=quePM[bQ++];
+            
+            for(int dir=0;dir<6;++dir){
+                neighbors[dir]=current.applayMove(dir);
+                hights[dir]=G.getHight(neighbors[dir]);
+                frees[dir]=G.isFree(neighbors[dir]);
+            }
+            int currentHight=G.getHight(current);
+
+            for(int dir=0;dir<6;++dir){
+                
+                const position& neighbor = neighbors[dir];
+                const int neighborIdx = neighbor.toInt();
+                if(inQueue[neighborIdx]) 
                     continue;
-                if(G.canSlideToFree(f,n) ){
-                    resAction[numAction]=(movement(bug,n,G));
-                    numAction++;
-                    quePM[fQ]=n;
-                    fQ++;
-                    inQueue.set(n.toInt(),1);
+                const int &p1=(dir+1)%6;
+                const int &p2=(dir+5)%6;
+
+                int minH=min(currentHight,hights[dir]);
+
+                bool isGateT=(hights[p1]>minH && hights[p2]>minH);
+                bool isDijoined=(frees[p1])&& (frees[p2]);
+                if(!isGateT && !isDijoined){
+                    resAction[numAction++]=(movement(bug,neighbor,G));
+                    quePM[fQ++]=neighbor;
+                    inQueue.set(neighborIdx,1);
                 }
             }
         }
         G.addPiece(startPos,bug);
+                
     }
 }
 
@@ -414,84 +432,40 @@ void Board::possibleMoves_Spider(pieceT bug){
         bitset<SIZE_BOARD*SIZE_BOARD> inQueue;
         inQueue.reset();
 
-        position posReachD0[6];
-        position posReachD1[12];
-
+        
 
         position startPos=G.getPosition(bug);
-
-        int iP0=0;
-        
-        inQueue.set(startPos.toInt(),1);
+        int startPosIDX=startPos.toInt();
+        bitset<SIZE_BOARD*SIZE_BOARD> reached;
+        reached.reset();
         G.removePiece(bug);
-        inQueue|=G.occupied;
-
-        position next;
-        for(int i=0;i<6;i++){
-            next=startPos.applayMove(i);
-            if(!inQueue[next.toInt()] &&G.canSlideToFree(startPos,next)){
-                inQueue.set(next.toInt(),1);
-                posReachD0[iP0]=next;
-                iP0++;
+        
+        for(int dr1=0;dr1<6;dr1++){
+            position next1=startPos.applayMove(dr1);
+            int next1IDX=next1.toInt();
+            if(!G.occupied[next1IDX] && G.canSlideToFreeDir(startPos,next1,dr1)){
+                for(int dr2=0;dr2<6;dr2++){
+                    position next2=next1.applayMove(dr2);
+                    int next2IDX=next2.toInt();
+                    if(next2IDX!=startPosIDX && next2IDX!=next1IDX  &&!G.occupied[next2IDX] && G.canSlideToFreeDir(next1,next2,dr2)){
+                         for(int dr3=0;dr3<6;dr3++){
+                            position next3=next2.applayMove(dr3);
+                            int next3IDX=next3.toInt();
+                            if( !G.occupied[next3IDX] &&  
+                                next3IDX!=next1IDX  && next3IDX!=next2IDX && next3IDX!=startPosIDX 
+                                && !reached[next3IDX] &&G.canSlideToFreeDir(next2,next3,dr3)){
+                                    reached.set(next3IDX,1);
+                                    resAction[numAction]=movement(bug,next3,G);
+                                    numAction++;
+                            }
+                         }
+       
+                    }
+                }
             }
         }
 
-        int iP1;position curr;
-        for(int j=0;j<iP0;j++){
-            curr=posReachD0[j];
-            for(int i=0;i<6;i++){
-                next=curr.applayMove(i);
-                if(!inQueue[next.toInt()] &&G.canSlideToFree(curr,next)){
-                    inQueue.set(next.toInt(),1);
-                    posReachD1[iP1]=next;
-                }
-            }   
-        }
-
-        for(int j=0;j<iP1;j++){
-            position curr=posReachD1[j];
-            for(int i=0;i<6;i++){
-                next=curr.applayMove(i);
-                if(!inQueue[next.toInt()] &&G.canSlideToFree(curr,next)){
-                    resAction[numAction]=movement(bug,next,G);
-                    numAction++;
-                }
-            }   
-        }
         G.addPiece(startPos,bug);
-        return;
-        /*
-        
-
-
-        q.push(make_pair(startPos,0));
-        
-        while(!q.empty()){
-            pair<position,int> PI = q.front();
-            q.pop();
-            position f=PI.first;
-            int d = PI.second;
-            for(direction dir=0;dir<6;dir++){
-                position n=f.applayMove(dir);
-                if(inQueue[n.toInt()]) 
-                    continue;
-                if(G.canSlideToFree(f,n)){
-                    if(d==2) {
-                        resAction[numAction]=(movement(bug,n,G));
-                        numAction++;
-                        inQueue.set(n.toInt(),1);
-                    }
-                    else{
-                        q.push(make_pair(n,d+1));
-                        inQueue.set(n.toInt(),1);
-                    }
-                    
-                }
-                
-            }
-        }
-        G.addPiece(startPos,bug);
-        */
     }
 }
 
@@ -586,7 +560,7 @@ void Board::possibleMoves_Pillbug(pieceT bug){
 }
 
 
-void Board::possibleMoves_Mosquito(pieceT bug){
+void Board::possibleMoves_Mosquito(pieceT bug){  // TODO
     if (!G.canPieceMove(bug, currentTurn)) 
         return;
     if (!G.isAtLevel1(G.getPosition(bug))){
@@ -604,6 +578,8 @@ void Board::possibleMoves_Mosquito(pieceT bug){
 
     bool pill = false;
     position current = G.getPosition(bug);
+    copied.set(kind(8),1);  // can always copy a queen
+
     G.removePiece(bug);
     for(int kBT=0;kBT<10;kBT++){
         if(copied[kBT]){
@@ -635,47 +611,38 @@ void Board::possibleMoves_Mosquito(pieceT bug){
 
 void Board::possibleMoves_Ladybug(pieceT bug){
     if (G.canPieceMove(bug,currentTurn)) {
-        vector<pair<position,int>> queue; 
-        for(position dest: G.getPosition(bug).neighbor()){
-            if(!G.isFree(dest)){
-                position pos = G.getPosition(bug);
-                if (G.canSlideToFree(dest,pos)) {
-                    queue.push_back(make_pair(dest, 1));
+        
+        position startPos=G.getPosition(bug);
+        int startPosIDX=startPos.toInt();
+        bitset<SIZE_BOARD*SIZE_BOARD> reached;
+        reached.reset();
+        G.removePiece(bug);
+        reached.set(startPosIDX,1);
+                                    
+        for(int dr1=0;dr1<6;dr1++){
+            position next1=startPos.applayMove(dr1);
+            int next1IDX=next1.toInt();
+            if(G.occupied[next1IDX]){
+                for(int dr2=0;dr2<6;dr2++){
+                    position next2=next1.applayMove(dr2);
+                    int next2IDX=next2.toInt();
+                    if(G.occupied[next2IDX] ){
+                         for(int dr3=0;dr3<6;dr3++){
+                            position next3=next2.applayMove(dr3);
+                            int next3IDX=next3.toInt();
+                            if(!G.occupied[next3IDX] && !reached[next3IDX]){
+                                    reached.set(next3IDX,1);
+                                    resAction[numAction]=movement(bug,next3,G);
+                                    numAction++;
+                            }
+                         }
+       
+                    }
                 }
             }
         }
+        G.addPiece(startPos,bug);
 
-        //The set of seen positions is used to avoid going to the same destination twice. 
-        //It contains only the starting position and the final ones (if we put also the intermediate ones, then we can't reach the final
-        //destinations reachable if I go on another piece and then move to the piece as a second move and then descending)
-        bitset<SIZE_BOARD*SIZE_BOARD> seen;
-        seen.reset();
-        seen.set(G.getPosition(bug).toInt(),1);
-        position current = G.getPosition(bug);
-        G.removePiece(bug);
-        while(!queue.empty()){
-            pair<position,int> PI = queue.front();
-            queue.erase(queue.begin());
-            position f=PI.first;
-            int d = PI.second;
-            G.addPiece(f, bug); //Add the bug on top of f to see if it can move
-            for (position n: f.neighbor()){
-                if (seen[n.toInt()])
-                    continue;
-            
-                if (G.canSlideToFree(n,f)) {
-                    if (G.isFree(n) && d == 2 && !seen[n.toInt()]) { //TODO: It must do exactly 3 steps right?
-                        resAction[numAction]=(movement(bug, n,G));
-                        numAction++;
-                        seen.set(n.toInt(),1);
-                    } else if (d == 1 && !G.isFree(n)) {
-                        queue.push_back(make_pair(n, d + 1));
-                    }
-                } 
-            }
-            G.removePiece(bug);
-        }
-        G.addPiece(current, bug);
     }
 }
 

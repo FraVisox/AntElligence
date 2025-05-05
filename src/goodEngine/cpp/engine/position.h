@@ -20,7 +20,7 @@ class position{
 
     vector<position> neighbor();
     position applayMove(direction d) const;
-     int toInt() const;
+    unsigned int toInt() const;
 };
 
 extern position NULL_POSITION;

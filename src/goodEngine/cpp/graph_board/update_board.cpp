@@ -44,12 +44,13 @@ void UpdateState(boardT currentBoard, actionT action){
 
 void UpdateBoardE(Board &b, actionT act){
     pieceT p=(actionT)(act&0xff);
-    b.prevMoved[b.currentColor()]=p;
     b.currentTurn++;
     if(act==0)return;
     if(!b.G.isPlaced[p]){
         b.G.isPlaced.set(p,1);
         b.inHandPiece.set(p,0);
+    }else{
+        b.prevMoved[b.currentColor()]=p;
     }
     UpdateGameboard(b.G,act);
 }

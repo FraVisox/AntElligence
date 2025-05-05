@@ -40,6 +40,8 @@ class Board {
     int currentPlayerTurn();
     bool placedQueen();
 
+
+    bitset<1024> movesAnt;
     //Make movement
     //ReturnMessage executeAction(string s);
     //ReturnMessage checkWin();

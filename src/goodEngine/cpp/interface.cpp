@@ -25,6 +25,58 @@
 #endif
 
 
+actionT stringToAction(EBoard* b,char* str){
+    pieceT startP,destP;
+    direction dir ;
+
+    if(str[0]=='p')return pass();
+    
+    startP=decodeBug(str);
+
+
+
+    int q=1; while(str[q]!='w' && str[q]!='b' && str[q]!=0) q++;
+
+    if(str[q]==0) return placeFirst(startP);
+    
+    destP=decodeBug(str+q);
+
+    q=2;
+    if(str[q]=='1' || str[q]=='2' || str[q]=='3') q++;
+
+    while(str[q]==' ') q++;
+
+    if(str[q]=='w' || str[q]=='b'){  // is the case BUG BUG dir;
+        q+=2; if(str[q]>'0' && str[q]<'4')q++;
+        switch(str[q]){
+            case '/': dir=5;break;
+            case '-': dir=0;break;
+            case '\\': dir=1;break;
+            case 0: dir=7;break;
+            default : throw "WTF??";
+        }
+    }else{
+        if(str[q]>'0' && str[q]<'4')q++;
+        switch(str[q]){
+            case '/': dir=2;break;
+            case '-': dir=3;break;
+            case '\\': dir=4;break;
+            default: throw "NOT A VALID STRING";
+        }
+    }
+    //cout<<"Conver"<< str<<" to :"<<0+startP<<","<<0+destP<<" "<<dir<<endl;
+    position destPos=b->board_exp.G.getPosition(destP).applayMove(dir);
+    return movement(startP,destPos ,b->board_exp.G);
+}
+
+char* BoardRapp(EBoard* p){
+    return p->graph_board;
+}
+
+
+
+
+
 EBoard* base_state(int gt){
     return new EBoard((GameType)gt);
 }
@@ -56,9 +108,18 @@ void PrintBoard(EBoard* b){
 
 
 char* actionToString(actionT a){
+    if(a==0){
+        char* r=(char*)malloc(sizeof(char)*5);
+        r[0]='p';
+        r[1]='a';
+        r[2]='s';
+        r[3]='s';
+        r[4]=0;
+        return r;
+    }
     char b=a&0xff;
     string s=PiecetoString(b);
-    for(int i=1;i<=7;i++){
+    for(int i=7;i>=1;i--){
         char can=((a>>(i*8))&0xff);
         if(can!=0){
             s+=" "+nameDirToString(PiecetoString(can),opposite(i-1));
@@ -73,7 +134,7 @@ char* actionToString(actionT a){
     return r;
 }
 
-
+    
 double boardEval(EBoard* b, double w[]){
     PlayerColor MyCol=b->board_exp.currentColor();
     pieceT myQueen=(MyCol==PlayerColor::WHITE)?8:22;

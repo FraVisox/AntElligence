@@ -101,8 +101,7 @@ vector<position> position::neighbor(){
  * \return The resulting position of the movement.
  */
 position position::applayMove(direction d)const {
-    pair<unsigned int,unsigned int> delta = associatedDifference(d);
-    position p((first+delta.first)&31,(second+delta.second)&31);
+    position p((first+adF[d])&31,(second+adS[d])&31);
     return p;
 }
 
@@ -139,16 +138,14 @@ direction getMovementDirection(const position &from, const position &to){
  * \return True if both positions have the same coordinates, false otherwise.
  */
 bool operator==(const position &p1,const position& p2){
-    if(p1.first==10000 && p1.second==10000){
-        if(p2.first==10000 && p2.second==10000){
-            return true;
-        }
-        return false;
+    if(p1.first==10000 && p2.first==10000){
+        return true;
     }
-    if(p2.first==10000 && p2.second==10000)
+    if(p1.first==10000 || p2.first==10000)
         return false;
+    
         
-    return ((p1.first+SIZE_BOARD)%SIZE_BOARD==(p2.first+SIZE_BOARD)%SIZE_BOARD && (p1.second+SIZE_BOARD)%SIZE_BOARD==(p2.second+SIZE_BOARD)%SIZE_BOARD);
+    return ((p1.first&31)==(p2.first&31) && (p1.second%31)==(p2.second&31));
 }
 
 /**
@@ -182,19 +179,18 @@ bool operator<(const position &p1,const position& p2){
  */
 
 bool isNear(const position &p1, const position &p2){
-
     if(getMovementDirection(p1,p2)) 
         return true;
     return false;
 }
 
 position::position(int k){
-    first=k%SIZE_BOARD;
-    second=k/SIZE_BOARD;
+    first=k&31;
+    second=k>>5;
 }
 
-int position::toInt() const{
-    return first+second*SIZE_BOARD;
+unsigned int position::toInt() const{
+    return first+(second<<5);
 }
 
 

@@ -4,13 +4,73 @@
 using namespace std;
 int evN = 0;
 
+
+
+std::pair<double, actionT>
+minimax(EBoard* state,        int depth,        bool maximizing_player,        double w[],        double alpha = -1e9,        double beta  = +1e9);
+int main(){
+    
+    for(int Q=0;Q<10;Q++){
+        EBoard* state = base_state(0);  // Assume this returns a void* or similar
+        int i = 0;
+
+        actionT actions[256];
+        int totMov = 0; 
+        int Win[]={0,0};
+        while (i < 3000) {
+
+            actionT best_action;
+            getActions(state,actions);
+            
+            int num_actions = actions[0];
+            int m=rand()%actions[0]+1;
+            best_action=actions[m];       
+            cout<<actions[0]<<endl;       
+            
+            for(int i=0;i<num_actions;i++){
+                if(stringToAction(state,actionToString(actions[i+1]))!=actions[i+1]){
+                    throw "Not the same";
+                }
+            }
+
+            // GR.getActions fills `ris` directly
+            // Example: GR.getActions(state, ris);
+            // If needed, define GR.getActions to match this behavior
+
+            
+
+            //cout<<"Best actions with: "<<evN<<" iteration for turn "<<i<<endl;
+            //printActionFancy(best_action);
+            totMov++;
+            next_state(state, best_action);
+        
+            //printBG(state->board_exp.G);
+            i++;
+
+            int out = checkStatus(state);
+            if (out != 1) {
+                //std::cout << "Stopped at iteration: " << i <<"   Win "<< i%2<<endl;
+                Win[i%2]++;
+                break;
+            }
+        }
+        delBoard(state);
+
+        cout<<"Win: "<<Win[0]<<"   "<<Win[1]<<endl;
+    }
+
+    return 0;
+
+}
+
+
 std::pair<double, actionT>
 minimax(EBoard* state,
         int depth,
         bool maximizing_player,
         double w[],
-        double alpha = -1e9,
-        double beta  = +1e9)
+        double alpha ,
+        double beta  )
 {
     // 1) FIRST—check for terminal, no matter what depth is
     int status = checkStatus(state);
@@ -69,62 +129,3 @@ minimax(EBoard* state,
         return { min_eval, best_action };
     }
 }
-
-
-int main(){
-    
-    double w[]={0,0,0,1,-2,30};
-    int Win[2]={0,0};
-    for(int Q=0;Q<100;Q++){
-        EBoard* state = base_state(0);  // Assume this returns a void* or similar
-        int i = 0;
-
-        actionT actions[256];
-        int totMov = 0;
-    
-        while (i < 300) {
-
-            actionT best_action;
-            if(i%2==0){
-                evN=0;
-                pair<double,actionT> rE = minimax(state, 4, true,w);
-
-                double score=rE.first;
-                cout<<"Score:: "<<score<<endl;
-                best_action=rE.second;
-            }else{
-                getActions(state,actions);
-                int num_actions = actions[0];
-                int m=rand()%actions[0]+1;
-                best_action=actions[m];              
-            }
-            // GR.getActions fills `ris` directly
-            // Example: GR.getActions(state, ris);
-            // If needed, define GR.getActions to match this behavior
-
-            
-
-            cout<<"Best actions with: "<<evN<<" iteration for turn "<<i<<endl;
-            //printActionFancy(best_action);
-            totMov++;
-            next_state(state, best_action);
-        
-            //printBG(state->board_exp.G);
-            i++;
-
-            int out = checkStatus(state);
-            if (out != 1) {
-                //std::cout << "Stopped at iteration: " << i <<"   Win "<< i%2<<endl;
-                Win[i%2]++;
-                break;
-            }
-        }
-        delBoard(state);
-
-        cout<<"Win: "<<Win[0]<<"   "<<Win[1]<<endl;
-    }
-
-    return 0;
-
-}
-

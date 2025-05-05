@@ -9,8 +9,8 @@
 
 //Types of actions
 
-actionT movement(pieceT p,position pos, gameboard G);
-actionT placePiece(pieceT p,position pos, gameboard G);
+actionT movement(pieceT p,position pos, gameboard &G);
+actionT placePiece(pieceT p,position pos, gameboard &G);
 actionT placeFirst(pieceT p);
 actionT pass();
 

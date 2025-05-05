@@ -82,7 +82,6 @@ void EBoard::checkConsistency(){
                     }
                 }
             }
-
             
         }
     }

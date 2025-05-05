@@ -14,8 +14,11 @@
  *   :return: Action representing the movement.
  *   :rtype: action
  */
-actionT movement(pieceT p,position destPos,gameboard G){
+actionT movement(pieceT p,position destPos,gameboard& G){
     actionT r=(actionT)p;
+    if(destPos.first==10000)
+        throw "Cannot put here";
+
     int resHight=G.getHight(destPos);
 
     for(int j=0;j<6;j++){
@@ -47,7 +50,7 @@ actionT movement(pieceT p,position destPos,gameboard G){
  *   :return: Action representing the placement.
  *   :rtype: action
  */
-actionT placePiece(pieceT p,position pos,gameboard g){
+actionT placePiece(pieceT p,position pos,gameboard& g){
     return movement(p,pos,g);
 }   
 
