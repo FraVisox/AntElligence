@@ -9,50 +9,66 @@ int evN = 0;
 std::pair<double, actionT>
 minimax(EBoard* state,        int depth,        bool maximizing_player,        double w[],        double alpha = -1e9,        double beta  = +1e9);
 int main(){
+    actionT actions[256];
+    std::pair<double, actionT>  p;
+    int totMov = 0; 
+    int Win[]={0,0};
+    double w1[]={0,0,0,1,-2,30};    
+    double w2[]={0,0,0,1,0,30};
     
+        
+    //pressureOnOpponentQueen
+    //pressureOnOwnQueen
+    //movableSelf
+    //movableOpp
+    //nearMyQueen
+    //nearOpposite;
     for(int Q=0;Q<10;Q++){
         EBoard* state = base_state(0);  // Assume this returns a void* or similar
         int i = 0;
-
-        actionT actions[256];
-        int totMov = 0; 
-        int Win[]={0,0};
+        int colS=rand()%2;
+    
         while (i < 3000) {
 
             actionT best_action;
             getActions(state,actions);
+            evN=0;
+            if(i%2==colS){
+                p=minimax(state,4,true,w1);
+                best_action=p.second;
+            }else{
+                p=minimax(state,4,true,w2);
+                best_action=p.second;
             
-            int num_actions = actions[0];
-            int m=rand()%actions[0]+1;
-            best_action=actions[m];       
-            cout<<actions[0]<<endl;       
-            
-            for(int i=0;i<num_actions;i++){
+            }
+
+            /*for(int i=0;i<num_actions;i++){
                 if(stringToAction(state,actionToString(actions[i+1]))!=actions[i+1]){
                     throw "Not the same";
                 }
-            }
+            }*/
 
-            // GR.getActions fills `ris` directly
-            // Example: GR.getActions(state, ris);
-            // If needed, define GR.getActions to match this behavior
+            /// If needed, define GR.getActions to match this behavior
 
             
 
-            //cout<<"Best actions with: "<<evN<<" iteration for turn "<<i<<endl;
+            cout<<"Best actions with: "<<evN<<" iteration for turn "<<i<<endl;
             //printActionFancy(best_action);
             totMov++;
             next_state(state, best_action);
         
             //printBG(state->board_exp.G);
-            i++;
 
             int out = checkStatus(state);
             if (out != 1) {
                 //std::cout << "Stopped at iteration: " << i <<"   Win "<< i%2<<endl;
-                Win[i%2]++;
+                if(colS==i%2)
+                    Win[0]++;
+                else
+                    Win[1]++;
                 break;
             }
+            i++;
         }
         delBoard(state);
 
