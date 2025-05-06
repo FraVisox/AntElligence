@@ -68,10 +68,10 @@ GameType parseGameType(string s);
 //Type of bug
 
 enum BugType{
-    QUEEN=0,
-    SPIDER=1,
-    BEETLE=2,
-    GRASSHOPPER=3,
+    SPIDER=0,
+    BEETLE=1,
+    GRASSHOPPER=2,
+    QUEEN=3,
     SOLDIER_ANT=4,
     MOSQUITO=5,
     LADYBUG=6,

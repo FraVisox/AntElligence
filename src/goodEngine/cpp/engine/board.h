@@ -17,6 +17,9 @@ class Board {
     
     //Moves made
 
+
+
+
     //Gameboard and pieces
     gameboard G = gameboard();
     //vector<pieceT> placedBug = vector<pieceT>();
@@ -25,6 +28,11 @@ class Board {
     int numAction;
     pieceT prevMoved[2];
     //Initialization
+    actionT pillbugMoves[20];
+    int pillbugTotMoves;
+
+    position quePM[128];
+    bitset<SIZE_BOARD*SIZE_BOARD> inQueue;
 
     Board();
 

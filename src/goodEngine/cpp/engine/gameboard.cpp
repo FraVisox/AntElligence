@@ -132,6 +132,7 @@ void gameboard::copy(gameboard& g){
     }
     this->occupied=g.occupied;
     this->isPlaced=g.isPlaced;
+    this->isValidMoveBitmask=g.isValidMoveBitmask;
 }
 /**
  * \brief Checks if the given bug is at the top of the stack.

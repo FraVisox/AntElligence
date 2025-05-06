@@ -21,6 +21,27 @@ class gameboard{
     int high[SIZE_BOARD][SIZE_BOARD];
     
     bitset<32> isPlaced;
+
+        /*
+    *   Valid moves are the followin in this order:
+    *   X (0) -> 1 pass move
+    *   X (1) -> 14  moves for place the peice
+    *   X (15) -> 672 6*8*14 place
+    *   X (687) -> 6   positions for Q
+    *   X (693) -> 6*2   positions for B1,B2
+    *   X (705) -> 6*3   positions for G1,G2,G3
+    *   X (723) -> 504=28*6*3 for A1,A2,A3
+    *   X (1227) -> 72=36*2  moves for S1,S2  
+    *   X (1299) -> 6  for P moves
+    *   X (1305) -> 30 for P ability
+    *   X (1335) -> 36  for L
+    *   X (1371) -> 168 mosquito copy all pieces
+    *   x (1539) -> 6 mosquito copy beetle and going over
+    *   x (1545) -> 30 mosquito copy pillbug
+    *   Total 
+    */  // Idea in background
+    bitset<1575> isValidMoveBitmask;
+
     //Initialization
     //bool checIfCanMove(position &to, position &from, bool canOver);
 
