@@ -1,6 +1,6 @@
 #include "board.h"
+#include <algorithm>
 #include "../graph_board/update_board.h"
-#include <regex>
 
 
 #ifndef BOARD_CPP
@@ -196,6 +196,7 @@ void Board::applayAction(actionT a){
 void Board::ComputePossibleMoves(){
     numAction=0;    
     G.isValidMoveBitmask.reset();
+    pillbugTotMoves=0;
     // 1 If turn == 1, then place something that is not the queen
     if(currentTurn==1){
         for(int b=1;b<=28;b++){
@@ -267,29 +268,45 @@ void Board::ComputePossibleMoves(){
 
     // 5- moves
     if(placedQueen()){
-        pillbugTotMoves=0;
-
+        
         for(pieceT b=1;b<=28;b++){
             if(!G.isPlaced[b])continue;
             if (b == prevMoved[currentColor()]) continue;
             possibleMovesBug(b);
-            
-            if(pillbugTotMoves>0){
-                sort(resAction,resAction+numAction);
-                sort(pillbugMoves,pillbugMoves+pillbugTotMoves);
-                int lO=numAction;
-                int j=0;
-                for(int i=0;i<lO && j<pillbugTotMoves;i++){
-                    if(resAction[i]==pillbugMoves[j]){
-                        j++;
-                    }else if(resAction[i]>pillbugMoves[j]){
-                        resAction[numAction]=pillbugMoves[j];
-                        numAction++;
-                        j++;
-                    }
-                }
-            }        
         }
+        if(pillbugTotMoves>0){
+            std::sort(resAction,resAction+numAction);
+            std::sort(pillbugMoves,pillbugMoves+pillbugTotMoves);
+            int lO=numAction;
+            int i=0,j=0;
+            /*
+            cout<<"PTM: "<<pillbugTotMoves<<"  TOT:"<<numAction<<endl;
+            for(int h=0;h<pillbugTotMoves;h++){
+                cout<<((pillbugMoves[h])&((((actionT)1)<<63)-1))<<endl;
+            }
+            for(int k=0;k<numAction;k++){
+                cout<<(resAction[k])<<endl;
+            }*/
+
+            while(i<lO && j<pillbugTotMoves){
+                if((resAction[i])==(((pillbugMoves[j])&((((actionT)1)<<63)-1)))){
+                    resAction[i]|=((actionT)1<<63);
+                    j++;
+                    i++;
+                }else if(resAction[i]>(((pillbugMoves[j])&((((actionT)1)<<63)-1)))){
+                    resAction[numAction]=pillbugMoves[j];
+                    numAction++;
+                    j++;
+                }else{
+                    i++;
+                }
+            }
+            while(j<pillbugTotMoves){
+                resAction[numAction]=pillbugMoves[j];
+                numAction++;
+                j++;
+            }
+        }   
     }
     if(numAction==0){
         G.isValidMoveBitmask.set(0,1);
@@ -336,7 +353,7 @@ void Board::possibleMoves_Queen(pieceT bug){
     if (G.canPieceMove(bug,currentTurn)) {
         position pos = G.getPosition(bug);
         for(int i=0;i<6;i++){
-            if(G.isFree(pos.applayMove(i))&&G.canSlideToFree(pos,pos.applayMove(i))){
+            if(G.isFree(pos.applayMove(i))&&G.canSlideToFreeDir(pos,pos.applayMove(i),i)){
                     G.isValidMoveBitmask.set(687+i,1);
                     resAction[numAction]=movement(bug,pos.applayMove(i),G);
                     numAction++;
@@ -511,16 +528,15 @@ void Board::possibleMoves_Spider(pieceT bug){
 void Board::possibleMoves_Pillbug(pieceT bug){
 
     position pos = G.getPosition(bug);
-
+    
     // The pillbug can move as a queen. Check if the move is already present as the pillbug could be moved by the mosquito.
     
     if (G.canPieceMove(bug,currentTurn)) {
-        position pos = G.getPosition(bug);
         for(int i=0;i<6;i++){
-            if(G.isFree(pos.applayMove(i))&&G.canSlideToFree(pos,pos.applayMove(i))){
-                    G.isValidMoveBitmask.set(1299+i,1);
-                    resAction[numAction]=movement(bug,pos.applayMove(i),G);
-                    numAction++;
+            if(G.isFree(pos.applayMove(i))&&G.canSlideToFreeDir(pos,pos.applayMove(i),i)){
+                G.isValidMoveBitmask.set(1299+i,1);
+                resAction[numAction]=movement(bug,pos.applayMove(i),G);
+                numAction++;
             }
         }
     }
@@ -539,14 +555,14 @@ void Board::possibleMoves_Pillbug(pieceT bug){
         position p1=posS[(dir+1)%6];
         position p2=posS[(dir+5)%6];
         if (G.getHight(p1)>=2 && G.getHight(p2)>=2) continue;
-        if (G.getHight(N)>1) continue;
-                
-        pieceT possible_piece = G.topPiece(N);
-        if (G.canMoveWithoutBreakingHiveRule(possible_piece, currentTurn) && possible_piece!=prevMoved[1-currentColor()]){
-            canGetFrom[dir]=true;
-        }
-        if (G.isFree(N)){
+        if (G.getHight(N)==0){
             canGoTo[dir]=true;
+        }else if(G.getHight(N)==1){
+            pieceT possible_piece = G.topPiece(N);
+        
+            if (G.canMoveWithoutBreakingHiveRule(possible_piece, currentTurn) && possible_piece!=prevMoved[currentColor()]){
+            canGetFrom[dir]=true;
+            }
         }
     }
 
@@ -555,7 +571,7 @@ void Board::possibleMoves_Pillbug(pieceT bug){
         for(int j=0;j<6;j++){
             if(i==j) continue;
             if(canGetFrom[i] && canGoTo[j]){
-                pillbugMoves[pillbugTotMoves]=movement(G.topPiece(posS[i]),posS[j],G);
+                pillbugMoves[pillbugTotMoves]=movement(G.topPiece(posS[i]),posS[j],G,1);
                 pillbugTotMoves++;
                 G.isValidMoveBitmask.set(1305+k,i);
             }
@@ -628,7 +644,7 @@ void Board::possibleMoves_Mosquito(pieceT bug){  // TODO
     position pos=G.getPosition(bug);
 
 
-    if (!G.getHight(pos)!=1){
+    if (G.getHight(pos)!=1){
         int h=G.getHight(pos)-1;
         for(int i=0;i<6;i++){
             
@@ -652,7 +668,7 @@ void Board::possibleMoves_Mosquito(pieceT bug){  // TODO
     bitset<8> copied;
     for(int dir=0;dir<6;dir++){
         position n=pos.applayMove(dir);
-        if(!G.isFree(n) && kind(G.topPiece(n))){
+        if(!G.isFree(n)){
             copied.set(kind(G.topPiece(n)),1);
         }
     }
@@ -752,7 +768,7 @@ void Board::possibleMoves_Mosquito(pieceT bug){  // TODO
 
     if(copied[kind(8)]){   // queen
         for(int i=0;i<6;i++){
-            if(G.isFree(pos.applayMove(i))&&G.canSlideToFree(pos,pos.applayMove(i))){
+            if(G.isFree(pos.applayMove(i))&&G.canSlideToFreeDir(pos,pos.applayMove(i),i)){
                     reachable.set(pos.applayMove(i).toInt(),1);
             }
         }
@@ -811,7 +827,7 @@ void Board::possibleMoves_Mosquito(pieceT bug){  // TODO
 
     if(copied[kind(14)]){  // pillbug
         for(int i=0;i<6;i++){  //same as queen
-            if(G.isFree(pos.applayMove(i))&&G.canSlideToFree(pos,pos.applayMove(i))){
+            if(G.isFree(pos.applayMove(i))&&G.canSlideToFreeDir(pos,pos.applayMove(i),i)){
                     reachable.set(pos.applayMove(i).toInt(),1);
             }
         }
@@ -830,14 +846,14 @@ void Board::possibleMoves_Mosquito(pieceT bug){  // TODO
             position p1=posS[(dir+1)%6];
             position p2=posS[(dir+5)%6];
             if (G.getHight(p1)>=2 && G.getHight(p2)>=2) continue;
-            if (G.getHight(N)>1) continue;
-                    
-            pieceT possible_piece = G.topPiece(N);
-            if (G.canMoveWithoutBreakingHiveRule(possible_piece, currentTurn) && possible_piece!=prevMoved[1-currentColor()]){
-                canGetFrom[dir]=true;
-            }
             if (G.isFree(N)){
                 canGoTo[dir]=true;
+            }else if(G.getHight(N)==1){
+                pieceT possible_piece = G.topPiece(N);
+            
+                if (G.canMoveWithoutBreakingHiveRule(possible_piece, currentTurn) && possible_piece!=prevMoved[1-currentColor()]){
+                canGetFrom[dir]=true;
+                }
             }
         }
 
@@ -846,7 +862,7 @@ void Board::possibleMoves_Mosquito(pieceT bug){  // TODO
             for(int j=0;j<6;j++){
                 if(i==j) continue;
                 if(canGetFrom[i] && canGoTo[j]){
-                    pillbugMoves[pillbugTotMoves]=movement(G.topPiece(posS[i]),posS[j],G);
+                    pillbugMoves[pillbugTotMoves]=movement(G.topPiece(posS[i]),posS[j],G,1);
                     pillbugTotMoves++;
                     G.isValidMoveBitmask.set(1545+k,1);
                 }

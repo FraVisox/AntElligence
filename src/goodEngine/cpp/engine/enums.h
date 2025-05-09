@@ -4,7 +4,7 @@
 #include <string>
 using namespace std;
 typedef char* boardT;
-typedef int64_t actionT;
+typedef uint64_t actionT;
 const  int MAX_ACTIONS_SIZE=256;
 //Return message
 
@@ -50,14 +50,14 @@ GameState parseState(string s);
 //Game type
 
 enum GameType{
-    Base,
-    Base_M,
-    Base_L,
-    Base_P,
-    Base_ML,
-    Base_MP,
-    Base_LP,
-    Base_MLP
+    Base=0,
+    Base_M=1,
+    Base_L=2,
+    Base_P=3,
+    Base_ML=4,
+    Base_MP=5,
+    Base_LP=6,
+    Base_MLP=7
 };
 
 //Parsing

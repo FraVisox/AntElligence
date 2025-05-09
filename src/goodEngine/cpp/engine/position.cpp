@@ -178,11 +178,6 @@ bool operator<(const position &p1,const position& p2){
  * \return True if the positions are adjacent, false otherwise.
  */
 
-bool isNear(const position &p1, const position &p2){
-    if(getMovementDirection(p1,p2)) 
-        return true;
-    return false;
-}
 
 position::position(int k){
     first=k&31;

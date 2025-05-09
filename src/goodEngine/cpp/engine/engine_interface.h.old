@@ -2,7 +2,6 @@
 #define ENGINE_INTERFACE_H
 
 #include "board.h"
-#include <regex>
 
 extern Board b;
 int startGame(char* s);

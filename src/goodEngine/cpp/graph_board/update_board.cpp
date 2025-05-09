@@ -47,10 +47,14 @@ void UpdateBoardE(Board &b, actionT act){
     b.currentTurn++;
     if(act==0)return;
     if(!b.G.isPlaced[p]){
+        b.prevMoved[b.currentColor()]=0;
         b.G.isPlaced.set(p,1);
         b.inHandPiece.set(p,0);
     }else{
-        b.prevMoved[b.currentColor()]=p;
+        if(act&(1ull<<63))
+            b.prevMoved[b.currentColor()]=p;
+        else
+            b.prevMoved[b.currentColor()]=0;
     }
     UpdateGameboard(b.G,act);
 }

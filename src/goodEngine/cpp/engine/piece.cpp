@@ -1,6 +1,5 @@
 #include <string>
 #include "piece.h"
-#include <sstream>
 using namespace std;
 
 

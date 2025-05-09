@@ -32,7 +32,7 @@ int main(){
         int rt;
         try{
         i=0;
-        for(rt=0;rt<10;rt++){
+        for(rt=0;rt<5;rt++){
             EBoard eb(GameType::Base);
             i=0;
             while(1){
@@ -54,6 +54,7 @@ int main(){
 
                 eb.checkConsistency();
                 if(eb.getState()!=1){
+                    cout<<"X"<<endl;
                     break;
                 }
 

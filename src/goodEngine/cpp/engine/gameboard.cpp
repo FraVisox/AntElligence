@@ -97,7 +97,7 @@ void gameboard::removePiece(const pieceT &b){
  * \param b The bug to be added to the gameboard.
  */
 void gameboard::addPiece(const position &pos, const pieceT &b){
-    if(kind(b)!=BugType::BEETLE && !isFree(pos))throw "Adding over not empty";
+    if(kind(b)!=BugType::BEETLE && kind(b)!=BugType::MOSQUITO && !isFree(pos))throw "Adding over not empty";
     isPlaced.set(b,1);
     gb[(pos.first+SIZE_BOARD)%SIZE_BOARD][(pos.second+SIZE_BOARD)%SIZE_BOARD][getHight(pos)]=b;
     high[(pos.first+SIZE_BOARD)%SIZE_BOARD][(pos.second+SIZE_BOARD)%SIZE_BOARD]++;
@@ -166,7 +166,7 @@ bool gameboard::canPieceMove(const pieceT &b,int turn){
 
 
 int gameboard::getHight(const position &pos){
-    return high[(pos.first+SIZE_BOARD)%SIZE_BOARD][(pos.second+SIZE_BOARD)%SIZE_BOARD];
+    return high[(pos.first&31)][(pos.second&31)];
 }
 /**
  * \brief Checks if a bug piece can be moved horizontally.
@@ -184,9 +184,6 @@ int gameboard::getHight(const position &pos){
 
 
 
-bool gameboard::canSlideToFree( position &from, position to){
-    return (!isGate(from,to)) && isJoined(from,to);
-}
 
 
 bool gameboard::canSlideToFreeDir(const position &from,const position &to, direction n){
@@ -200,34 +197,6 @@ bool gameboard::canSlideToFreeDir(const position &from,const position &to, direc
 
 }
 
-bool gameboard::isGateDir(const position &from,const position &to,const direction n){
-    position p1=from.applayMove((n+1)%6);
-    position p2=from.applayMove((n+5)%6);
-    int minH=min(getHight(from),getHight(to));
-    return (getHight(p1)>minH && getHight(p2)>minH);
-}
-
-bool gameboard::isJoinedDir(const position &from,const position &to,const direction n){
-    position p1=from.applayMove((n+1)%6);
-    position p2=from.applayMove((n+5)%6);
-    return ( (!isFree(p1)) || (!isFree(p2)));
-}
-
-
-bool gameboard::isGate(position &from,position &to){
-    direction n = getMovementDirection(from,to);
-    position p1=from.applayMove((n+1)%6);
-    position p2=from.applayMove((n+5)%6);
-    int minH=min(getHight(from),getHight(to));
-    return (getHight(p1)>minH && getHight(p2)>minH);
-}
-
-bool gameboard::isJoined(position &from,position &to){
-    direction n = getMovementDirection(from,to);
-    position p1=from.applayMove((n+1)%6);
-    position p2=from.applayMove((n+5)%6);
-    return ( (!isFree(p1)) || (!isFree(p2)));
-}
 
 /**
  * \brief Finds the relative position if the bug at position 'from' can move to position 'to'.
@@ -319,15 +288,6 @@ pair<pieceT, direction> gameboard::getSlidingMoveAtLevel1(position &to, position
  * \param pos The position to check.
  * \return A vector of positions that are adjacent and occupied.
  */
-vector<position> gameboard::occupiedEdge(position &pos){  // TO CHECK
-    vector<position> ris;
-    for(auto n: pos.neighbor()){
-        if(!isFree(n)){
-            ris.push_back(n);
-        }
-    }
-    return ris;
-}
 
 /**
  * \brief Gets the top piece on the given position.

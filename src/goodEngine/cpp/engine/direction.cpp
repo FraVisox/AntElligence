@@ -14,15 +14,6 @@ const int OVER=6;
 const int UNDER=7;
 
 
-pair<int,int> movementCircleClockwise[]={
-    make_pair(+1,0),
-    make_pair(0,+1),
-    make_pair(-1,+1),
-    make_pair(-1,0),
-    make_pair(0,-1),
-    make_pair(+1,-1),
-    make_pair(0,0)
-};
 
 /**
  *   Converts a direction to a string representation of a movement.
@@ -78,20 +69,7 @@ direction oppositeDir(direction d){
 
 
 
-pair<unsigned int,unsigned int> associatedDifferenceV[]={
-    make_pair(+1,0),
-    make_pair(0,+1),
-    make_pair(31,+1),
-    make_pair(31,0),
-    make_pair(0,31),
-    make_pair(+1,31),
-    make_pair(0,0)
-};
-
 
 const unsigned int adF[]={1,0,31,31,0,1,0,0};
 const unsigned int adS[]={0,1,1,0,31,31,0,0};
-pair<unsigned int,unsigned int> associatedDifference(direction d){
-    return associatedDifferenceV[d];
-}
 

@@ -14,7 +14,7 @@
  *   :return: Action representing the movement.
  *   :rtype: action
  */
-actionT movement(pieceT p,position destPos,gameboard& G){
+actionT movement(const pieceT p,const position &destPos,gameboard& G,bool isPillbug){
     actionT r=(actionT)p;
     if(destPos.first==10000)
         throw "Cannot put here";
@@ -24,14 +24,18 @@ actionT movement(pieceT p,position destPos,gameboard& G){
     for(int j=0;j<6;j++){
         position posNearJ=destPos.applayMove((j));
         if(G.getHight(posNearJ)>resHight){
-            pieceT nextBug=G.gb[(posNearJ.first+SIZE_BOARD)%SIZE_BOARD][(posNearJ.second+SIZE_BOARD)%SIZE_BOARD][resHight];
+            pieceT nextBug=G.gb[posNearJ.first&31][posNearJ.second&31][resHight];
             if(nextBug!=p)
                 r|=((actionT)(nextBug))<<((actionT)(8*(j+1)));
         }
     }
 
     if(resHight!=0){
-        r|=((actionT)(((actionT)(G.topPiece(destPos)))))<<(56);
+        r|=(((actionT)(((actionT)(G.topPiece(destPos)))))<<(56));
+    }
+
+    if(isPillbug){
+        r|=((1ull)<<63);
     }
     return r;
 }

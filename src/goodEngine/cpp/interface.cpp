@@ -1,7 +1,6 @@
 
 #include <math.h>
 #include <iostream>
-#include <regex>
 
 #ifndef INTERFACE_CPP
 #define INTERFACE_CPP
@@ -78,6 +77,7 @@ char* BoardRapp(EBoard* p){
 
 
 EBoard* base_state(int gt){
+    cout<<"GT:"<<gt<<endl;
     return new EBoard((GameType)gt);
 }
 
@@ -89,7 +89,7 @@ void next_state(EBoard* state,actionT action){
     state->applyAction(action);
 }
 
-void getActions(EBoard* state,int64_t* actions){  // max 256 mosse
+void getActions(EBoard* state,actionT* actions){  // max 256 mosse
     state->getNextsActions(actions);    
 }
 
@@ -108,6 +108,7 @@ void PrintBoard(EBoard* b){
 
 
 char* actionToString(actionT a){
+    a&=((1ull<<63)-1);
     if(a==0){
         char* r=(char*)malloc(sizeof(char)*5);
         r[0]='p';

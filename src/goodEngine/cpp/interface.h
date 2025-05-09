@@ -7,7 +7,7 @@ EBoard* base_state(int gt);
 EBoard* copyBoard(EBoard* b);
 void next_state(EBoard* state,actionT action);
 
-void getActions(EBoard* state,int64_t* actions);
+void getActions(EBoard* state,actionT* actions);
 int checkStatus(EBoard* board);
 char* toVectorNear(EBoard* b);
 void PrintBoard(EBoard* b);

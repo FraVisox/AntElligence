@@ -24,7 +24,7 @@ int main(){
     //nearMyQueen
     //nearOpposite;
     for(int Q=0;Q<10;Q++){
-        EBoard* state = base_state(0);  // Assume this returns a void* or similar
+        EBoard* state = base_state(3);  // Assume this returns a void* or similar
         int i = 0;
         int colS=rand()%2;
     

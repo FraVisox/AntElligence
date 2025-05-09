@@ -1,9 +1,7 @@
 #ifndef GAMEBOARD_H
 #define GAMEBOARD_H
 
-#include <set>
 #include <vector>
-#include <stack>
 #include <bitset>
 #include "piece.h"
 #include "position.h"
@@ -48,7 +46,6 @@ class gameboard{
     
     //And the placing
     vector<position> validPositionPlaceNew(PlayerColor color);
-    vector<position> occupiedEdge(position &pos);
 
     
 
@@ -74,15 +71,10 @@ class gameboard{
     int getHight(const position &pos);
 
     //Main function to understand the movements
-    bool canSlideToFree(position &from,position to);
     bool canMoveWithoutBreakingHiveRule(const pieceT &b,int turn);
 
     bool canSlideToFreeDir(const position &from,const position &to,const direction n);
-    bool isGateDir(const position &from,const position &to,const direction n);
-    bool isJoinedDir(const position &from,const position &to,const direction n);
-
-    bool isGate(position &p1,position &p2);
-    bool isJoined(position &p1,position &p2);
+  
     //PRIVATE FUNCTIONS TO FIND ARTICULATION POINTS (HIVE RULE) AND CALCULATE POSITION
 
     private:
