@@ -265,6 +265,7 @@ void Board::ComputePossibleMoves(){
             }
         }
     }
+    //cout<<"Move place:"<<numAction<<endl;
 
     // 5- moves
     if(placedQueen()){
@@ -274,14 +275,15 @@ void Board::ComputePossibleMoves(){
             if (b == prevMoved[currentColor()]) continue;
             possibleMovesBug(b);
         }
+        computePillbugMovinPieces();
         if(pillbugTotMoves>0){
             std::sort(resAction,resAction+numAction);
             std::sort(pillbugMoves,pillbugMoves+pillbugTotMoves);
             int lO=numAction;
             int i=0,j=0;
-            /*
-            cout<<"PTM: "<<pillbugTotMoves<<"  TOT:"<<numAction<<endl;
-            for(int h=0;h<pillbugTotMoves;h++){
+            
+            //cout<<"PTM: "<<pillbugTotMoves<<"  TOT:"<<numAction<<endl;
+            /*for(int h=0;h<pillbugTotMoves;h++){
                 cout<<((pillbugMoves[h])&((((actionT)1)<<63)-1))<<endl;
             }
             for(int k=0;k<numAction;k++){
@@ -290,7 +292,7 @@ void Board::ComputePossibleMoves(){
 
             while(i<lO && j<pillbugTotMoves){
                 if((resAction[i])==(((pillbugMoves[j])&((((actionT)1)<<63)-1)))){
-                    resAction[i]|=((actionT)1<<63);
+                    resAction[i]|=(((actionT)1)<<63);
                     j++;
                     i++;
                 }else if(resAction[i]>(((pillbugMoves[j])&((((actionT)1)<<63)-1)))){
@@ -526,7 +528,7 @@ void Board::possibleMoves_Spider(pieceT bug){
 }
 
 void Board::possibleMoves_Pillbug(pieceT bug){
-
+    pillbugTotMoves=0;
     position pos = G.getPosition(bug);
     
     // The pillbug can move as a queen. Check if the move is already present as the pillbug could be moved by the mosquito.
@@ -540,6 +542,8 @@ void Board::possibleMoves_Pillbug(pieceT bug){
             }
         }
     }
+
+    /*
     
 
     // Or it makes other adjacent pieces (even of the opponent) move
@@ -560,8 +564,8 @@ void Board::possibleMoves_Pillbug(pieceT bug){
         }else if(G.getHight(N)==1){
             pieceT possible_piece = G.topPiece(N);
         
-            if (G.canMoveWithoutBreakingHiveRule(possible_piece, currentTurn) && possible_piece!=prevMoved[currentColor()]){
-            canGetFrom[dir]=true;
+            if (G.canMoveWithoutBreakingHiveRule(possible_piece, currentTurn) && possible_piece!=prevMoved[1-currentColor()]&& possible_piece!=prevMoved[currentColor()]){
+                canGetFrom[dir]=true;
             }
         }
     }
@@ -578,6 +582,7 @@ void Board::possibleMoves_Pillbug(pieceT bug){
             k++;
         }
     }
+    */
 }
 
 
@@ -833,42 +838,6 @@ void Board::possibleMoves_Mosquito(pieceT bug){  // TODO
         }
 
 
-        // Or it makes other adjacent pieces (even of the opponent) move
-        bool canGetFrom[]={false,false,false,false,false,false};
-        bool canGoTo[]={false,false,false,false,false,false};
-        position posS[6];
-
-        for(int dir=0;dir<6;dir++)posS[dir]=pos.applayMove(dir);
-        // find all the bugs that i can move
-        for(int dir=0;dir<6;dir++){
-            
-            position N=posS[dir];
-            position p1=posS[(dir+1)%6];
-            position p2=posS[(dir+5)%6];
-            if (G.getHight(p1)>=2 && G.getHight(p2)>=2) continue;
-            if (G.isFree(N)){
-                canGoTo[dir]=true;
-            }else if(G.getHight(N)==1){
-                pieceT possible_piece = G.topPiece(N);
-            
-                if (G.canMoveWithoutBreakingHiveRule(possible_piece, currentTurn) && possible_piece!=prevMoved[1-currentColor()]){
-                canGetFrom[dir]=true;
-                }
-            }
-        }
-
-        int k=0;
-        for(int i=0;i<6;i++){
-            for(int j=0;j<6;j++){
-                if(i==j) continue;
-                if(canGetFrom[i] && canGoTo[j]){
-                    pillbugMoves[pillbugTotMoves]=movement(G.topPiece(posS[i]),posS[j],G,1);
-                    pillbugTotMoves++;
-                    G.isValidMoveBitmask.set(1545+k,1);
-                }
-                k++;
-            }
-        }
     }
 
     position near;
@@ -893,6 +862,67 @@ void Board::possibleMoves_Mosquito(pieceT bug){  // TODO
     }
 }
 
+
+void Board::computePillbugMovinPieces(){
+    pillbugTotMoves=0;
+    for(pieceT bug:{14,12}){   // 14 ->P, 12-> M
+        if(col(bug)!=currentColor()) bug+=14;
+        if(!G.isPlaced[bug]) continue;
+        if(prevMoved[currentColor()]==bug)continue;
+        position pos=G.getPosition(bug);
+        if(bug!=G.topPiece(pos))continue;
+        // Or it makes other adjacent pieces (even of the opponent) move
+        bool canGetFrom[]={false,false,false,false,false,false};
+        bool canGoTo[]={false,false,false,false,false,false};
+        position posS[6];
+        pieceT bugN[6];
+        pieceT posH[6]={0,0,0,0,0,0};
+
+        for(int dir=0;dir<6;dir++){
+            posS[dir]=pos.applayMove(dir);
+            posH[dir]=G.getHight(posS[dir]);
+            if(posH[dir]>0)
+                bugN[dir]=G.topPiece(posS[dir]);
+        }
+
+        if(bug%14==12){
+            bool flag=false;
+            for(int i=0;i<6;i++)
+                if(bugN[i]==14 || bugN[i]==28)
+                    flag=true;
+            if(!flag)
+                continue;
+        }
+        // find all the bugs that i can move
+        for(int dir=0;dir<6;dir++){
+            
+            position N=posS[dir];
+            int i1=(dir+1)%6;
+            int i2=(dir+5)%6;
+            if(posH[i1]>=2 && posH[i2]>=2) continue;
+            if(G.isFree(N)){
+                canGoTo[dir]=true;
+            }else if(posH[dir]==1){
+                if (G.canMoveWithoutBreakingHiveRule(bugN[dir], currentTurn) && bugN[dir]!=prevMoved[currentColor()] ){
+                    canGetFrom[dir]=true;
+                }
+            }
+        }
+
+        int k=0;
+        for(int i=0;i<6;i++){
+            for(int j=0;j<6;j++){
+                if(i==j) continue;
+                if(canGetFrom[i] && canGoTo[j]){
+                    pillbugMoves[pillbugTotMoves]=movement(G.topPiece(posS[i]),posS[j],G);
+                    pillbugTotMoves++;
+                    G.isValidMoveBitmask.set(1545+k,1);
+                }
+                k++;
+            }
+        }
+    }
+}
 
 
 int Board::isPinned(pieceT bug) {

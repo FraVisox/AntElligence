@@ -43,18 +43,26 @@ void UpdateState(boardT currentBoard, actionT action){
 
 
 void UpdateBoardE(Board &b, actionT act){
+    if(act==0){
+        b.currentTurn++;
+        b.prevMoved[b.currentColor()]=0;
+        return;
+    }
     pieceT p=(actionT)(act&0xff);
-    b.currentTurn++;
-    if(act==0)return;
     if(!b.G.isPlaced[p]){
+        b.currentTurn++;
         b.prevMoved[b.currentColor()]=0;
         b.G.isPlaced.set(p,1);
         b.inHandPiece.set(p,0);
     }else{
-        if(act&(1ull<<63))
-            b.prevMoved[b.currentColor()]=p;
-        else
-            b.prevMoved[b.currentColor()]=0;
+        b.computePillbugMovinPieces();
+        b.prevMoved[1-b.currentColor()]=p;
+        for(int i=0;i<b.pillbugTotMoves;i++){
+            if(act == b.pillbugMoves[i]){
+                b.prevMoved[b.currentColor()]=0;
+            }
+        }
+        b.currentTurn++;
     }
     UpdateGameboard(b.G,act);
 }

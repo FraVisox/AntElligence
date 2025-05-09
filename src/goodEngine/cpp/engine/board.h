@@ -46,7 +46,7 @@ class Board {
     PlayerColor currentColor();
     int currentPlayerTurn();
     bool placedQueen();
-
+    
 
     bitset<1024> movesAnt;
     //Make movement
@@ -67,7 +67,7 @@ class Board {
     void possibleMoves_Pillbug(pieceT bug);
     void possibleMoves_Mosquito(pieceT bug);
     void possibleMoves_Ladybug(pieceT bug);
-
+    void computePillbugMovinPieces();
     int isPinned(pieceT bug);
     int isCovered(pieceT bug);
     int friendlyNeighbour(pieceT bug);

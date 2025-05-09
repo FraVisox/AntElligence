@@ -14,7 +14,7 @@
  *   :return: Action representing the movement.
  *   :rtype: action
  */
-actionT movement(const pieceT p,const position &destPos,gameboard& G,bool isPillbug){
+actionT movement(const pieceT p,const position &destPos,gameboard& G){
     actionT r=(actionT)p;
     if(destPos.first==10000)
         throw "Cannot put here";
@@ -34,9 +34,6 @@ actionT movement(const pieceT p,const position &destPos,gameboard& G,bool isPill
         r|=(((actionT)(((actionT)(G.topPiece(destPos)))))<<(56));
     }
 
-    if(isPillbug){
-        r|=((1ull)<<63);
-    }
     return r;
 }
 
