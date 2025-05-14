@@ -1,4 +1,5 @@
 #include "embadded_board.h"
+#include "interface.h"
 #include <chrono>
 /*
 #include "engine/action.cpp"
@@ -18,6 +19,8 @@ using namespace std;
 
 
 int main(){
+    try{
+    
     for(int TR=0;TR<1;TR++){
         auto seed=time(0);
         cout<<"Run with seed:"<<seed<<endl;
@@ -28,31 +31,27 @@ int main(){
         int i=0;
         int totMov=0;
         actionT ris[256];
-        EBoard eb(GameType::Base_MLP);
+        char strBuff[20];
+
         int rt;
         try{
         i=0;
-        for(rt=0;rt<5;rt++){
-            EBoard eb(GameType::Base_MLP);
+        for(rt=0;rt<20;rt++){
+            EBoard* v;
+            v=base_state(7);
             i=0;
             while(1){
-                eb.getNextsActions(ris);
-                if(i==-1){
-                    auto t1=chrono::high_resolution_clock::now();
-                    for(int q=0;q<1000;q++){
-                        eb.getNextsActions(ris);
-                    }
-                    auto t2=chrono::high_resolution_clock::now();
-                    cout<<"Duration of get actions: "<<chrono::duration<double,milli>(t2-t1).count()<<endl;
-                }
+                getActions(v,ris);
                 int m=rand()%ris[0]+1;
                 //m=1;
+                actionToString(ris[m],v,strBuff);
                 
-                
-                eb.applyAction(ris[m]);
+                actionT na=stringToAction(v,strBuff);
+                if(na!=ris[m]) throw "Different value for action";
+                next_state(v,na);
+               
 
-                eb.checkConsistency();
-                if(eb.getState()!=1){
+                if(checkStatus(v)!=1){
                     cout<<"X"<<endl;
                     break;
                 }
@@ -72,6 +71,9 @@ int main(){
         }
     }
 
+    }catch(string e){
+        cout<<e<<endl;
+    }
 
 }
 

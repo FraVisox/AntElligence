@@ -132,7 +132,8 @@ void gameboard::copy(gameboard& g){
     }
     this->occupied=g.occupied;
     this->isPlaced=g.isPlaced;
-    this->isValidMoveBitmask=g.isValidMoveBitmask;
+    for(int i=0;i<TOTAL_POSSIBLE_MOVES;i++)
+        this->isValidMoveBitmask[i]=g.isValidMoveBitmask[i];
 }
 /**
  * \brief Checks if the given bug is at the top of the stack.

@@ -23,12 +23,12 @@ int main(){
     //movableOpp
     //nearMyQueen
     //nearOpposite;
-    for(int Q=0;Q<10;Q++){
-        EBoard* state = base_state(3);  // Assume this returns a void* or similar
+    for(int Q=0;Q<5;Q++){
+        EBoard* state = base_state(4);  // Assume this returns a void* or similar
         int i = 0;
         int colS=rand()%2;
     
-        while (i < 3000) {
+        while (i < 30000) {
 
             actionT best_action;
             getActions(state,actions);

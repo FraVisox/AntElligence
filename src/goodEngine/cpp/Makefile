@@ -1,7 +1,7 @@
 # Compiler and flags
 CXX = g++ 
 SHARED_FLAG = -Ofast -fPIC -shared -O3
-TEST_FLAG = -g -Wall #-Ofast -O3 #-g -Wall # -g -Wall -fsanitize=address -fsanitize=null -fsanitize=leak
+TEST_FLAG = -Ofast -O3# -g -Wall # -g -Wall -fsanitize=address -fsanitize=null -fsanitize=leak
 OUT_DIR = out
 
 # Sources
@@ -71,16 +71,17 @@ test: $(TEST_OBJS) test.cpp
 test-1: $(TEST_OBJS) test-1.cpp interface.cpp interface.h
 	$(CXX) $(TEST_FLAG) test-1.cpp interface.cpp  $(TEST_OBJS) -o test-1
 
+test-2: $(TEST_OBJS) test-2.cpp interface.cpp interface.h
+	$(CXX) $(TEST_FLAG) test-2.cpp interface.cpp  interface.h $(TEST_OBJS) -o test-2
+
 
 
 engine.so: $(ENGINE_SOS) $(GRAPH_SOS) interface.cpp
 	$(CXX) -fPIC -shared interface.cpp $(ENGINE_SOS) $(GRAPH_SOS) -o engine.so
 
-interface.so: interface.cpp engine/*.cpp engine/*.h graph_board/* embadded_board.*
-	$(CXX) -fPIC -shared -O3 interface.cpp engine/*.cpp graph_board/* embadded_board.* -o interface.so
 
-slow-interface.so: interface.cpp $(ENGINE_SOS) $(GRAPH_SOS) $(OUT_DIR)/embadded_board.so
-	$(CXX) $(SHARED_FLAG) interface.cpp $(ENGINE_SOS) $(GRAPH_SOS) $(OUT_DIR)/embadded_board.so -o interface.so
+interface.so: interface.h interface.cpp $(ENGINE_SOS) $(GRAPH_SOS) $(OUT_DIR)/embadded_board.so
+	$(CXX) $(SHARED_FLAG) interface.h interface.cpp $(ENGINE_SOS) $(GRAPH_SOS) $(OUT_DIR)/embadded_board.so -o interface.so
 
 clean:
 	rm -f $(OUT_DIR)/*.o $(OUT_DIR)/*.so test engine.so interface.so

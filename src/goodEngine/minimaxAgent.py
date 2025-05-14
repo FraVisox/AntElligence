@@ -20,7 +20,7 @@ class MinimaxAgentCPP:
 
     def bestmove(self):
         act=self.bestaction()
-        return GR.actionToString(act)
+        return GR.actionToString(act,self.state)
     def playmove(self,actionStr):
         act=GR.stringToAction(self.state,actionStr)
         self.executeAction(act)

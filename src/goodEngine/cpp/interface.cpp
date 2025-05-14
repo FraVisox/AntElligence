@@ -73,6 +73,10 @@ char* BoardRapp(EBoard* p){
 }
 
 
+void* getMask(EBoard* p){
+    return p->board_exp.G.isValidMoveBitmask;
+}
+
 
 
 
@@ -107,32 +111,30 @@ void PrintBoard(EBoard* b){
 }
 
 
-char* actionToString(actionT a){
+void actionToString(actionT a, EBoard *board,char* risBug){
     a&=((1ull<<63)-1);
     if(a==0){
-        char* r=(char*)malloc(sizeof(char)*5);
-        r[0]='p';
-        r[1]='a';
-        r[2]='s';
-        r[3]='s';
-        r[4]=0;
-        return r;
+        risBug[0]='p';
+        risBug[1]='a';
+        risBug[2]='s';
+        risBug[3]='s';
+        risBug[4]=0;
+        return;
     }
     char b=a&0xff;
     string s=PiecetoString(b);
     for(int i=7;i>=1;i--){
         char can=((a>>(i*8))&0xff);
         if(can!=0){
-            s+=" "+nameDirToString(PiecetoString(can),opposite(i-1));
+            pieceT resPiece(board->board_exp.G.topPiece(board->board_exp.G.getPosition(can)));
+            s+=" "+nameDirToString(PiecetoString(resPiece),opposite(i-1));
             break;
         }
     }
-    char* r=(char*)malloc(sizeof(char)*s.size()+1);
     for(int i=0;i<s.size();i++){
-        r[i]=s[i];
+        risBug[i]=s[i];
     }
-    r[s.size()]=0;
-    return r;
+    risBug[s.size()]=0;
 }
 
     
@@ -189,6 +191,7 @@ double boardEval(EBoard* b, double w[]){
 void delBoard(EBoard* b){
     free(b);
 }
+
 
 /*
     OK = 0

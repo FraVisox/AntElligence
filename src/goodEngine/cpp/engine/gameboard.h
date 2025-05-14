@@ -1,6 +1,6 @@
 #ifndef GAMEBOARD_H
 #define GAMEBOARD_H
-
+#define TOTAL_POSSIBLE_MOVES 1575
 #include <vector>
 #include <bitset>
 #include "piece.h"
@@ -29,7 +29,7 @@ class gameboard{
     *   X (693) -> 6*2   positions for B1,B2
     *   X (705) -> 6*3   positions for G1,G2,G3
     *   X (723) -> 504=28*6*3 for A1,A2,A3
-    *   X (1227) -> 72=36*2  moves for S1,S2  
+    *   X (1227) -> 72=36*2  moves for S1,S2
     *   X (1299) -> 6  for P moves
     *   X (1305) -> 30 for P ability
     *   X (1335) -> 36  for L
@@ -38,7 +38,8 @@ class gameboard{
     *   x (1545) -> 30 mosquito copy pillbug
     *   Total 
     */  // Idea in background
-    bitset<1575> isValidMoveBitmask;
+    uint8_t isValidMoveBitmask[1575];
+    uint8_t _isValidMoveBitmask_rel_pos[1575];
 
     //Initialization
     //bool checIfCanMove(position &to, position &from, bool canOver);

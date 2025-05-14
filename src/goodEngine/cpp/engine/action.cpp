@@ -55,10 +55,8 @@ actionT placePiece(pieceT p,position pos,gameboard& g){
     for(int dir=0;dir<6;dir++){
         if(!g.isFree(pos.applayMove(dir))){
             pieceT n=g.topPiece(pos.applayMove(dir));
-            g.isValidMoveBitmask.set(
-                15+dir+6*kind(p)+48*((n-1)%14),
-                1
-            );
+            g.isValidMoveBitmask[
+                15+dir+6*kind(p)+48*((n-1)%14)]=1;
         }
     }
     return movement(p,pos,g);
