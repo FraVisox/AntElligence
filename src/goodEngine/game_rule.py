@@ -16,7 +16,7 @@ actionT=ctypes.c_uint64
 
 class game_rule(ABC):
     @abstractmethod
-    def init_state(self):
+    def init_state(self): 
         pass
     def next_state(self, state, action:actionT):
         pass    
@@ -44,6 +44,8 @@ class DLLGameRule(game_rule):
         self.delBoardC_low=dll._Z8delBoardP6EBoard
         self.stringToAction_low=dll._Z14stringToActionP6EBoardPc
         #self.boardToCVect_low=dll._Z9BoardRappP6EBoard
+        self.getStatusVector_low=dll._Z15getStatusVectorP6EBoard
+        self.getAssociatedAction_low=dll._Z19getAssociatedActionP6EBoard
         self.getMask_low=self.dll._Z7getMaskP6EBoard
         # Set argument/return types
         self.getBoard_low.argtypes = [argType]  # the type of game, define in engine/enums.h
@@ -82,6 +84,14 @@ class DLLGameRule(game_rule):
 
         self.getMask_low.argtypes = [ctypes.c_void_p]
         self.getMask_low.restype = ctypes.POINTER(ctypes.c_int8)
+        
+        self.getAssociatedAction_low.argtypes = [ctypes.c_void_p]
+        self.getAssociatedAction_low.restype = ctypes.POINTER(actionT)
+
+        self.getStatusVector_low.argtypes = [ctypes.c_void_p]
+        self.getStatusVector_low.restype = ctypes.POINTER(actionT)
+
+
 
         self.strBuff=(ctypes.c_char* 30)()
     def init_state(self,gametype=0) -> EBoardP:
@@ -124,24 +134,37 @@ class DLLGameRule(game_rule):
 
     def calcVal(self,state:EBoardP,w) -> ctypes.c_double:
         return self.evalBoard_low(state,w)
+        
     def delBoard(self,state:EBoardP):
         self.delBoardC_low(state)
-    def toVect(self,state:EBoardP):
-        vc=self.boardToCVect_low(state)
-        return [vc[i] for i in range(284)]
+    
+    
+    def toVect(self,state:EBoardP):   # to get the status of the board as a np vector : 1024 + 6 + 2 + 1
+        ptr = self.getStatusVector_low(state)
+        arr = np.ctypeslib.as_array(ptr, shape=(1575,))
+        return arr.copy().astype(int)
+
+
     def stringToAction(self,state:EBoardP,str):
         return self.stringToAction_low(state,str.encode())
 
 
-    def getAllActions(self,state):
-        act=self.getActions(state)
-        ris=""
-        for i in range(1,act[0]+1):
-            ris+=";"+self.actionToString(act[i],state)
-        return ris
+    #def getAllActions(self,state):
+    #    act=self.getActions(state)
+    #    ris=""
+    #    for i in range(1,act[0]+1):
+    #        ris+=";"+self.actionToString(act[i],state)
+    #    return ris
     
     
-    def get_mask(self, state):
+    def get_mask(self, state):          # mask for actions
         ptr = self.getMask_low(state)
-        arr = np.ctypeslib.as_array(ptr, shape=(1600,))
+        arr = np.ctypeslib.as_array(ptr, shape=(1575,))
         return arr.copy().astype(bool)  # copy to own Python memory
+
+    def get_actions(self,state):   # all actions masked by getMask
+        ptr = self.getAssociatedAction_low(state)
+        arr = np.ctypeslib.as_array(ptr, shape=(1575,))
+        return arr.copy().astype(int)  # copy to own Python memory
+
+

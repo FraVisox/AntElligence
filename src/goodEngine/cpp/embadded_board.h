@@ -8,10 +8,15 @@ class EBoard{
     EBoard(GameType);
     EBoard(EBoard*);
     Board board_exp;
+
+    pieceT vectRapp[1032];
     //char graph_board[BOARDSIZE];
     void applyAction(actionT a);
     void getNextsActions(actionT* ris);
     int getState();
+
+    void updateVectRapp();
+    int getTurn();
     //void checkConsistency();
 };
 #endif

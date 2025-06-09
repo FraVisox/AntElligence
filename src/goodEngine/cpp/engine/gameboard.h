@@ -43,6 +43,8 @@ class gameboard{
     uint8_t isValidMoveBitmask[1575];
     uint8_t _isValidMoveBitmask_rel_pos[1575];
 
+    actionT associatedAction[1575];
+
     //Initialization
     //bool checIfCanMove(position &to, position &from, bool canOver);
 

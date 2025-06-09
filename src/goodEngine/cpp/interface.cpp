@@ -78,9 +78,15 @@ char* BoardRapp(EBoard* p){
 */
 
 void* getMask(EBoard* p){
+
+
     return p->board_exp.G.isValidMoveBitmask;
 }
 
+
+void* getAssociatedAction(EBoard* p){
+    return p->board_exp.G.associatedAction;
+}
 
 
 
@@ -104,6 +110,13 @@ void getActions(EBoard* state,actionT* actions){  // max 256 mosse
 
 int checkStatus(EBoard* board){
     return board->getState();
+}
+
+
+void* getStatusVector(EBoard* board){
+    board->updateVectRapp();
+
+    return board->vectRapp;
 }
 
 void printBoard(EBoard* board){

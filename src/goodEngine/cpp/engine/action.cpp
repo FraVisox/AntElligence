@@ -34,15 +34,17 @@ actionT movement(const pieceT p,const positionT &destPos){
  *   :rtype: action
  */
 actionT placePiece(pieceT p,positionT pos,gameboard& g){
+    actionT A=movement(p,pos);
     for(int dir=0;dir<6;dir++){
         if(!g.isFree(applayMove(pos,dir))){
             pieceT n=g.topPiece(applayMove(pos,dir));
             g.isValidMoveBitmask[
                 15+dir+6*kind(p)+48*((n-1)%14)]=1;
-                break;
+            g.associatedAction[15+dir+6*kind(p)+48*((n-1)%14)]=A;
+            break;
         }
     }
-    return movement(p,pos);
+    return A;
 }   
 
 actionT placeFirst(pieceT p){
