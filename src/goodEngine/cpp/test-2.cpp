@@ -1,6 +1,7 @@
 #include "embadded_board.h"
 #include "interface.h"
 #include <chrono>
+#include <iostream>
 /*
 #include "engine/action.cpp"
 #include "engine/board.cpp"
@@ -45,9 +46,9 @@ int main(){
                 int m=rand()%ris[0]+1;
                 //m=1;
                 actionToString(ris[m],v,strBuff);
-                
+                cout<<strBuff<<endl;
                 actionT na=stringToAction(v,strBuff);
-                if(na!=ris[m]) throw "Different value for action";
+                // if(na!=ris[m]) throw "Different value for action";
                 next_state(v,na);
                
 

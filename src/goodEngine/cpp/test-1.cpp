@@ -1,6 +1,6 @@
 #include <algorithm>
 #include "interface.h"
-
+#include <iostream>
 using namespace std;
 int evN = 0;
 
@@ -34,11 +34,11 @@ int main(){
             getActions(state,actions);
             evN=0;
             if(i%2==colS){
-                p=minimax(state,4,true,w1);
+                p=minimax(state,6,true,w1);
                 best_action=p.second;
             }else{
-                p=minimax(state,4,true,w2);
-                best_action=p.second;
+                int nAct=actions[0];
+                best_action=actions[(rand()%nAct)+1];
             
             }
 

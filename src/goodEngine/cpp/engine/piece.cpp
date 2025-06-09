@@ -65,10 +65,7 @@ const int NUM_INC_PIECE[]={
 
 
 int numInc(pieceT p){
-    if(p>0 && p<=28)
-        return NUM_INC_PIECE[(p-1)%14];
-    if(p==29 && isSimulatingPiece)return numInc(simulatedPiece);
-    throw "Asking numInc of a non-piece";    
+    return NUM_INC_PIECE[(p-1)%14];
 }
 
 pieceT getCandidateForKind(BugType t,PlayerColor col){

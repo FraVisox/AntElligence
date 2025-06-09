@@ -3,20 +3,9 @@
 
 #include <string>
 using namespace std;
-typedef char* boardT;
-typedef uint64_t actionT;
-const  int MAX_ACTIONS_SIZE=256;
-//Return message
+typedef uint_fast16_t actionT;
+const  int MAX_ACTIONS_SIZE=512;
 
-enum ReturnMessage{ //TODO: add more errors
-    OK = 0,
-    ERROR = 1,
-    GAME_OVER_DRAW = 2,
-    GAME_OVER_WHITE_WINS = 3,
-    GAME_OVER_BLACK_WINS = 4,
-    INVALID_ARGUMENT = 5,
-    INVALID_GAME_NOT_STARTED = 6,
-};
 
 
 //Color of the player
@@ -26,26 +15,20 @@ enum PlayerColor{
     BLACK=1
 };
 
-//Parsing
+int opposite(int x);
 
-string ColorToString(PlayerColor c);
 PlayerColor parseColor(string s);
 
 //Game state
 
-enum GameState{
-    NOT_STARTED=1,
-    STARTED=2,
-    IN_PROGRESS=3,
+enum GameState{   
+    NOT_STARTED=0,
+    STARTED=1,
+    WHITE_WIN=2,
+    BLACK_WIN=3,
     DRAW=4,
-    WHITE_WIN=5,
-    BLACK_WIN=6
 };
 
-//Parsing
-
-string GameStateToString(GameState gs);
-GameState parseState(string s);
 
 //Game type
 
@@ -60,10 +43,6 @@ enum GameType{
     Base_MLP=7
 };
 
-//Parsing
-
-string GameTypeToString(GameType gt);
-GameType parseGameType(string s);
 
 //Type of bug
 
@@ -80,27 +59,8 @@ enum BugType{
 
 //Parsing
 
-string BugTypeToString(BugType t);
 BugType parseBugType(string s);
 
-
-//Engine enums
-// Enum for commands
-enum class Command {
-    INFO,
-    HELP,
-    OPTIONS,
-    NEWGAME,
-    VALIDMOVES,
-    BESTMOVE,
-    PLAY,
-    PASS,
-    UNDO,
-    EXIT,
-    GET,
-    SET,
-    UNKNOWN
-};
 
 enum class StrategyName {
     RANDOM = 0,
@@ -108,8 +68,4 @@ enum class StrategyName {
     DRL = 2
 };
 
-// Convert string to Command enum
-Command stringToCommand(const std::string& cmd);
-std::string optionToString(StrategyName brain);
-StrategyName stringToStrategyName(const std::string& brain);
 #endif

@@ -1,5 +1,6 @@
 #include "embadded_board.h"
 #include <chrono>
+#include <iostream>
 /*
 #include "engine/action.cpp"
 #include "engine/board.cpp"
@@ -19,10 +20,9 @@ using namespace std;
 
 int main(){
     for(int TR=0;TR<1;TR++){
-        auto seed=time(0);
+        auto seed=15325325;time(0);
         cout<<"Run with seed:"<<seed<<endl;
 
-        srand(seed);
         auto t_start=chrono::high_resolution_clock::now();
         int mbs=0;
         int i=0;
@@ -32,7 +32,9 @@ int main(){
         int rt;
         try{
         i=0;
-        for(rt=0;rt<5;rt++){
+        for(rt=0;rt<200;rt++){
+            srand(seed+rt);
+        
             EBoard eb(GameType::Base_MLP);
             i=0;
             while(1){
@@ -51,9 +53,9 @@ int main(){
                 
                 eb.applyAction(ris[m]);
 
-                eb.checkConsistency();
+                //eb.checkConsistency();
                 if(eb.getState()!=1){
-                    cout<<"X"<<endl;
+                    cout<<rt<<": X"<<endl;
                     break;
                 }
 

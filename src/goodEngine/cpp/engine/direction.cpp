@@ -4,14 +4,14 @@
 
 
 
-const int RIGHT=0;
-const int DOWN_RIGHT=1;
-const int DOWN_LEFT=2;
-const int LEFT=3;
-const int UP_LEFT=4;
-const int UP_RIGHT=5;
-const int OVER=6;
-const int UNDER=7;
+const direction RIGHT=0;
+const direction DOWN_RIGHT=1;
+const direction DOWN_LEFT=2;
+const direction LEFT=3;
+const direction UP_LEFT=4;
+const direction UP_RIGHT=5;
+const direction OVER=6;
+const direction UNDER=7;
 
 
 
@@ -70,6 +70,17 @@ direction oppositeDir(direction d){
 
 
 
-const unsigned int adF[]={1,0,31,31,0,1,0,0};
-const unsigned int adS[]={0,1,1,0,31,31,0,0};
+
+
+
+
+/*
+    4 5
+  3 x 0
+  2 1
+*/
+
+
+
+const unsigned dirDif[]={1,32,31,1023,992,993,0,0};
 

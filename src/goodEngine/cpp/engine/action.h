@@ -8,14 +8,12 @@
 
 //Types of actions
 
-actionT movement(const pieceT p,const position &destPos,gameboard& G);
-actionT placePiece(pieceT p,position pos, gameboard &G);
+actionT movement(const pieceT p,const positionT &destPos);
+actionT placePiece(pieceT p,positionT pos, gameboard &G);
 actionT placeFirst(pieceT p);
 actionT pass();
 
 //Parsing
 
-//action parseAction(string s, const set<pieceT>& inHandPiece);
-//string ActionToString(const action &a);
 
 #endif

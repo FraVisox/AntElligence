@@ -38,12 +38,12 @@ class DLLGameRule(game_rule):
         self.getAction_low = dll._Z10getActionsP6EBoardPm
         self.checkGameStatus_low = dll._Z11checkStatusP6EBoard
         self.actionToString_low = dll._Z14actionToStringmP6EBoardPc
-        self.printAct_low = dll._Z16printActionFancym
-        self.PrintBoard_low = dll._Z10PrintBoardP6EBoard  
+        #self.printAct_low = dll._Z16printActionFancym
+        self.PrintBoard_low = dll._Z10printBoardP6EBoard  
         self.evalBoard_low = dll._Z9boardEvalP6EBoardPd
         self.delBoardC_low=dll._Z8delBoardP6EBoard
         self.stringToAction_low=dll._Z14stringToActionP6EBoardPc
-        self.boardToCVect_low=dll._Z9BoardRappP6EBoard
+        #self.boardToCVect_low=dll._Z9BoardRappP6EBoard
         self.getMask_low=self.dll._Z7getMaskP6EBoard
         # Set argument/return types
         self.getBoard_low.argtypes = [argType]  # the type of game, define in engine/enums.h
@@ -62,8 +62,8 @@ class DLLGameRule(game_rule):
         self.checkGameStatus_low.restype = ctypes.c_int
 
         
-        self.printAct_low.argtypes = [actionT]
-        self.printAct_low.restype = None
+        #self.printAct_low.argtypes = [actionT]
+        #self.printAct_low.restype = None
 
 
         self.evalBoard_low.argtypes = [EBoardP, ctypes.POINTER(ctypes.c_double)]
@@ -76,8 +76,8 @@ class DLLGameRule(game_rule):
         self.stringToAction_low.argtypes=[EBoardP,ctypes.c_char_p]
         self.stringToAction_low.restype=actionT
 
-        self.boardToCVect_low.argtypes=[EBoardP]
-        self.boardToCVect_low.restype=ctypes.POINTER(ctypes.c_char)        
+        #self.boardToCVect_low.argtypes=[EBoardP]
+        #self.boardToCVect_low.restype=ctypes.POINTER(ctypes.c_char)        
         self.actions = (actionT * self.MAX_ACTIONS)()
 
         self.getMask_low.argtypes = [ctypes.c_void_p]
@@ -85,21 +85,21 @@ class DLLGameRule(game_rule):
 
         self.strBuff=(ctypes.c_char* 30)()
     def init_state(self,gametype=0) -> EBoardP:
-        return self.getBoard_low(gametype)  # default game type
+        return self.getBoard_low(gametype)  # default game type  0 ->base, ..., 7 -> MPL
 
     def next_state(self, state:EBoardP, action:actionT):
         self.updateState_low(state, ctypes.c_uint64(action))
 
     def getActions(self, state:EBoardP)->ctypes.POINTER(actionT) :
-        self.getAction_low(state, self.actions)
+        self.getAction_low(state, self.actions)  # TODO: Mettere copia
         return self.actions
 
     def checkStatus(self, state:EBoardP) :
         code = self.checkGameStatus_low(state)
         status_map = {
             0: "OK",
-            1: "INVALID_GAME_NOT_STARTED",
-            2: "GAME_OVER_WHITE_WINS or DRAW",
+            1: "Game running",
+            2: "GAME_OVER_WHITE_WINS",
             3: "GAME_OVER_BLACK_WINS"
         }
         return code
@@ -115,6 +115,8 @@ class DLLGameRule(game_rule):
 
 
     def print_action(self, action:actionT) -> None:
+        print("DOIMPLEMENT")
+        return
         self.printAct_low(ctypes.c_uint64(action))
 
     def PrintState(self, state:EBoardP) -> None:

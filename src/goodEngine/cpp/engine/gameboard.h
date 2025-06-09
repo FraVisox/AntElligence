@@ -13,10 +13,12 @@ using namespace  std;
 class gameboard{
     public:
     gameboard();
-    pieceT gb[SIZE_BOARD][SIZE_BOARD][HIGHT_BOARD];  // Vector of stacks that contain bugs. One stack at each position. The board is thus 100*100
-    position bugPosition[32];
-    bitset<SIZE_BOARD*SIZE_BOARD> occupied;
-    int high[SIZE_BOARD][SIZE_BOARD];
+    gameboard(GameType);
+
+    pieceT gb[8][1024];  // Vector of stacks that contain bugs. One stack at each position. The board is thus 100*100
+    positionT bugPosition[32];
+    bitset<1024> occupied;
+    int high[1024];
     
     bitset<32> isPlaced;
 
@@ -46,7 +48,9 @@ class gameboard{
 
     
     //And the placing
-    vector<position> validPositionPlaceNew(PlayerColor color);
+    positionT validPositionPlaceBuffer[400];
+    int numValidPosition;
+    void computeValidPositionPlaceNew(PlayerColor color);
 
     
 
@@ -55,26 +59,26 @@ class gameboard{
 
     //Manage positions
 
-    void popPosition(const position &pos);
-    bool isFree(const position &pos);
-    bool isAtLevel1(const position &pos);
-
-
+    void popPosition(const positionT &pos);
+    bool isFree(const positionT &pos);
+    bool isAtLevel1(const positionT &pos);
+    bitset<308> toHash();
     //Manage pieces
     
-    position getPosition(const pieceT &p);
-    void updatePos(const pieceT &bug,const position &pos);
+    positionT getPosition(const pieceT &p);
+    void updatePos(const pieceT &bug,const positionT &pos);
     void removePiece(const pieceT &b);    
-    void addPiece(const position &pos, const pieceT &b);
+    void addPiece(const positionT &pos, const pieceT &b);
     bool isTop(const pieceT &bug);
     bool canPieceMove(const pieceT &b,int turn);
-    pieceT topPiece(const position &pos);
-    int getHight(const position &pos);
+    pieceT topPiece(const positionT &pos);
+    pieceT basePiece(const positionT &pos);
+    int getHight(const positionT &pos);
 
     //Main function to understand the movements
     bool canMoveWithoutBreakingHiveRule(const pieceT &b,int turn);
 
-    bool canSlideToFreeDir(const position &from,const position &to,const direction n);
+    bool canSlideToFreeDir(const positionT &from,const positionT &to,const direction n);
   
     //PRIVATE FUNCTIONS TO FIND ARTICULATION POINTS (HIVE RULE) AND CALCULATE POSITION
 
@@ -103,13 +107,13 @@ class gameboard{
         not_movable_position.reset();
         visited_dfs.reset();
 
-        position startPos;
+        positionT startPos;
         for(pieceT p=0;p<32;p++){
             if(isPlaced[p]){
-                position e=bugPosition[p];
+                positionT e=bugPosition[p];
                 startPos=e;
-                disc[e.toInt()]=-1; //discovered time
-                low[e.toInt()]=-1; //lowest discovered time
+                disc[e]=-1; //discovered time
+                low[e]=-1; //lowest discovered time
             }
         }
 
@@ -126,37 +130,38 @@ class gameboard{
      * \param v The current position.
      * \param p The parent position, defaults to NULL_POSITION.
      */
-    void dfs(position &v, const position &p = NULL_POSITION) {
+    void dfs(positionT &v, const positionT &p = NULL_POSITION) {
 
         //Mark this as visited
-        visited_dfs.set(v.toInt(),1);
+        visited_dfs.set(v,1);
 
         //Set the discovery time and low time as current time
-        disc[v.toInt()] = low[v.toInt()] = timer++;
+        disc[v] = low[v] = timer++;
 
         int children=0;
         for (int dir=0;dir<6;dir++){
-            position to=v.applayMove(dir);
+            positionT to=applayMove(v,dir);
             if(isFree(to))continue;
             //If this is a back edge, update low
-            if (visited_dfs[to.toInt()]) {
-                low[v.toInt()] = min(low[v.toInt()], disc[to.toInt()]);
+            if (visited_dfs[to]) {
+                low[v] = min(low[v], disc[to]);
             } else {
                 //Make it a children of this node and visit it
                 dfs(to, v);
                 //Check if the subtree rooted at v has a connection to one of the ancestors of u
-                low[v.toInt()] = min(low[v.toInt()], low[to.toInt()]);
+                low[v] = min(low[v], low[to]);
                 
                 //If the subtree rooted at to has not a connection to one of the ancestors of u, this is an articulation point
-                if (low[to.toInt()] >= disc[v.toInt()] && p!=NULL_POSITION)
-                    not_movable_position.set(v.toInt(),1);
+                if (low[to] >= disc[v] && p!=NULL_POSITION)
+                    not_movable_position.set(v,1);
                 
                 ++children;
             }
         }
         if(p == NULL_POSITION && children > 1)
-            not_movable_position.set(v.toInt(),1);
+            not_movable_position.set(v,1);
     }
 
 };
+
 #endif
