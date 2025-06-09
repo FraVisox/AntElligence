@@ -1,58 +1,88 @@
 #include "embadded_board.h"
-#include "graph_board/build_from_graph.h"
-#include "graph_board/update_board.h"
 
-EBoard::EBoard(GameType gt){
-
-    
-    for(int i=0;i<BOARDSIZE;i++)graph_board[i]=0;
-
-    setTurn(graph_board,1);
-    for(int i=1;i<12;i++){
-        addPieceInHand(graph_board,i);
-    }
-    for(int i=15;i<26;i++){
-        addPieceInHand(graph_board,i);
-    }
-    switch (gt)
-    {
-    case GameType::Base: break;
-    case GameType::Base_M: addPieceInHand(graph_board,12);addPieceInHand(graph_board,26);break;
-    case GameType::Base_L: addPieceInHand(graph_board,13);addPieceInHand(graph_board,27);break;
-    case GameType::Base_P: addPieceInHand(graph_board,14);addPieceInHand(graph_board,28);break;
-    case GameType::Base_ML: addPieceInHand(graph_board,12);addPieceInHand(graph_board,26);
-                            addPieceInHand(graph_board,13);addPieceInHand(graph_board,27);break;
-    case GameType::Base_MP: addPieceInHand(graph_board,12);addPieceInHand(graph_board,26);
-                            addPieceInHand(graph_board,14);addPieceInHand(graph_board,28);break;
-    case GameType::Base_LP: addPieceInHand(graph_board,13);addPieceInHand(graph_board,27);
-                            addPieceInHand(graph_board,14);addPieceInHand(graph_board,28);break;
-    case GameType::Base_MLP:addPieceInHand(graph_board,12);addPieceInHand(graph_board,26);
-                            addPieceInHand(graph_board,13);addPieceInHand(graph_board,27);
-                            addPieceInHand(graph_board,14);addPieceInHand(graph_board,28);break;
-    }
-
-    board_exp=buildBoardFromGraph(graph_board);
-}
+EBoard::EBoard(GameType gt) : board_exp(gt){}
 
 void EBoard::applyAction(actionT action){
     board_exp.applayAction(action);
-    UpdateState(graph_board,action);
 }
 
 void EBoard::getNextsActions(actionT* ris){
-    getActionsWithImplicitTransiction(graph_board,board_exp,ris);
+    board_exp.ComputePossibleMoves();
+    
+    if(board_exp.numAction==0){
+        ris[0]=1;
+        ris[1]=0;
+        return;
+    }   
+
+    ris[0]=board_exp.numAction;
+
+    for(int i=1;i<=board_exp.numAction;i++){
+        ris[i]=board_exp.resAction[i-1];
+    }
 }
 
 EBoard::EBoard(EBoard* b){
-    for(int i=0;i<284;i++){
-        this->graph_board[i]=b->graph_board[i];
-    }
     this->board_exp.copy(b->board_exp);
 }
 
 int EBoard::getState(){
-    return checkWin(graph_board);
+    return board_exp.getGameState();
 }
+
+
+void EBoard::updateVectRapp(){
+    bitset<32> occR(0),occC(0);
+    gameboard &gb=this->board_exp.G;
+    for(int i=0;i<32;i++){
+        if(gb.isPlaced[i]){
+            int p=gb.bugPosition[i];
+            occR.set(p>>5,1);
+            occC.set(p&31,1);
+        }
+    }
+
+    positionT fr=0;
+    while(occR[fr]&& fr<32)fr++;
+    while((!occR[fr+1]) && fr<31)fr++;
+    positionT fc=0;
+    while(occC[fc]&& fc<32)fc++;
+    while((!occC[fc+1]) && fc<31)fc++;
+    
+    positionT bp=(fr<<5)+fc;
+
+    for(int i=0;i<1024;i++){
+        this->vectRapp[i]=gb.gb[0][(i+bp)&1023];
+    }
+
+
+    // put climber pieces
+    int climberPiece[]={3,4,12,17,18,26};
+
+    for(int i=0;i<6;i++){
+        pieceT cp=climberPiece[i];
+        this->vectRapp[1024+i]=0;
+        if(gb.isPlaced[cp]){
+            positionT pos=gb.getPosition(climberPiece[i])&1023;
+            int h=0;
+            while(gb.gb[h][pos]!=cp)h++;
+            if(h!=0){
+                this->vectRapp[1024+i]=gb.gb[h-1][pos];
+            }
+        }
+    }
+
+    this->vectRapp[1030]=this->board_exp.prevMoved[0];
+    this->vectRapp[1031]=this->board_exp.prevMoved[1];
+    this->vectRapp[1032]=this->board_exp.currentTurn;
+}
+
+
+int EBoard::getTurn(){
+    return board_exp.currentTurn;
+}
+
+/*
 
 void EBoard::checkConsistency(){
     return ;
@@ -70,14 +100,14 @@ void EBoard::checkConsistency(){
         }
         if(isPlaced(graph_board,i)){
             int of=getStartingPointBug(i);
-            position posBase=board_exp.G.getPosition(i);
-            if(board_exp.G.gb[(posBase.first+SIZE_BOARD)%SIZE_BOARD][(posBase.second+SIZE_BOARD)%SIZE_BOARD][0]!=i)continue;
+            positionT posBase=board_exp.G.getPosition(i);
+            if(board_exp.G.gb[0][posBase]!=i)continue;
 
             for(int j=0;j<6;j++){
                 if(graph_board[of+j]!=0 && board_exp.currentTurn>2){
                     pieceT otherBug=graph_board[of+j];
-                    position otherPos=board_exp.G.getPosition(otherBug);
-                    if(posBase.applayMove(j)!=otherPos){
+                    positionT otherPos=board_exp.G.getPosition(otherBug);
+                    if(applayMove(posBase,j)!=otherPos){
                         throw "Not the correct position";
                     }
                 }
@@ -87,3 +117,5 @@ void EBoard::checkConsistency(){
     }
     
 }
+*/
+

@@ -14,26 +14,9 @@
  *   :return: Action representing the movement.
  *   :rtype: action
  */
-actionT movement(pieceT p,position destPos,gameboard& G){
-    actionT r=(actionT)p;
-    if(destPos.first==10000)
-        throw "Cannot put here";
+actionT movement(const pieceT p,const positionT &destPos){
+    return (actionT)(p+((destPos&1023)*32));
 
-    int resHight=G.getHight(destPos);
-
-    for(int j=0;j<6;j++){
-        position posNearJ=destPos.applayMove((j));
-        if(G.getHight(posNearJ)>resHight){
-            pieceT nextBug=G.gb[(posNearJ.first+SIZE_BOARD)%SIZE_BOARD][(posNearJ.second+SIZE_BOARD)%SIZE_BOARD][resHight];
-            if(nextBug!=p)
-                r|=((actionT)(nextBug))<<((actionT)(8*(j+1)));
-        }
-    }
-
-    if(resHight!=0){
-        r|=((actionT)(((actionT)(G.topPiece(destPos)))))<<(56);
-    }
-    return r;
 }
 
 
@@ -50,30 +33,25 @@ actionT movement(pieceT p,position destPos,gameboard& G){
  *   :return: Action representing the placement.
  *   :rtype: action
  */
-actionT placePiece(pieceT p,position pos,gameboard& g){
-    return movement(p,pos,g);
+actionT placePiece(pieceT p,positionT pos,gameboard& g){
+    actionT A=movement(p,pos);
+    for(int dir=0;dir<6;dir++){
+        if(!g.isFree(applayMove(pos,dir))){
+            pieceT n=g.topPiece(applayMove(pos,dir));
+            g.isValidMoveBitmask[
+                15+dir+6*kind(p)+48*((n-1)%14)]=1;
+            g.associatedAction[15+dir+6*kind(p)+48*((n-1)%14)]=A;
+            break;
+        }
+    }
+    return A;
 }   
 
-/**
- *   Constructs a place first action.
- * 
- *   :param p: Bug piece to be placed.
- *   :type p: piece
- *   :return: Action representing the placement of the first bug.
- *   :rtype: action
- */
 actionT placeFirst(pieceT p){
     return (actionT)p;
 }
 
 
-
-/**
- *   Constructs a pass action.
- * 
- *   :return: Action representing the pass of the player's turn.
- *   :rtype: action
- */
 actionT pass(){
     return 0;
 }

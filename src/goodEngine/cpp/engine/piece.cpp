@@ -1,6 +1,5 @@
 #include <string>
 #include "piece.h"
-#include <sstream>
 using namespace std;
 
 
@@ -66,10 +65,7 @@ const int NUM_INC_PIECE[]={
 
 
 int numInc(pieceT p){
-    if(p>0 && p<=28)
-        return NUM_INC_PIECE[(p-1)%14];
-    if(p==29 && isSimulatingPiece)return numInc(simulatedPiece);
-    throw "Asking numInc of a non-piece";    
+    return NUM_INC_PIECE[(p-1)%14];
 }
 
 pieceT getCandidateForKind(BugType t,PlayerColor col){
@@ -112,35 +108,35 @@ pieceT buildPiece(enum BugType k,PlayerColor c,int numIncr){
 
 
 string PIECE_STRING_RAPP[]={
-    "   ",
-    "wS1",
-    "wS2",
-    "wB1",
-    "wB2",
-    "wG1",
-    "wG2",
-    "wG3",
-    "wQ",
-    "wA1",
-    "wA2",
-    "wA3",
-    "wM",
-    "wL",
-    "wP",
-    "bS1",
-    "bS2",
-    "bB1",
-    "bB2",
-    "bG1",
-    "bG2",
-    "bG3",
-    "bQ",
-    "bA1",
-    "bA2",
-    "bA3",
-    "bM",
-    "bL",
-    "bP",
+    "   ",  //0
+    "wS1",  //1
+    "wS2",  //2
+    "wB1",  //3
+    "wB2",  //4
+    "wG1",  //5
+    "wG2",  //6
+    "wG3",  //7
+    "wQ",   //8
+    "wA1",  //9
+    "wA2",  //10
+    "wA3",  //11
+    "wM",   //12
+    "wL",   //13
+    "wP",   //14
+    "bS1",  //15
+    "bS2",  //16
+    "bB1",  //17
+    "bB2",  //18
+    "bG1",  //19
+    "bG2",  //20
+    "bG3",  //21
+    "bQ",   //22
+    "bA1",  //23
+    "bA2",  //24
+    "bA3",  //25
+    "bM",   //26
+    "bL",   //27
+    "bP",   //28
 };
 
 string PiecetoString(pieceT p){

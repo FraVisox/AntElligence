@@ -1,6 +1,6 @@
 #include <algorithm>
 #include "interface.h"
-
+#include <iostream>
 using namespace std;
 int evN = 0;
 
@@ -23,22 +23,22 @@ int main(){
     //movableOpp
     //nearMyQueen
     //nearOpposite;
-    for(int Q=0;Q<10;Q++){
-        EBoard* state = base_state(0);  // Assume this returns a void* or similar
+    for(int Q=0;Q<5;Q++){
+        EBoard* state = base_state(4);  // Assume this returns a void* or similar
         int i = 0;
         int colS=rand()%2;
     
-        while (i < 3000) {
+        while (i < 30000) {
 
             actionT best_action;
             getActions(state,actions);
             evN=0;
             if(i%2==colS){
-                p=minimax(state,4,true,w1);
+                p=minimax(state,6,true,w1);
                 best_action=p.second;
             }else{
-                p=minimax(state,4,true,w2);
-                best_action=p.second;
+                int nAct=actions[0];
+                best_action=actions[(rand()%nAct)+1];
             
             }
 
