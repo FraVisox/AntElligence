@@ -141,7 +141,7 @@ class DLLGameRule(game_rule):
     
     def toVect(self,state:EBoardP):   # to get the status of the board as a np vector : 1024 + 6 + 2 + 1
         ptr = self.getStatusVector_low(state)
-        arr = np.ctypeslib.as_array(ptr, shape=(1575,))
+        arr = np.ctypeslib.as_array(ptr, shape=(1033,))
         return arr.copy().astype(int)
 
 
