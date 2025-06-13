@@ -106,12 +106,14 @@ class DLLGameRule(game_rule):
 
     def checkStatus(self, state:EBoardP) :
         code = self.checkGameStatus_low(state)
-        status_map = {
-            0: "OK",
-            1: "Game running",
-            2: "GAME_OVER_WHITE_WINS",
-            3: "GAME_OVER_BLACK_WINS"
-        }
+        """
+            NOT_STARTED=0,
+            STARTED=1,
+            WHITE_WIN=2,
+            BLACK_WIN=3,
+            DRAW=4,
+        """
+        
         return code
 
     def actionToString(self, action:actionT,board:EBoardP):
