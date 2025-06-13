@@ -5,52 +5,56 @@
 #include "action.h"
 #include <queue>
 #include <string.h>
-#include <sstream>
 
 class Board {
     public:
 
-    //Properties of this game
-    int currentTurn;
-    GameState state; //InProgress, Draw, WhiteWins, BlackWins, NotStarted
-    GameType type; //Base, BASE+MLP, ...
-    
-    //Moves made
-
-    //Gameboard and pieces
-    gameboard G = gameboard();
-    //vector<pieceT> placedBug = vector<pieceT>();
-    bitset<32> inHandPiece;
-    actionT resAction[MAX_ACTIONS_SIZE];
-    int numAction;
-    pieceT prevMoved[2];
-    //Initialization
 
     Board();
+    Board(GameType);
 
     void copy(Board&);
 
-    int getScore(PlayerColor color);
-    int getScoreBug(pieceT p);
-    int countSurrounding(pieceT p);
 
     //Current status
-    string toString();
     PlayerColor currentColor();
     int currentPlayerTurn();
     bool placedQueen();
-
-
-    bitset<1024> movesAnt;
-    //Make movement
-    //ReturnMessage executeAction(string s);
-    //ReturnMessage checkWin();
-    //bool checkSurrounding(const pieceT &p);
-    void applayAction(actionT a);
-
+    
     void addPieceHand(pieceT p);
 
+    // update the state
+    void applayAction(actionT a);
+
+    
+    // compute possible moves
     void ComputePossibleMoves();
+
+
+    GameState getGameState();
+    
+    int currentTurn;
+    
+    // describe the status
+    gameboard G;
+    bitset<32> inHandPiece;
+    pieceT prevMoved[2];
+
+    // returns the actions
+    actionT resAction[MAX_ACTIONS_SIZE];
+    int numAction;
+    bitset<308> confHistory[301];
+
+    private:
+    
+    // auxiliary for pillbug
+    actionT pillbugMoves[20];
+    int pillbugTotMoves;
+
+    // auxiliary for Ants moves
+    positionT quePM[200]; 
+    bitset<1024> inQueue;
+    
     void possibleMovesBug(pieceT b);
     void possibleMoves_Queen(pieceT bug);
     void possibleMoves_Beetle(pieceT bug);
@@ -60,12 +64,18 @@ class Board {
     void possibleMoves_Pillbug(pieceT bug);
     void possibleMoves_Mosquito(pieceT bug);
     void possibleMoves_Ladybug(pieceT bug);
+    void computePillbugMovinPieces();
 
+
+
+
+    int getScore(PlayerColor color);
+    int getScoreBug(pieceT p);
+    int countSurrounding(pieceT p);
     int isPinned(pieceT bug);
     int isCovered(pieceT bug);
     int friendlyNeighbour(pieceT bug);
     int enemyNeighbour(pieceT bug);
-    friend Board buildBoardFromGraph(); 
 };
 
 

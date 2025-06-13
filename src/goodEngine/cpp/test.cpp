@@ -1,5 +1,6 @@
 #include "embadded_board.h"
 #include <chrono>
+#include <iostream>
 /*
 #include "engine/action.cpp"
 #include "engine/board.cpp"
@@ -19,24 +20,24 @@ using namespace std;
 
 int main(){
     for(int TR=0;TR<1;TR++){
-        auto seed=time(0);
+        auto seed=15325325;time(0);
         cout<<"Run with seed:"<<seed<<endl;
 
-        srand(seed);
         auto t_start=chrono::high_resolution_clock::now();
         int mbs=0;
         int i=0;
         int totMov=0;
         actionT ris[256];
-        EBoard eb(GameType::Base);
+        EBoard eb(GameType::Base_MLP);
         int rt;
         try{
         i=0;
-        for(rt=0;rt<10;rt++){
-            EBoard eb(GameType::Base);
+        for(rt=0;rt<200;rt++){
+            srand(seed+rt);
+        
+            EBoard eb(GameType::Base_MLP);
             i=0;
             while(1){
-                
                 eb.getNextsActions(ris);
                 if(i==-1){
                     auto t1=chrono::high_resolution_clock::now();
@@ -47,13 +48,14 @@ int main(){
                     cout<<"Duration of get actions: "<<chrono::duration<double,milli>(t2-t1).count()<<endl;
                 }
                 int m=rand()%ris[0]+1;
-                m=1;
+                //m=1;
                 
                 
                 eb.applyAction(ris[m]);
 
-                eb.checkConsistency();
+                //eb.checkConsistency();
                 if(eb.getState()!=1){
+                    cout<<rt<<": X"<<endl;
                     break;
                 }
 
@@ -71,7 +73,6 @@ int main(){
             cout<<"More info : i="<<i<<", rt="<<rt<<", seed="<<seed<<endl;
         }
     }
-
 
 
 }

@@ -1,8 +1,7 @@
 #include "board.h"
-#include "../graph_board/update_board.h"
-#include <regex>
+#include <algorithm>
 
-
+#include <iostream>
 #ifndef BOARD_CPP
 #define BOARD_CPP
 
@@ -20,7 +19,6 @@
 Board::Board(){ 
 
     currentTurn = 1;
-    state = STARTED;
     //We do not change the type of game
     inHandPiece.reset();
     prevMoved[0]=0;
@@ -29,14 +27,6 @@ Board::Board(){
 
 
 
-/**
- * \brief Copy the given board into this one.
- *
- * Copy the given board into this one, overwriting all the members of this
- * board with the corresponding members of the given board.
- *
- * \param b The board to copy from.
- */
 /*
     QUEEN=0,
     SPIDER=1,
@@ -77,10 +67,10 @@ int Board::getScore(PlayerColor color) {
 
 
 int Board::countSurrounding(pieceT p) {
-    position pos = G.getPosition(p);
+    positionT pos = G.getPosition(p);
     int ret = 0;
     for (direction dir=0;dir<6;dir++){
-        position adj= pos.applayMove(dir);
+        positionT adj= applayMove(pos,dir);
         if (!G.isFree(adj)) {
             ret += 1;
         }
@@ -120,11 +110,36 @@ void Board::copy(Board &b){
     this->prevMoved[1]=b.prevMoved[1];
     for(int i=0;i<256;i++)
         this->resAction[i]=b.resAction[i];
-    this->state=b.state;
-    this->type=b.type;
 }
 
 
+
+Board::Board(GameType gt) : G(gt){
+
+    currentTurn=1;
+    for(int i=1;i<12;i++){
+        addPieceHand(i);
+    }
+    for(int i=15;i<26;i++){
+        addPieceHand(i);
+    }
+    switch (gt)
+    {
+        case GameType::Base: break;
+        case GameType::Base_M:  addPieceHand(12);addPieceHand(26);break;
+        case GameType::Base_L:  addPieceHand(13);addPieceHand(27);break;
+        case GameType::Base_P:  addPieceHand(14);addPieceHand(28);break;
+        case GameType::Base_ML: addPieceHand(12);addPieceHand(26);
+                                addPieceHand(13);addPieceHand(27);break;
+        case GameType::Base_MP: addPieceHand(12);addPieceHand(26);
+                                addPieceHand(14);addPieceHand(28);break;
+        case GameType::Base_LP: addPieceHand(13);addPieceHand(27);
+                                addPieceHand(14);addPieceHand(28);break;
+        case GameType::Base_MLP:addPieceHand(12);addPieceHand(26);
+                                addPieceHand(13);addPieceHand(27);
+                                addPieceHand(14);addPieceHand(28);break;
+    }
+}
 
 /**
  * \brief Checks if the queen for the current player has been placed.
@@ -153,54 +168,82 @@ void Board::addPieceHand(pieceT p){
     inHandPiece.set(p,1);
 }
 
-void Board::applayAction(actionT a){
-    UpdateBoardE(*this,a);
 
+
+void Board::applayAction(actionT act){
+    confHistory[currentTurn]=G.toHash();
+    if(act==0){
+        currentTurn++;
+        prevMoved[currentColor()]=0;
+        return;
+    }
+
+    pieceT p=(act%32);
+    positionT dest=act/32;
+
+    if(!G.isPlaced[p]){
+        currentTurn++;
+        prevMoved[currentColor()]=0;
+        G.isPlaced.set(p,1);
+        inHandPiece.set(p,0);
+    }else{
+        computePillbugMovinPieces();
+        prevMoved[1-currentColor()]=p;
+        for(int i=0;i<pillbugTotMoves;i++){
+            if(act == pillbugMoves[i]){
+                prevMoved[currentColor()]=0;
+            }
+        }
+        currentTurn++;
+    }
+
+
+
+    if(G.bugPosition[p]!=NULL_POSITION){
+        G.removePiece(p);
+    }
+    G.addPiece(dest,p);
 }
 
 
-/**
- * 
- * \brief Get all possible moves for the current player.
- *
- * This function returns all possible moves for the current player.
- * It returns a vector of action objects, each representing a possible
- * move. The moves are determined by the current state of the game and
- * the pieces on the board.
- *
- * The function first checks if the board is empty, and if it is, it
- * returns an empty vector. Then it checks if the current player has
- * already placed their queen, and if they have, it returns a vector
- * containing all possible moves for the current player. If the current
- * player has not placed their queen, it returns a vector containing
- * all possible moves for the current player, including placing the
- * queen.
- *
- * If the current player has placed all their pieces, the function
- * returns a vector containing all possible moves for the current
- * player, including passing.
- *
- * If the current player has placed some pieces, but not all of them,
- * the function returns a vector containing all possible moves for
- * the current player, including placing pieces and passing.
- *
- * If the current player has not placed any pieces, the function
- * returns a vector containing all possible moves for the current
- * player, including placing pieces and passing.
- *
- * \return A vector of action objects, each representing a possible
- *         move for the current player.
- */
+GameState Board::getGameState(){
+    int bugWQ=0,bugBQ=0;
+
+    positionT WQPos=G.getPosition(8);
+    positionT BQPos=G.getPosition(22);
+    for(int i=0;i<6;i++){
+        if(!G.isFree(applayMove(WQPos,i)))bugWQ++;
+        if(!G.isFree(applayMove(BQPos,i)))bugBQ++;
+    }
+    if(bugWQ==6 && bugBQ==6)return (GameState)(2+currentColor());
+    if(bugBQ==6)return GameState::WHITE_WIN;
+    if(bugWQ==6)return GameState::BLACK_WIN;
+
+    int cp=0;
+    bitset<308> r=G.toHash();
+    int ne=0;
+    for(int i=1;i<currentTurn; i++){
+        if(r==confHistory[i])
+            ne++;
+    }
+    
+    if(currentTurn==0) return GameState::NOT_STARTED;
+    if(currentTurn>200 || ne>1)return GameState::DRAW;
+    return GameState::STARTED;
+}
 
 
 void Board::ComputePossibleMoves(){
-    numAction=0;    
+    numAction=0;  
+    for(int i=0;i<TOTAL_POSSIBLE_MOVES;i++) G.isValidMoveBitmask[i]=0;
+    pillbugTotMoves=0;
     // 1 If turn == 1, then place something that is not the queen
     if(currentTurn==1){
-        for(int b=0;b<32;b++){
+        for(int b=1;b<=28;b++){
             if(inHandPiece[b]){
             if(col(b)==currentColor() && kind(b) != QUEEN && (numInc(b) == 0 || numInc(b) == 1)) {
-                resAction[numAction]=placeFirst(b);
+                G.isValidMoveBitmask[b]=1;
+                G.associatedAction[b]=resAction[numAction]=placeFirst(b);
                 numAction++;
             }
             }
@@ -214,7 +257,9 @@ void Board::ComputePossibleMoves(){
             if(inHandPiece[b]){
             if(col(b)==currentColor() && kind(b) != QUEEN && (numInc(b) == 0 || numInc(b) == 1)){
                 for(int dir=0;dir<6;dir++){
-                    resAction[numAction]=placePiece(b,position{0,0}.applayMove(dir),G);
+
+                    // SOLVED IN PLACE PIECE
+                    resAction[numAction]=placePiece(b,applayMove(0,dir),G);
                     numAction++;
                 }
             }
@@ -223,11 +268,14 @@ void Board::ComputePossibleMoves(){
         return;
     }
 
+    bool computedValidPos=false;
     // 3 - If i didn't place the queen after turn 3, it's the only move
     if(!placedQueen() && currentPlayerTurn()>3){
-        auto positions = G.validPositionPlaceNew(currentColor());
-        for(auto pos: positions){
-            resAction[numAction]=placePiece(((currentColor()==PlayerColor::WHITE)?8:22),pos,G);
+        G.computeValidPositionPlaceNew(currentColor());
+        computedValidPos=true;
+        for(int nvp=0;nvp<G.numValidPosition;nvp++){
+            // SOLVED IN PLACE PIECE
+            resAction[numAction]=placePiece(((currentColor()==PlayerColor::WHITE)?8:22),G.validPositionPlaceBuffer[nvp],G);
             numAction++;
         }
         return;
@@ -247,37 +295,92 @@ void Board::ComputePossibleMoves(){
         }
     }
     if(toPlace){
-        auto positions=G.validPositionPlaceNew(currentColor());
+        if(!computedValidPos)
+            G.computeValidPositionPlaceNew(currentColor());
         for(auto p:inHandCol) {
             if (p == INVALID_PIECE) {
                 continue;
             }
-            for(auto pos : positions){
-                resAction[numAction]=placePiece(p, pos,G);
+            for(int nvp=0;nvp<G.numValidPosition;nvp++){
+                // SOLVED IN PLACE PIECE
+                resAction[numAction]=placePiece(p, G.validPositionPlaceBuffer[nvp],G);
                 numAction++;
             }
         }
     }
+    //cout<<"Move place:"<<numAction<<endl;
 
     // 5- moves
     if(placedQueen()){
-        pieceT mosq = INVALID_PIECE;
-        pieceT pillb = INVALID_PIECE;
-
-
         for(pieceT b=1;b<=28;b++){
             if(!G.isPlaced[b])continue;
             if (b == prevMoved[currentColor()]) continue;
-            if (kind(b) != PILLBUG && kind(b) != MOSQUITO){ 
-                possibleMovesBug(b);
-            } else if (kind(b) == MOSQUITO && col(b) == currentColor()){
-                mosq=b;
-            } else if (col(b) == currentColor()) {
-                pillb=b;
-            }
+            possibleMovesBug(b);
         }
-        possibleMovesBug(mosq);
-        possibleMovesBug(pillb);
+        computePillbugMovinPieces();
+        if(pillbugTotMoves>0){ 
+
+            bitset<32> seen(0);
+            int startPar=0;
+            int endPart=1;   // excluded
+            int tA=numAction;
+            std::sort(pillbugMoves,pillbugMoves+pillbugTotMoves);
+        
+            while(endPart<=tA){
+                while(endPart<tA && resAction[endPart-1]<resAction[endPart]){
+                    endPart++;
+                }
+                int i=startPar,j=0;
+                while(i<endPart && j<pillbugTotMoves){
+                    if(resAction[i]==pillbugMoves[j]){
+                        seen.set(j,1);
+                        i++;
+                        j++;
+                    }else if(resAction[i]<pillbugMoves[j]){
+                        i++;
+                    }else{
+                        j++;
+                    }
+                }
+                startPar=endPart;
+                endPart=startPar+1;
+            }
+            for(int i=0;i<pillbugTotMoves;i++){
+                if(!seen[i]){
+                    resAction[numAction]=pillbugMoves[i];
+                    numAction++;
+                }
+            }
+
+            
+            //cout<<"PTM: "<<pillbugTotMoves<<"  TOT:"<<numAction<<endl;
+            /*for(int h=0;h<pillbugTotMoves;h++){
+                cout<<((pillbugMoves[h])&((((actionT)1)<<63)-1))<<endl;
+            }
+            for(int k=0;k<numAction;k++){
+                cout<<(resAction[k])<<endl;
+            }
+            bool flag;*/
+            /*
+            for(int i=0;i<pillbugTotMoves;i++){
+                flag=true;
+                for(int j=0;j<numAction;j++){
+                    if(pillbugMoves[i]==resAction[j]){
+                        flag=false;
+                        G.isValidMoveBitmask[G._isValidMoveBitmask_rel_pos[j]]=0;
+                        break;
+                    }
+                }
+                if(flag){
+                    resAction[numAction]=pillbugMoves[i];
+                    numAction++;
+                }
+            }*/
+        }   
+    }
+    if(numAction==0){
+        G.isValidMoveBitmask[0]=1;
+        G.associatedAction[0]=0;
     }
     return;
 }
@@ -319,10 +422,13 @@ void Board::possibleMovesBug(pieceT b){
 
 void Board::possibleMoves_Queen(pieceT bug){
     if (G.canPieceMove(bug,currentTurn)) {
-        position pos = G.getPosition(bug);
+        positionT pos = G.getPosition(bug);
         for(int i=0;i<6;i++){
-            if(G.isFree(pos.applayMove(i))&&G.canSlideToFree(pos,pos.applayMove(i))){
-                    resAction[numAction]=movement(bug,pos.applayMove(i),G);
+            if(G.isFree(applayMove(pos,i))&&G.canSlideToFreeDir(pos,applayMove(pos,i),i)){
+                    G.isValidMoveBitmask[687+i]=1;
+                    G._isValidMoveBitmask_rel_pos[numAction]=687+i;
+                    
+                    G.associatedAction[687+i]=resAction[numAction]=movement(bug,applayMove(pos,i));
                     numAction++;
             }
         }
@@ -332,19 +438,22 @@ void Board::possibleMoves_Queen(pieceT bug){
 
 void Board::possibleMoves_Beetle(pieceT bug){
     if (G.canPieceMove(bug, currentTurn)){
-        position pos = G.getPosition(bug);
+        positionT pos = G.getPosition(bug);
         int h=G.getHight(pos)-1;
         for(int i=0;i<6;i++){
             
-            position dest=pos.applayMove(i);
-            position p1=pos.applayMove((i+1)%6);
-            position p2=pos.applayMove((i+5)%6);
+            positionT dest=applayMove(pos,i);
+            positionT p1=  applayMove(pos,(i+1)%6);
+            positionT p2=  applayMove(pos,(i+5)%6);
 
             if(!G.isFree(p1) || !G.isFree(p2) || !G.isFree(dest) || h>0){
                 int maxH=max(h,G.getHight(dest));
                 
                 if(G.getHight(p1)<=maxH || G.getHight(p2)<=maxH){
-                    resAction[numAction]=(movement(bug, dest,G));
+                    G.isValidMoveBitmask[693+i+6*(bug&1)]=1;
+                    G._isValidMoveBitmask_rel_pos[numAction]=693+i+6*(bug&1);
+
+                    G.associatedAction[693+i+6*(bug&1)]=resAction[numAction]=(movement(bug, dest));
                     numAction++;
                 }
             }
@@ -354,24 +463,23 @@ void Board::possibleMoves_Beetle(pieceT bug){
 
 void Board::possibleMoves_Grasshopper(pieceT bug){
     if (G.canPieceMove(bug,currentTurn)) {
-        position from=G.getPosition(bug);
+        positionT from=G.getPosition(bug);
         for(direction dir=0;dir<6;dir++){
-            position next = from.applayMove(dir);
+            positionT next = applayMove(from,dir);
             if(!G.isFree(next)){
                 do{
-                    next=next.applayMove(dir);
+                    next=applayMove(next,dir);
                 } while(!G.isFree(next));
-                resAction[numAction]=(movement(bug, next,G));
+                G.isValidMoveBitmask[705+dir+6*((bug-5)%14)]=1;
+                G._isValidMoveBitmask_rel_pos[numAction]=705+dir+6*((bug-5)%14);
+                G.associatedAction[705+dir+6*((bug-5)%14)]=resAction[numAction]=(movement(bug, next));
                 numAction++;
             }
         }
     }
 }
 
-position quePM[1024];
-int vQ[1024];
 
-bitset<SIZE_BOARD*SIZE_BOARD> inQueue;
 void Board::possibleMoves_SoldierAnt(pieceT bug){
     if (G.canPieceMove(bug,currentTurn)) {
 
@@ -380,21 +488,390 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
         inQueue.reset();
         inQueue|=G.occupied;
 
-        const position startPos=G.getPosition(bug);
+        
+
+        const positionT startPos=G.getPosition(bug);
         quePM[fQ++]=startPos;
-        position neighbors[6];
+        positionT neighbors[6];
+        bool occ[6];
+        inQueue.set(startPos ,1);
+        G.removePiece(bug);
+        
+        
+        bitset<1024> occN[6],canSlide[6];
+        
+        for(int d=0;d<6;d++)
+            occN[d]=((G.occupied)<<dirDif[d])|((G.occupied)>>(1024-dirDif[d]));
+        for(int d=0;d<6;d++){
+            canSlide[d]=occN[(d+4)%6]^occN[(d+2)%6];
+        }
+        
+
+        while(fQ!=bQ){
+            
+            const positionT& current=quePM[bQ++];
+            
+            for(int dir=0;dir<6;++dir){
+                neighbors[dir]=applayMove(current,dir);
+                //occ[dir]=G.occupied[neighbors[dir]];
+            }
+            
+            for(int dir=0;dir<6;++dir){
+                
+                const positionT& neighbor = neighbors[dir];
+                if(inQueue[neighbor] || !canSlide[dir][current]) {
+                    continue;
+
+                }
+                    
+                //if(){
+                    pieceT near=
+                        (occN[(dir+4)%6][current])?
+                            G.topPiece(neighbors[(dir+1)%6]):
+                            G.topPiece(neighbors[(dir+5)%6]);
+
+                    const int r=723+dir+6*(numInc(bug)-1)+6*3*(near-1);
+                    G.isValidMoveBitmask[r]=1;
+                    G._isValidMoveBitmask_rel_pos[numAction]=r;
+
+                    G.associatedAction[r]=resAction[numAction++]=(movement(bug,neighbor));
+                    
+                    quePM[fQ++]=neighbor;
+                    inQueue.set(neighbor,1);
+                //}
+            }
+        }
+        G.addPiece(startPos,bug);    
+    }
+}
+
+
+void Board::possibleMoves_Spider(pieceT bug){
+    if (G.canPieceMove(bug,currentTurn)) {
+        positionT startPos=G.getPosition(bug);
+        bitset<SIZE_BOARD*SIZE_BOARD> reached;
+        reached.reset();
+        G.removePiece(bug);
+        
+
+        
+        for(int dr1=0;dr1<6;dr1++){
+            positionT next1=applayMove(startPos,dr1);
+            positionT p1=applayMove(startPos,(dr1+1)%6);
+            positionT p2=applayMove(startPos,(dr1+5)%6);
+            if(!G.occupied[next1] && (G.occupied[p1]^G.occupied[p2])){
+                for(int dr2=0;dr2<6;dr2++){
+                    if(dr1==(dr2+3)%6) continue;
+                    positionT next2=applayMove(next1,dr2);
+                    positionT p1=applayMove(next1,(dr2+1)%6);
+                    positionT p2=applayMove(next1,(dr2+5)%6);
+                    if(next2!=startPos && !G.occupied[next2] &&   (G.occupied[p1]^G.occupied[p2])){
+                         for(int dr3=0;dr3<6;dr3++){
+                            positionT next3=applayMove(next2,dr3);
+                            positionT p1=applayMove(next2,(dr3+1)%6);
+                            positionT p2=applayMove(next2,(dr3+5)%6);
+                            if( !G.occupied[next3] && (dr3!=(dr2+3)%6) && (G.occupied[p1]^G.occupied[p2])){
+                                    reached.set(next3,1);
+                            }
+                         }
+       
+                    }
+                }
+            }
+        }
+        positionT n1,n2,n3,n4,n5,n6;
+        for(int dir1=0;dir1<6;dir1++){
+            int dir2=(dir1+1)%6;
+            n1=applayMove(startPos,dir1);
+            n2=      applayMove(n1,dir1);
+            n3=      applayMove(n2,dir1);
+            n4=      applayMove(n1,dir2);
+            n5=      applayMove(n2,dir2);
+            n6=      applayMove(n4,dir2);
+            positionT rPos[]={n1,n2,n3,n4,n5,n6};
+            for(int ni=0;ni<6;ni++){
+                if(reached[rPos[ni]]){
+                    G.isValidMoveBitmask[1227+ni+dir1*6+(numInc(bug)-1)*36]=1;
+                    G._isValidMoveBitmask_rel_pos[numAction]=1227+ni+dir1*6+(numInc(bug)-1)*36;
+                    G.associatedAction[1227+ni+dir1*6+(numInc(bug)-1)*36]=resAction[numAction]=movement(bug,rPos[ni]);
+                    numAction++;
+                }
+            }        
+        
+        }
+
+        G.addPiece(startPos,bug);
+    }
+}
+
+void Board::possibleMoves_Pillbug(pieceT bug){
+    pillbugTotMoves=0;
+    positionT pos = G.getPosition(bug);
+    
+    // The pillbug can move as a queen. Check if the move is already present as the pillbug could be moved by the mosquito.
+    
+    if (G.canPieceMove(bug,currentTurn)) {
+        for(int i=0;i<6;i++){
+            if(G.isFree(applayMove(pos,i))&&G.canSlideToFreeDir(pos,applayMove(pos,i),i)){
+                G.isValidMoveBitmask[1299+i]=1;
+                G._isValidMoveBitmask_rel_pos[numAction]=1299+i;
+                G.associatedAction[1299+i]=resAction[numAction]=movement(bug,applayMove(pos,i));
+                numAction++;
+            }
+        }
+    }
+}
+
+
+
+
+void Board::possibleMoves_Ladybug(pieceT bug){
+    if (G.canPieceMove(bug,currentTurn)) {
+        
+        positionT startPos=G.getPosition(bug);
+        int startPosIDX=startPos ;
+        bitset<SIZE_BOARD*SIZE_BOARD> reached;
+        reached.reset();
+        G.removePiece(bug);
+        reached.set(startPosIDX,1);
+
+        
+                      
+        for(int dr1=0;dr1<6;dr1++){
+            positionT next1=applayMove(startPos,dr1);
+
+            int hp1=G.getHight(applayMove(startPos,(dr1+1)%6));
+            int hp2=G.getHight(applayMove(startPos,(dr1+5)%6));
+            int hPos1=G.getHight(next1);
+            int next1IDX=next1 ;
+            if(G.occupied[next1IDX]&& (hp1<=hPos1 ||hp2<=hPos1) ){
+                for(int dr2=0;dr2<6;dr2++){
+                    positionT next2=applayMove(next1,dr2);
+                    hp1=G.getHight(applayMove(next1,(dr2+1)%6));
+                    hp2=G.getHight(applayMove(next1,(dr2+5)%6));
+                    int hPos2=G.getHight(next2);
+            
+                    int next2IDX=next2 ;
+                    if(G.occupied[next2IDX] && (hp1<=hPos1 ||hp2<=hPos1 || hp1<=hPos2 || hp2<=hPos2)){
+                         for(int dr3=0;dr3<6;dr3++){
+                            positionT next3=applayMove(next2,dr3);
+                            hp1=G.getHight( applayMove(next2,(dr3+1)%6));
+                            hp2=G.getHight( applayMove(next2,(dr3+5)%6));
+            
+                            int next3IDX=next3 ;
+                            if(!G.occupied[next3IDX] && !reached[next3IDX] && (hp1<=hPos2 || hp2<=hPos2)){
+                                    reached.set(next3IDX,1);
+                            }
+                         }
+       
+                    }
+                }
+            }
+        }
+        G.addPiece(startPos,bug);
+
+         positionT n1,n2,n3,n4,n5,n6;
+        for(int dir1=0;dir1<6;dir1++){
+            int dir2=(dir1+1)%6;
+
+
+            n1=applayMove(startPos,dir1);
+            n2=      applayMove(n1,dir1);
+            n3=      applayMove(n2,dir1);
+            n4=      applayMove(n1,dir2);
+            n5=      applayMove(n2,dir2);
+            n6=      applayMove(n4,dir2);
+             positionT nei[]={n1,n2,n3,n4,n5,n6};
+
+
+            for(int i=0;i<6;i++){
+                if(reached[nei[i] ]){
+                    G.isValidMoveBitmask[1227+i+dir1*6+(numInc(bug)-1)*36]=1;
+                    G._isValidMoveBitmask_rel_pos[numAction]=1227+i+dir1*6+(numInc(bug)-1)*36;
+                    G.associatedAction[1227+i+dir1*6+(numInc(bug)-1)*36]= resAction[numAction]=movement(bug,nei[i]);
+                    numAction++;
+                }
+            }
+                        
+            
+        }
+    }
+}
+
+
+
+void Board::possibleMoves_Mosquito(pieceT bug){  // TODO
+    if (!G.canPieceMove(bug, currentTurn)) 
+        return;
+     positionT pos=G.getPosition(bug);
+
+    if(G.topPiece(pos)!=bug)return;
+
+    if (G.getHight(pos)!=1){
+        int h=G.getHight(pos)-1;
+        for(int i=0;i<6;i++){
+            
+             positionT dest=applayMove(pos,i);
+             positionT p1=  applayMove(pos,(i+1)%6);
+             positionT p2=  applayMove(pos,(i+5)%6);
+
+            if(!G.isFree(p1) || !G.isFree(p2) || !G.isFree(dest) || h>0){
+                int maxH=max(h,G.getHight(dest));
+                
+                if(G.getHight(p1)<=maxH || G.getHight(p2)<=maxH){
+                    G.isValidMoveBitmask[1539+i]=1;
+                    G._isValidMoveBitmask_rel_pos[numAction]=1539+i;
+                    G.associatedAction[1539+i]=resAction[numAction]=(movement(bug, dest));
+                    numAction++;
+                }
+            }
+        }
+        return;
+    }
+
+    bitset<8> copied;
+    for(int dir=0;dir<6;dir++){
+         positionT n=applayMove(pos,dir);
+        if(!G.isFree(n)){
+            copied.set(kind(G.topPiece(n)),1);
+        }
+    }
+
+    bitset<32*32> reachable;
+    reachable.reset();
+    reachable.set(pos ,1);
+    if(copied[kind(1)]){  // SPIDER:
+        int startPosIDX=pos ;
+        G.removePiece(bug);
+        
+        for(int dr1=0;dr1<6;dr1++){
+            positionT next1=applayMove(pos,dr1);
+            int next1IDX=next1 ;
+            if(!G.occupied[next1IDX] && G.canSlideToFreeDir(pos,next1,dr1)){
+                for(int dr2=0;dr2<6;dr2++){
+                    positionT next2=applayMove(next1,dr2);
+                    int next2IDX=next2 ;
+                    if(next2IDX!=startPosIDX && next2IDX!=next1IDX  &&!G.occupied[next2IDX] && G.canSlideToFreeDir(next1,next2,dr2)){
+                         for(int dr3=0;dr3<6;dr3++){
+                            positionT next3=applayMove(next2,dr3);
+                            int next3IDX=next3 ;
+                            if( !G.occupied[next3IDX] &&  
+                                next3IDX!=next1IDX  && next3IDX!=next2IDX && next3IDX!=startPosIDX 
+                                && !reachable[next3IDX] &&G.canSlideToFreeDir(next2,next3,dr3)){
+                                    reachable.set(next3IDX,1);
+                                    // DONE ON LINES +20
+                            }
+                         }
+       
+                    }
+                }
+            }
+        }
+        G.addPiece(pos,bug);
+    }
+    int startPosIDX=pos ;
+
+    if(copied[kind(13)]){  //ladybug
+            G.removePiece(bug);                 
+            for(int dr1=0;dr1<6;dr1++){
+                positionT next1=applayMove(pos,dr1);
+                int hp1=G.getHight(applayMove(pos,(dr1+1)%6));
+                int hp2=G.getHight(applayMove(pos,(dr1+5)%6));
+                int hPos1=G.getHight(next1);
+                int next1IDX=next1 ;
+                if(G.occupied[next1IDX] && (hp1<=hPos1 ||hp2<=hPos1)){
+                    for(int dr2=0;dr2<6;dr2++){
+                        positionT next2=applayMove(next1,dr2);
+                        hp1=G.getHight( applayMove(next1,(dr2+1)%6));
+                        hp2=G.getHight( applayMove(next1,(dr2+5)%6));
+                        int hPos2=G.getHight(next2);
+                        int next2IDX=next2 ;
+                        if(G.occupied[next2IDX]  && (hp1<=hPos1 ||hp2<=hPos1 || hp1<=hPos2 || hp2<=hPos2)){
+                            for(int dr3=0;dr3<6;dr3++){
+                                positionT next3=applayMove(next2,dr3);
+                                hp1=G.getHight( applayMove(next2,(dr3+1)%6));
+                                hp2=G.getHight( applayMove(next2,(dr3+5)%6));
+                                int next3IDX=next3 ;
+                                if(!G.occupied[next3IDX] && !reachable[next3IDX]  && (hp1<=hPos2 || hp2<=hPos2)){
+                                        reachable.set(next3IDX,1);
+                                }
+                            }
+        
+                        }
+                    }
+                }
+            }
+            G.addPiece(pos,bug);       
+    }
+   
+    if(copied[kind(3)]){   // beetle
+        int h=G.getHight(pos)-1;
+        for(int i=0;i<6;i++){
+            
+            positionT dest=applayMove(pos,i);
+            positionT p1=applayMove(pos,(i+1)%6);
+            positionT p2=applayMove(pos,(i+5)%6);
+
+            if(!G.isFree(p1) || !G.isFree(p2) || !G.isFree(dest) || h>0){
+                int maxH=max(h,G.getHight(dest));
+                
+                if(G.getHight(p1)<=maxH || G.getHight(p2)<=maxH){
+                    if(!G.isFree(dest)){
+                        G.isValidMoveBitmask[1539+i]=1;
+                        G._isValidMoveBitmask_rel_pos[numAction]=1539+i;
+                        G.associatedAction[1539+i]=resAction[numAction]=(movement(bug, dest));
+                        numAction++;      
+                    }else{
+                        reachable.set(dest ,1);
+                    }
+                }
+            }
+        }
+    }
+
+
+    if(copied[kind(5)]){   // grasshopper
+        for(direction dir=0;dir<6;dir++){
+            positionT next = applayMove(pos,dir);
+            if(!G.isFree(next)){
+                do{
+                    next=applayMove(next,dir);
+                } while(!G.isFree(next));
+                reachable.set(next ,1);
+            }
+        }
+    } 
+
+    if(copied[kind(8)]){   // queen
+        for(int i=0;i<6;i++){
+            if(G.isFree(applayMove(pos,i))&&G.canSlideToFreeDir(pos,applayMove(pos,i),i)){
+                    reachable.set(applayMove(pos,i) ,1);
+            }
+        }
+    }
+    
+    if(copied[kind(9)]){    //soldier ant
+
+        int fQ=0;
+        int bQ=0;
+        inQueue.reset();
+        inQueue|=G.occupied;
+
+        const positionT startPos=G.getPosition(bug);
+        quePM[fQ++]=startPos;
+        positionT neighbors[6];
         int hights[6];
         bool frees[6];
-        inQueue.set(startPos.toInt(),1);
+        inQueue.set(startPos ,1);
         G.removePiece(bug);
         
 
         while(fQ!=bQ){
             
-            const position& current=quePM[bQ++];
+            const positionT& current=quePM[bQ++];
             
             for(int dir=0;dir<6;++dir){
-                neighbors[dir]=current.applayMove(dir);
+                neighbors[dir]=applayMove(current,dir);
                 hights[dir]=G.getHight(neighbors[dir]);
                 frees[dir]=G.isFree(neighbors[dir]);
             }
@@ -402,8 +879,8 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
 
             for(int dir=0;dir<6;++dir){
                 
-                const position& neighbor = neighbors[dir];
-                const int neighborIdx = neighbor.toInt();
+                const positionT& neighbor = neighbors[dir];
+                const int neighborIdx = neighbor ;
                 if(inQueue[neighborIdx]) 
                     continue;
                 const int &p1=(dir+1)%6;
@@ -414,238 +891,114 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
                 bool isGateT=(hights[p1]>minH && hights[p2]>minH);
                 bool isDijoined=(frees[p1])&& (frees[p2]);
                 if(!isGateT && !isDijoined){
-                    resAction[numAction++]=(movement(bug,neighbor,G));
+                    reachable.set(neighbor ,1);
                     quePM[fQ++]=neighbor;
                     inQueue.set(neighborIdx,1);
                 }
             }
         }
         G.addPiece(startPos,bug);
-                
     }
-}
 
 
-void Board::possibleMoves_Spider(pieceT bug){
-    if (G.canPieceMove(bug,currentTurn)) {
-
-        bitset<SIZE_BOARD*SIZE_BOARD> inQueue;
-        inQueue.reset();
-
-        
-
-        position startPos=G.getPosition(bug);
-        int startPosIDX=startPos.toInt();
-        bitset<SIZE_BOARD*SIZE_BOARD> reached;
-        reached.reset();
-        G.removePiece(bug);
-        
-        for(int dr1=0;dr1<6;dr1++){
-            position next1=startPos.applayMove(dr1);
-            int next1IDX=next1.toInt();
-            if(!G.occupied[next1IDX] && G.canSlideToFreeDir(startPos,next1,dr1)){
-                for(int dr2=0;dr2<6;dr2++){
-                    position next2=next1.applayMove(dr2);
-                    int next2IDX=next2.toInt();
-                    if(next2IDX!=startPosIDX && next2IDX!=next1IDX  &&!G.occupied[next2IDX] && G.canSlideToFreeDir(next1,next2,dr2)){
-                         for(int dr3=0;dr3<6;dr3++){
-                            position next3=next2.applayMove(dr3);
-                            int next3IDX=next3.toInt();
-                            if( !G.occupied[next3IDX] &&  
-                                next3IDX!=next1IDX  && next3IDX!=next2IDX && next3IDX!=startPosIDX 
-                                && !reached[next3IDX] &&G.canSlideToFreeDir(next2,next3,dr3)){
-                                    reached.set(next3IDX,1);
-                                    resAction[numAction]=movement(bug,next3,G);
-                                    numAction++;
-                            }
-                         }
-       
-                    }
-                }
+    if(copied[kind(14)]){  // pillbug
+        for(int i=0;i<6;i++){  //same as queen
+            if(G.isFree(applayMove(pos,i))&&G.canSlideToFreeDir(pos,applayMove(pos,i),i)){
+                    reachable.set(applayMove(pos,i) ,1);
             }
         }
 
-        G.addPiece(startPos,bug);
-    }
-}
 
-void Board::possibleMoves_Pillbug(pieceT bug){
-
-    if (!G.isAtLevel1(G.getPosition(bug))) {
-        return;
-    }
-    position pos = G.getPosition(bug);
-
-    // The pillbug can move as a queen. Check if the move is already present as the pillbug could be moved by the mosquito.
-    if (G.canPieceMove(bug,currentTurn)) {
-        for(position dest: G.getPosition(bug).neighbor()){
-            //TODO: is it necessary to check inside for duplicate moves?
-            if (!G.isGate(pos,dest)) { 
-                bool already_in = false;
-                actionT act=movement(bug, dest,G);
-                for (int iAct=0;iAct<numAction;iAct++){
-                    actionT pair=resAction[iAct];
-                    if (pair==act){
-                        already_in = true;
-                        break;
-                    }
-                }
-                if (!already_in) {
-                    resAction[numAction]=act;
-                    numAction++;
-                }
-            }
-        }
     }
 
-    // Or it makes other adjacent pieces (even of the opponent) move
-    pieceT bugs_to_move[6];
-    position places_to_move[6];
-    int i = 0;
-    int j = 0;
-    // find all the bugs that i can move
-    for(int dir=0;dir<6;dir++){
-        position N=pos.applayMove(dir);
-        position p1=pos.applayMove((dir+1)%6);
-        position p2=pos.applayMove((dir+5)%6);
-        if (G.getHight(p1)>=2 && G.getHight(p2)>=2) continue;
-                
-        if(!G.isFree(N) && G.getHight(N)==1){
-            pieceT possible_piece = G.topPiece(N);
-            if (G.canMoveWithoutBreakingHiveRule(possible_piece, currentTurn) && possible_piece!=prevMoved[1-currentColor()]){
-                //If valid, this piece can be moved over the pillbug
-                bugs_to_move[i] = possible_piece;
-                i++;
-                
-            }
-        } else if (G.isFree(N)){
-            places_to_move[j] = N;
-            j++;
-        }
-    }
-    if (i > 0 && j > 0){
-        for(int k = 0; k < i; k++){
-            for(int h=0;h<j;h++){
-                resAction[numAction]=movement(bugs_to_move[k],places_to_move[h],G);
-                numAction++;
-            }
-            /*          WHY ALL THIS? Was 
-            pieceT to_move = bugs_to_move[k];
-            position old = G.getPosition(to_move);
-            G.removePiece(to_move);
-            G.addPiece(G.getPosition(bug), to_move); //already checked this can be done
-            for (int l = 0; l < j; l++){
-                position pos = G.getPosition(bug);
-                if (G.checIfCanMove(places_to_move[l],pos,false)) {
-                    actionT risA=movement(to_move, places_to_move[l],G);
-                    //Check if this movement is already inside of the vector TODO: is it necessary to check for duplicate moves????
-                    bool already_in=false;
-                    for (int iAct=0;iAct<numAction;iAct++){
-                        if (risA==resAction[iAct]){
-                            already_in = true;
-                            break;
-                        }
-                    }
-                    if (!already_in) {
-                        resAction[numAction]=risA;
-                        numAction++;
-                    }
-                }
-            }
-            G.removePiece(to_move);
-            G.addPiece(old, to_move);
-            */
+    positionT near;
+    for(int pi=0;pi<1024;pi++){
+        if(reachable[pi] && pi!=startPosIDX){
+            positionT dest(pi);
+            resAction[numAction]=(movement(bug, dest));
+            numAction++;
+
+            for(int dir=0;dir<6;dir++){
+                near=applayMove(dest,dir);
+                if(!G.isFree(near) && G.topPiece(near)!=bug){
+                    pieceT bugNear=G.topPiece(near);
+                    G.isValidMoveBitmask[
+                    1371+  // base
+                    dir+
+                    6*(bugNear-1)]=1;   
+                    G._isValidMoveBitmask_rel_pos[numAction-1]=1371+dir+6*(bugNear-1);
+                    G.associatedAction[1371+dir+6*(bugNear-1)]=resAction[numAction-1];
+                    break;
+                }                
+            }   
         }
     }
 }
 
 
-void Board::possibleMoves_Mosquito(pieceT bug){  // TODO
-    if (!G.canPieceMove(bug, currentTurn)) 
-        return;
-    if (!G.isAtLevel1(G.getPosition(bug))){
-        //It can only move like a beetle
-        possibleMoves_Beetle(bug);
-        return;
-    }
+void Board::computePillbugMovinPieces(){
+    pillbugTotMoves=0;
+    for(pieceT bug:{14,12}){   // 14 ->P, 12-> M
+        if(col(bug)!=currentColor()) bug+=14;
+        if(!G.isPlaced[bug]) continue;
+        if(prevMoved[currentColor()]==bug)continue;
+        positionT pos=G.getPosition(bug);
+        if(bug!=G.topPiece(pos))continue;
+        if(G.getHight(pos)!=1)continue;
+        // Or it makes other adjacent pieces (even of the opponent) move
+        bool canGetFrom[]={false,false,false,false,false,false};
+        bool canGoTo[]={false,false,false,false,false,false};
+        positionT posS[6];
+        pieceT bugN[6];
+        pieceT posH[6]={0,0,0,0,0,0};
+        bitset<6> isPillbug(0);
+        isPillbug.reset();
 
-    bitset<10> copied;
-    for(position n: G.getPosition(bug).neighbor()){
-        if(!G.isFree(n) && kind(G.topPiece(n)) != MOSQUITO){
-            copied.set(kind(G.topPiece(n)),1);
-        }
-    }
+        for(int dir=0;dir<6;dir++){
+            posS[dir]=applayMove(pos,dir);
+            posH[dir]=G.getHight(posS[dir]);
+            if(posH[dir]>0){
 
-    bool pill = false;
-    position current = G.getPosition(bug);
-    copied.set(kind(8),1);  // can always copy a queen
-
-    G.removePiece(bug);
-    for(int kBT=0;kBT<10;kBT++){
-        if(copied[kBT]){
-            BugType k=(BugType)kBT;
-            if (k == PILLBUG) {
-                pill = true;
-                continue;  
+                bugN[dir]=G.topPiece(posS[dir]);
+                if(kind(bugN[dir])==BugType::PILLBUG) isPillbug.set(dir,1);
             }
-            pieceT new_bug = 29; //this signals the bug is copied
-            isSimulatingPiece=true,
-            simulatedPiece = getCandidateForKind(k,col(bug));
-            G.addPiece(current, new_bug);
-            possibleMovesBug(new_bug);
-            G.removePiece(new_bug);
-            isSimulatingPiece=false;
         }
-    }
-    //In this way, we are almost certain we don't have duplicates
-    if (pill) {
-        pieceT new_bug = 29; //this signals the bug is copied
-        isSimulatingPiece=true;
-        simulatedPiece=getCandidateForKind(BugType::PILLBUG,col(bug));
-        G.addPiece(current, new_bug);
-        possibleMovesBug(new_bug);
-        G.removePiece(new_bug);
-    }
-    G.addPiece(current, bug);
-}
 
-void Board::possibleMoves_Ladybug(pieceT bug){
-    if (G.canPieceMove(bug,currentTurn)) {
-        
-        position startPos=G.getPosition(bug);
-        int startPosIDX=startPos.toInt();
-        bitset<SIZE_BOARD*SIZE_BOARD> reached;
-        reached.reset();
-        G.removePiece(bug);
-        reached.set(startPosIDX,1);
-                                    
-        for(int dr1=0;dr1<6;dr1++){
-            position next1=startPos.applayMove(dr1);
-            int next1IDX=next1.toInt();
-            if(G.occupied[next1IDX]){
-                for(int dr2=0;dr2<6;dr2++){
-                    position next2=next1.applayMove(dr2);
-                    int next2IDX=next2.toInt();
-                    if(G.occupied[next2IDX] ){
-                         for(int dr3=0;dr3<6;dr3++){
-                            position next3=next2.applayMove(dr3);
-                            int next3IDX=next3.toInt();
-                            if(!G.occupied[next3IDX] && !reached[next3IDX]){
-                                    reached.set(next3IDX,1);
-                                    resAction[numAction]=movement(bug,next3,G);
-                                    numAction++;
-                            }
-                         }
-       
-                    }
+        if(kind(bug)!=BugType::PILLBUG){
+            if(!isPillbug.any())
+                continue;
+        }
+        // find all the bugs that i can move
+        for(int dir=0;dir<6;dir++){
+            
+            positionT N=posS[dir];
+            int i1=(dir+1)%6;
+            int i2=(dir+5)%6;
+            if(posH[i1]>=2 && posH[i2]>=2) continue;
+            if(G.isFree(N)){
+                canGoTo[dir]=true;
+            }else if(posH[dir]==1){
+                if (G.canMoveWithoutBreakingHiveRule(bugN[dir], currentTurn) && bugN[dir]!=prevMoved[currentColor()] ){
+                    canGetFrom[dir]=true;
                 }
             }
         }
-        G.addPiece(startPos,bug);
 
+        int k=0;
+        for(int i=0;i<6;i++){
+            for(int j=0;j<6;j++){
+                if(i==j) continue;
+                if(canGetFrom[i] && canGoTo[j]){
+                    pillbugMoves[pillbugTotMoves]=movement(G.topPiece(posS[i]),posS[j]);
+                    pillbugTotMoves++;
+                    G.isValidMoveBitmask[1545+k]=1;
+                    G.associatedAction[1545+k]=pillbugMoves[pillbugTotMoves-1];
+                }
+                k++;
+            }
+        }
     }
 }
-
 
 
 int Board::isPinned(pieceT bug) {
@@ -657,7 +1010,8 @@ int Board::isCovered(pieceT bug) {
 }
 int Board::friendlyNeighbour(pieceT bug) {
     int res = 0;
-    for (position adj: G.getPosition(bug).neighbor()) {
+    for (int di=0;di<6;di++){
+        positionT adj=applayMove(G.getPosition(bug),di);
         if (G.isFree(adj) || col(G.topPiece(adj)) == col(bug)) {
             res++;
         }
@@ -666,7 +1020,8 @@ int Board::friendlyNeighbour(pieceT bug) {
 }
 int Board::enemyNeighbour(pieceT bug) {
     int res = 0;
-    for (position adj: G.getPosition(bug).neighbor()) {
+    for (int di=0;di<6;di++){
+        positionT adj=applayMove(G.getPosition(bug),di);
         if (!G.isFree(adj) && col(G.topPiece(adj)) != col(bug)) {
             res++;
         }

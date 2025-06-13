@@ -5,10 +5,33 @@ import ctypes
 import Agent
 
 
+def encodeGamemode(gamemode):
+    match gamemode:
+        case 0:
+            return "Base"
+        case 1:
+            return "Base+M"
+        case 2:
+            return "Base+L"
+        case 3:
+            return "Base+P"
+        case 4:
+            return "Base+ML"
+        case 5:
+            return "Base+MP"
+        case 6:
+            return "Base+LP"
+        case 7:
+            return "Base+MLP"
+            
+
 
 
 class MinimaxAgentCPP:
-    
+    gameLog=""
+    gameTurn=1
+    gameState=""
+    gameType=""
     def __init__(self,typeGame=0,weight=(ctypes.c_double * 6)(0,0,0,1,-2,30),depth=4) -> None:
         self.w=weight
         self.currentTurn=1
@@ -17,14 +40,26 @@ class MinimaxAgentCPP:
         self.numEval=0
         self.state=GR.init_state(typeGame)
         self.name="MINIMAX"
+        self.gameTurn=2;
+        self.gameState="NotStarted"
+        self.gameLog=""
+        self.gameType=encodeGamemode(typeGame)
 
+    def gameinfo(self):
+        if(self.gameTurn%2==0):
+            return self.gameType+";"+self.gameState+";White["+str(self.gameTurn//2)+"]"+self.gameLog
+        else:
+            return self.gameType+";"+self.gameState+";Black["+str(self.gameTurn//2)+"]"+self.gameLog
+        
     def bestmove(self):
         act=self.bestaction()
-        return GR.actionToString(act)
+        return GR.actionToString(act,self.state)
+    
     def playmove(self,actionStr):
         act=GR.stringToAction(self.state,actionStr)
         self.executeAction(act)
-
+        self.gameLog+=";"+actionStr
+        self.gameState="InProgress"
     def executeAction(self,action):
         GR.next_state(self.state,action)
         self.currentTurn+=1
@@ -37,7 +72,10 @@ class MinimaxAgentCPP:
         self.currentTurn=0
         GR.delBoard(self.state)
         self.state=GR.init_state(self.gametype)
-
+    def delGame(self):
+        self.currentTurn=0
+        GR.delBoard(self.state)
+        
 
     def minimax(self,state, depth, maximizing_player, w, alpha=-1000, beta=+1000, currentTurn=0):
         """

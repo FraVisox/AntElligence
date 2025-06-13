@@ -1,11 +1,10 @@
 #ifndef DIRECTION_H
 #define DIRECTION_H
-#include <utility>
 using namespace std;
 #include <string>
 
 
-typedef int direction;
+typedef uint_fast16_t direction;
 
 extern const direction RIGHT;
 extern const direction DOWN_RIGHT;
@@ -19,13 +18,9 @@ extern const direction OVER;
 
 //Vectors of directions
 
-extern pair<int,int> movementCircleClockwise[7];
-
 //Functions
 
 string nameDirToString(string name, direction dir);
 direction oppositeDir(direction d);
-pair<unsigned int,unsigned int> associatedDifference(direction d);
-const extern unsigned int adF[],adS[];
-
+const extern unsigned int dirDif[];
 #endif

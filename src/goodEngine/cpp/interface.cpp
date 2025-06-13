@@ -1,7 +1,6 @@
 
 #include <math.h>
 #include <iostream>
-#include <regex>
 
 #ifndef INTERFACE_CPP
 #define INTERFACE_CPP
@@ -26,6 +25,7 @@
 
 
 actionT stringToAction(EBoard* b,char* str){
+    cout<<"_"<<str<<"_"<<endl;
     pieceT startP,destP;
     direction dir ;
 
@@ -34,8 +34,8 @@ actionT stringToAction(EBoard* b,char* str){
     startP=decodeBug(str);
 
 
-
-    int q=1; while(str[q]!='w' && str[q]!='b' && str[q]!=0) q++;
+    int q=1; 
+    while(str[q]!='w' && str[q]!='b' && str[q]!=0) q++;
 
     if(str[q]==0) return placeFirst(startP);
     
@@ -52,7 +52,7 @@ actionT stringToAction(EBoard* b,char* str){
             case '/': dir=5;break;
             case '-': dir=0;break;
             case '\\': dir=1;break;
-            case 0: dir=7;break;
+            case 0: dir=6;break;
             default : throw "WTF??";
         }
     }else{
@@ -65,19 +65,33 @@ actionT stringToAction(EBoard* b,char* str){
         }
     }
     //cout<<"Conver"<< str<<" to :"<<0+startP<<","<<0+destP<<" "<<dir<<endl;
-    position destPos=b->board_exp.G.getPosition(destP).applayMove(dir);
-    return movement(startP,destPos ,b->board_exp.G);
+    positionT destPos=applayMove(b->board_exp.G.getPosition(destP),dir);
+    return movement(startP,destPos);
 }
 
+
+/*TODO:  make this work 
 char* BoardRapp(EBoard* p){
-    return p->graph_board;
+    return p->graph_boardT;
+}
+
+*/
+
+void* getMask(EBoard* p){
+
+
+    return p->board_exp.G.isValidMoveBitmask;
 }
 
 
+void* getAssociatedAction(EBoard* p){
+    return p->board_exp.G.associatedAction;
+}
 
 
 
 EBoard* base_state(int gt){
+    //cout<<"GT:"<<gt<<endl;
     return new EBoard((GameType)gt);
 }
 
@@ -89,7 +103,7 @@ void next_state(EBoard* state,actionT action){
     state->applyAction(action);
 }
 
-void getActions(EBoard* state,int64_t* actions){  // max 256 mosse
+void getActions(EBoard* state,actionT* actions){  // max 256 mosse
     state->getNextsActions(actions);    
 }
 
@@ -98,44 +112,84 @@ int checkStatus(EBoard* board){
     return board->getState();
 }
 
-char* toVectorNear(EBoard* b){
-    return b->graph_board;
+
+void* getStatusVector(EBoard* board){
+    board->updateVectRapp();
+
+    return board->vectRapp;
 }
 
-void PrintBoard(EBoard* b){
-    printBoardFancy(b->graph_board);
-}
-
-
-char* actionToString(actionT a){
-    if(a==0){
-        char* r=(char*)malloc(sizeof(char)*5);
-        r[0]='p';
-        r[1]='a';
-        r[2]='s';
-        r[3]='s';
-        r[4]=0;
-        return r;
+void printBoard(EBoard* board){
+    for(int i=16;i<48;i++){
+        printf("%4d",(32*i+16)&1023);
+        if(i<10)cout<<" ";
+        for(int j=16;j<i;j++)std::cout<<"  ";
+        for(int j=16;j<48;j++){
+            gameboard &g=board->board_exp.G;
+            if(g.high[(j+32*i)&1023]==0){
+                cout<<"   ";
+            }
+            if(g.high[(j+32*i)&1023]>1){
+                cout<<"XXX";
+            }
+            if(g.high[(j+32*i)&1023]==1){
+                pieceT p=g.topPiece((j+32*i)&1023);
+                string s=PiecetoString(p);
+                cout<<s;
+                if(s.size()==2)cout<<" ";
+            }            
+            cout<<"|";
+        }
+        cout<<endl;
     }
-    char b=a&0xff;
-    string s=PiecetoString(b);
-    for(int i=7;i>=1;i--){
-        char can=((a>>(i*8))&0xff);
-        if(can!=0){
-            s+=" "+nameDirToString(PiecetoString(can),opposite(i-1));
-            break;
+}
+
+
+
+void actionToString(actionT a, EBoard *board,char* risBug){
+    a&=((1ull<<63)-1);
+    if(a==0){
+        risBug[0]='p';
+        risBug[1]='a';
+        risBug[2]='s';
+        risBug[3]='s';
+        risBug[4]=0;
+        return;
+    }
+    
+    pieceT bug=a&31;
+    positionT pos=a>>5;
+
+    string s=PiecetoString(bug);
+    gameboard& g=board->board_exp.G;
+    if(!g.isFree(pos)){
+        pieceT resPiece=board->board_exp.G.topPiece(pos);   
+        s+=" "+nameDirToString(PiecetoString(resPiece),opposite(6));  
+
+    }else{
+        for(int dir=0;dir<6;dir++){
+            positionT next=applayMove(pos,dir);
+            if(!g.isFree(next)){
+                pieceT resPiece=board->board_exp.G.topPiece(next);
+                s+=" "+nameDirToString(PiecetoString(resPiece),opposite(dir));  
+                break; 
+            }
         }
     }
-    char* r=(char*)malloc(sizeof(char)*s.size()+1);
+
+    
     for(int i=0;i<s.size();i++){
-        r[i]=s[i];
+        risBug[i]=s[i];
     }
-    r[s.size()]=0;
-    return r;
+    risBug[s.size()]=0;
 }
 
     
+
 double boardEval(EBoard* b, double w[]){
+
+    return 0;
+    /*
     PlayerColor MyCol=b->board_exp.currentColor();
     pieceT myQueen=(MyCol==PlayerColor::WHITE)?8:22;
     pieceT oppositeQueen=30-myQueen;
@@ -145,6 +199,7 @@ double boardEval(EBoard* b, double w[]){
     int nearOpposite=0;
     int sM=getStartingPointBug(myQueen);
     int sO=getStartingPointBug(oppositeQueen);
+
     for(int i=0;i<6;i++){
         if(b->graph_board[sM+i]!=0){
             nearMyQueen++;
@@ -181,13 +236,14 @@ double boardEval(EBoard* b, double w[]){
     score += w[4] * nearMyQueen;
     score += w[5] * nearOpposite;
     
-    return score;
+    return score;*/
 }
 
 
 void delBoard(EBoard* b){
     free(b);
 }
+
 
 /*
     OK = 0
