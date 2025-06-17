@@ -107,6 +107,10 @@ void getActions(EBoard* state,actionT* actions){  // max 256 mosse
     state->getNextsActions(actions);    
 }
 
+void updatePossiblemoves(EBoard* state){
+    state->board_exp.ComputePossibleMoves();
+}
+
 
 int checkStatus(EBoard* board){
     return board->getState();
