@@ -110,7 +110,19 @@ void Board::copy(Board &b){
     this->prevMoved[1]=b.prevMoved[1];
     for(int i=0;i<256;i++)
         this->resAction[i]=b.resAction[i];
+    
+    for(int i=0;i<MAX_ACTIONS_SIZE;i++)
+        this->resAction[i]=b.resAction[i];
+    for(int i=0;i<301;i++)
+        this->confHistory[i]=b.confHistory[i];
+    for(int i=0;i<20;i++)
+        this->pillbugMoves[i]=b.pillbugMoves[i];
+    this->pillbugTotMoves=b.pillbugTotMoves;
+    for(int i=0;i<200;i++)
+        this->quePM[i]=b.quePM[i];
+    this->inQueue=b.inQueue;
 }
+
 
 
 

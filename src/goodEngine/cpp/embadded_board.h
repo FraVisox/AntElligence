@@ -9,7 +9,7 @@ class EBoard{
     EBoard(EBoard*);
     Board board_exp;
 
-    pieceT vectRapp[1032];
+    pieceT vectRapp[1033];
     //char graph_board[BOARDSIZE];
     void applyAction(actionT a);
     void getNextsActions(actionT* ris);
