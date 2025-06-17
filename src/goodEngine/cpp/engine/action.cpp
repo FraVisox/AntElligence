@@ -47,7 +47,7 @@ actionT placePiece(pieceT p,positionT pos,gameboard& g){
     return A;
 }   
 
-actionT placeFirst(pieceT p){
+actionT placeFirst(pieceT p){    
     return (actionT)p;
 }
 
