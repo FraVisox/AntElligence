@@ -52,9 +52,10 @@ void EBoard::updateVectRapp(){
     positionT bp=(fr<<5)+fc;
 
     for(int i=0;i<1024;i++){
-        this->vectRapp[i]=gb.gb[0][(i+bp)&1023];
+        this->vectRapp[i]=(gb.isFree((i+bp)&1023))
+                            ?0
+                            :(gb.topPiece((i+bp)&1023));
     }
-
 
     // put climber pieces
     int climberPiece[]={3,4,12,17,18,26};
