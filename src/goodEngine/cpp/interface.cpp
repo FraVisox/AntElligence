@@ -151,7 +151,6 @@ void printBoard(EBoard* board){
 
 
 void actionToString(actionT a, EBoard *board,char* risBug){
-    a&=((1ull<<63)-1);
     if(a==0){
         risBug[0]='p';
         risBug[1]='a';
@@ -245,7 +244,7 @@ double boardEval(EBoard* b, double w[]){
 
 
 void delBoard(EBoard* b){
-    free(b);
+    delete b;
 }
 
 
