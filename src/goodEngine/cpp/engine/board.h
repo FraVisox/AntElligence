@@ -1,5 +1,7 @@
 #ifndef BOARD_H
 #define BOARD_H
+
+#define QUEUE_SIZE 400
 #include <bitset>
 #include "gameboard.h"
 #include "action.h"
@@ -52,7 +54,7 @@ class Board {
     int pillbugTotMoves;
 
     // auxiliary for Ants moves
-    positionT quePM[200]; 
+    positionT quePM[QUEUE_SIZE]; 
     bitset<1024> inQueue;
     
     void possibleMovesBug(pieceT b);

@@ -79,3 +79,5 @@ clean:
 	rm -f $(OUT_DIR)/*.o $(OUT_DIR)/*.so test engine.so interface.so
 
 
+interface.dll: interface.h interface.cpp $(ENGINE_H) $(ENGINE_CPP)
+	g++ -shared -static -static-libgcc -static-libstdc++ -I. -O3 -Wall -DBUILDING_DLL -o interface.dll embadded_board.cpp interface.cpp engine/action.cpp engine/board.cpp engine/direction.cpp engine/enums.cpp engine/gameboard.cpp engine/piece.cpp engine/position.cpp

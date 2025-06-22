@@ -118,7 +118,7 @@ void Board::copy(Board &b){
     for(int i=0;i<20;i++)
         this->pillbugMoves[i]=b.pillbugMoves[i];
     this->pillbugTotMoves=b.pillbugTotMoves;
-    for(int i=0;i<200;i++)
+    for(int i=0;i<QUEUE_SIZE;i++)
         this->quePM[i]=b.quePM[i];
     this->inQueue=b.inQueue;
 }
@@ -240,7 +240,7 @@ GameState Board::getGameState(){
     }
     
     if(currentTurn==0) return GameState::NOT_STARTED;
-    if(currentTurn>200 || ne>1)return GameState::DRAW;
+    if(currentTurn>QUEUE_SIZE || ne>1)return GameState::DRAW;
     return GameState::STARTED;
 }
 
