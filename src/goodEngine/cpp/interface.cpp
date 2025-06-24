@@ -24,8 +24,9 @@
 #endif
 
 
+
+
 actionT stringToAction(EBoard* b,char* str){
-    cout<<"_"<<str<<"_"<<endl;
     pieceT startP,destP;
     direction dir ;
 
@@ -77,9 +78,10 @@ char* BoardRapp(EBoard* p){
 
 */
 
+uint8_t maskBuffer[1575];
+actionT validMovesBuffer[1575];
+
 void* getMask(EBoard* p){
-
-
     return p->board_exp.G.isValidMoveBitmask;
 }
 
@@ -89,6 +91,9 @@ void* getAssociatedAction(EBoard* p){
 }
 
 
+void updatePossiblemoves(EBoard* state){
+    state->board_exp.ComputePossibleMoves();
+}
 
 EBoard* base_state(int gt){
     //cout<<"GT:"<<gt<<endl;
@@ -106,11 +111,6 @@ void next_state(EBoard* state,actionT action){
 void getActions(EBoard* state,actionT* actions){  // max 256 mosse
     state->getNextsActions(actions);    
 }
-
-void updatePossiblemoves(EBoard* state){
-    state->board_exp.ComputePossibleMoves();
-}
-
 
 int checkStatus(EBoard* board){
     return board->getState();

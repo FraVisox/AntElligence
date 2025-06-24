@@ -1,7 +1,7 @@
 #ifndef BOARD_H
 #define BOARD_H
 
-#define QUEUE_SIZE 400
+#define MAX_TURN_SIZE 300
 #include <bitset>
 #include "gameboard.h"
 #include "action.h"
@@ -45,7 +45,7 @@ class Board {
     // returns the actions
     actionT resAction[MAX_ACTIONS_SIZE];
     int numAction;
-    bitset<308> confHistory[301];
+    bitset<308> confHistory[MAX_TURN_SIZE];
 
     private:
     
@@ -54,7 +54,6 @@ class Board {
     int pillbugTotMoves;
 
     // auxiliary for Ants moves
-    positionT quePM[QUEUE_SIZE]; 
     bitset<1024> inQueue;
     
     void possibleMovesBug(pieceT b);

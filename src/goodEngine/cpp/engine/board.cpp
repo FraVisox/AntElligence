@@ -113,13 +113,11 @@ void Board::copy(Board &b){
     
     for(int i=0;i<MAX_ACTIONS_SIZE;i++)
         this->resAction[i]=b.resAction[i];
-    for(int i=0;i<301;i++)
+    for(int i=0;i<MAX_TURN_SIZE;i++)
         this->confHistory[i]=b.confHistory[i];
     for(int i=0;i<20;i++)
         this->pillbugMoves[i]=b.pillbugMoves[i];
     this->pillbugTotMoves=b.pillbugTotMoves;
-    for(int i=0;i<QUEUE_SIZE;i++)
-        this->quePM[i]=b.quePM[i];
     this->inQueue=b.inQueue;
 }
 
@@ -231,7 +229,6 @@ GameState Board::getGameState(){
     if(bugBQ==6)return GameState::WHITE_WIN;
     if(bugWQ==6)return GameState::BLACK_WIN;
 
-    int cp=0;
     bitset<308> r=G.toHash();
     int ne=0;
     for(int i=1;i<currentTurn; i++){
@@ -240,7 +237,7 @@ GameState Board::getGameState(){
     }
     
     if(currentTurn==0) return GameState::NOT_STARTED;
-    if(currentTurn>QUEUE_SIZE || ne>1)return GameState::DRAW;
+    if(currentTurn>MAX_TURN_SIZE || ne>1)return GameState::DRAW;
     return GameState::STARTED;
 }
 
@@ -503,9 +500,10 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
         
 
         const positionT startPos=G.getPosition(bug);
+
+        positionT quePM[256]; 
         quePM[fQ++]=startPos;
         positionT neighbors[6];
-        bool occ[6];
         inQueue.set(startPos ,1);
         G.removePiece(bug);
         
@@ -525,7 +523,6 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
             
             for(int dir=0;dir<6;++dir){
                 neighbors[dir]=applayMove(current,dir);
-                //occ[dir]=G.occupied[neighbors[dir]];
             }
             
             for(int dir=0;dir<6;++dir){
@@ -868,8 +865,10 @@ void Board::possibleMoves_Mosquito(pieceT bug){  // TODO
         int bQ=0;
         inQueue.reset();
         inQueue|=G.occupied;
-
+        
         const positionT startPos=G.getPosition(bug);
+
+        positionT quePM[256];
         quePM[fQ++]=startPos;
         positionT neighbors[6];
         int hights[6];

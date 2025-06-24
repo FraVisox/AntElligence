@@ -1,7 +1,7 @@
 # Compiler and flags
 CXX = g++ 
-SHARED_FLAG = -Ofast -fPIC -shared -O3
-TEST_FLAG = -Ofast -O3# -g -Wall # -g -Wall -fsanitize=address -fsanitize=null -fsanitize=leak
+SHARED_FLAG =  -fPIC -shared -Ofast  -O3
+TEST_FLAG = -g -O3 -Wall -fsanitize=address -fsanitize=null -fsanitize=leak
 OUT_DIR = out
 
 # Sources
