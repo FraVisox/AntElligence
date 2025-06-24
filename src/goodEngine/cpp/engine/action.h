@@ -8,6 +8,8 @@
 
 //Types of actions
 
+//extern uint8_t isValidMoveBitmask[1575];
+//extern actionT associatedAction[1575];
 actionT movement(const pieceT p,const positionT &destPos);
 actionT placePiece(pieceT p,positionT pos, gameboard &G);
 actionT placeFirst(pieceT p);

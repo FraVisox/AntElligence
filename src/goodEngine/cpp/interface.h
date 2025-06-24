@@ -3,8 +3,8 @@
 
 #include "embadded_board.h"
 
-extern uint8_t maskBuffer*;
-extern actionT validMovesBuffer*;
+//extern uint8_t isValidMoveBitmask[1575];
+//extern actionT associatedAction[1575];
 
 actionT stringToAction(EBoard* b, char* str);
 void* getMask(EBoard* p);

@@ -24,6 +24,8 @@
 #endif
 
 
+//uint8_t isValidMoveBitmask[1575];
+//actionT associatedAction[1575];
 
 
 actionT stringToAction(EBoard* b,char* str){
@@ -78,26 +80,35 @@ char* BoardRapp(EBoard* p){
 
 */
 
-uint8_t maskBuffer[1575];
-actionT validMovesBuffer[1575];
 
 void* getMask(EBoard* p){
+    //if(!p->isUpdated){
+    //    updatePossiblemoves(p);
+    //}
     return p->board_exp.G.isValidMoveBitmask;
+
+    //return isValidMoveBitmask;
 }
 
 
 void* getAssociatedAction(EBoard* p){
     return p->board_exp.G.associatedAction;
+    //if(!p->isUpdated){
+    //    updatePossiblemoves(p);
+    //}
+    //return associatedAction;
 }
 
 
 void updatePossiblemoves(EBoard* state){
     state->board_exp.ComputePossibleMoves();
+    //state->isUpdated=true;
 }
 
 EBoard* base_state(int gt){
     //cout<<"GT:"<<gt<<endl;
     return new EBoard((GameType)gt);
+    //p->isUpdated=false;
 }
 
 EBoard* copyBoard(EBoard* b){
@@ -106,10 +117,12 @@ EBoard* copyBoard(EBoard* b){
 
 void next_state(EBoard* state,actionT action){
     state->applyAction(action);
+    //state->isUpdated=false;
 }
 
 void getActions(EBoard* state,actionT* actions){  // max 256 mosse
-    state->getNextsActions(actions);    
+    state->getNextsActions(actions);   
+    //state->isUpdated=true;
 }
 
 int checkStatus(EBoard* board){
@@ -119,7 +132,7 @@ int checkStatus(EBoard* board){
 
 void* getStatusVector(EBoard* board){
     board->updateVectRapp();
-
+    
     return board->vectRapp;
 }
 

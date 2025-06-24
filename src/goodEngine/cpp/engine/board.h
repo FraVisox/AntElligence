@@ -8,6 +8,9 @@
 #include <queue>
 #include <string.h>
 
+
+//extern uint8_t isValidMoveBitmask[1575];
+//extern actionT associatedAction[1575];
 class Board {
     public:
 
@@ -45,7 +48,7 @@ class Board {
     // returns the actions
     actionT resAction[MAX_ACTIONS_SIZE];
     int numAction;
-    bitset<308> confHistory[MAX_TURN_SIZE];
+    bitset<308> confHistory[MAX_TURN_SIZE+2];
 
     private:
     

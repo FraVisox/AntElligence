@@ -110,7 +110,7 @@ void Board::copy(Board &b){
     this->prevMoved[1]=b.prevMoved[1];
     for(int i=0;i<256;i++)
         this->resAction[i]=b.resAction[i];
-    
+
     for(int i=0;i<MAX_ACTIONS_SIZE;i++)
         this->resAction[i]=b.resAction[i];
     for(int i=0;i<MAX_TURN_SIZE;i++)
@@ -376,7 +376,7 @@ void Board::ComputePossibleMoves(){
                 for(int j=0;j<numAction;j++){
                     if(pillbugMoves[i]==resAction[j]){
                         flag=false;
-                        G.isValidMoveBitmask[G._isValidMoveBitmask_rel_pos[j]]=0;
+                        //G.isValidMoveBitmask[G._isValidMoveBitmask_rel_pos[j]]=0;
                         break;
                     }
                 }
@@ -435,7 +435,7 @@ void Board::possibleMoves_Queen(pieceT bug){
         for(int i=0;i<6;i++){
             if(G.isFree(applayMove(pos,i))&&G.canSlideToFreeDir(pos,applayMove(pos,i),i)){
                     G.isValidMoveBitmask[687+i]=1;
-                    G._isValidMoveBitmask_rel_pos[numAction]=687+i;
+                    //G._isValidMoveBitmask_rel_pos[numAction]=687+i;
                     
                     G.associatedAction[687+i]=resAction[numAction]=movement(bug,applayMove(pos,i));
                     numAction++;
@@ -460,7 +460,7 @@ void Board::possibleMoves_Beetle(pieceT bug){
                 
                 if(G.getHight(p1)<=maxH || G.getHight(p2)<=maxH){
                     G.isValidMoveBitmask[693+i+6*(bug&1)]=1;
-                    G._isValidMoveBitmask_rel_pos[numAction]=693+i+6*(bug&1);
+                    //G._isValidMoveBitmask_rel_pos[numAction]=693+i+6*(bug&1);
 
                     G.associatedAction[693+i+6*(bug&1)]=resAction[numAction]=(movement(bug, dest));
                     numAction++;
@@ -480,7 +480,7 @@ void Board::possibleMoves_Grasshopper(pieceT bug){
                     next=applayMove(next,dir);
                 } while(!G.isFree(next));
                 G.isValidMoveBitmask[705+dir+6*((bug-5)%14)]=1;
-                G._isValidMoveBitmask_rel_pos[numAction]=705+dir+6*((bug-5)%14);
+                //G._isValidMoveBitmask_rel_pos[numAction]=705+dir+6*((bug-5)%14);
                 G.associatedAction[705+dir+6*((bug-5)%14)]=resAction[numAction]=(movement(bug, next));
                 numAction++;
             }
@@ -541,7 +541,7 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
 
                     const int r=723+dir+6*(numInc(bug)-1)+6*3*(near-1);
                     G.isValidMoveBitmask[r]=1;
-                    G._isValidMoveBitmask_rel_pos[numAction]=r;
+                    //G._isValidMoveBitmask_rel_pos[numAction]=r;
 
                     G.associatedAction[r]=resAction[numAction++]=(movement(bug,neighbor));
                     
@@ -601,7 +601,7 @@ void Board::possibleMoves_Spider(pieceT bug){
             for(int ni=0;ni<6;ni++){
                 if(reached[rPos[ni]]){
                     G.isValidMoveBitmask[1227+ni+dir1*6+(numInc(bug)-1)*36]=1;
-                    G._isValidMoveBitmask_rel_pos[numAction]=1227+ni+dir1*6+(numInc(bug)-1)*36;
+                    //G._isValidMoveBitmask_rel_pos[numAction]=1227+ni+dir1*6+(numInc(bug)-1)*36;
                     G.associatedAction[1227+ni+dir1*6+(numInc(bug)-1)*36]=resAction[numAction]=movement(bug,rPos[ni]);
                     numAction++;
                 }
@@ -623,7 +623,7 @@ void Board::possibleMoves_Pillbug(pieceT bug){
         for(int i=0;i<6;i++){
             if(G.isFree(applayMove(pos,i))&&G.canSlideToFreeDir(pos,applayMove(pos,i),i)){
                 G.isValidMoveBitmask[1299+i]=1;
-                G._isValidMoveBitmask_rel_pos[numAction]=1299+i;
+                //G._isValidMoveBitmask_rel_pos[numAction]=1299+i;
                 G.associatedAction[1299+i]=resAction[numAction]=movement(bug,applayMove(pos,i));
                 numAction++;
             }
@@ -696,7 +696,7 @@ void Board::possibleMoves_Ladybug(pieceT bug){
             for(int i=0;i<6;i++){
                 if(reached[nei[i] ]){
                     G.isValidMoveBitmask[1227+i+dir1*6+(numInc(bug)-1)*36]=1;
-                    G._isValidMoveBitmask_rel_pos[numAction]=1227+i+dir1*6+(numInc(bug)-1)*36;
+                    //G._isValidMoveBitmask_rel_pos[numAction]=1227+i+dir1*6+(numInc(bug)-1)*36;
                     G.associatedAction[1227+i+dir1*6+(numInc(bug)-1)*36]= resAction[numAction]=movement(bug,nei[i]);
                     numAction++;
                 }
@@ -729,7 +729,7 @@ void Board::possibleMoves_Mosquito(pieceT bug){  // TODO
                 
                 if(G.getHight(p1)<=maxH || G.getHight(p2)<=maxH){
                     G.isValidMoveBitmask[1539+i]=1;
-                    G._isValidMoveBitmask_rel_pos[numAction]=1539+i;
+                    //G._isValidMoveBitmask_rel_pos[numAction]=1539+i;
                     G.associatedAction[1539+i]=resAction[numAction]=(movement(bug, dest));
                     numAction++;
                 }
@@ -827,7 +827,7 @@ void Board::possibleMoves_Mosquito(pieceT bug){  // TODO
                 if(G.getHight(p1)<=maxH || G.getHight(p2)<=maxH){
                     if(!G.isFree(dest)){
                         G.isValidMoveBitmask[1539+i]=1;
-                        G._isValidMoveBitmask_rel_pos[numAction]=1539+i;
+                        //G._isValidMoveBitmask_rel_pos[numAction]=1539+i;
                         G.associatedAction[1539+i]=resAction[numAction]=(movement(bug, dest));
                         numAction++;      
                     }else{
@@ -937,7 +937,7 @@ void Board::possibleMoves_Mosquito(pieceT bug){  // TODO
                     1371+  // base
                     dir+
                     6*(bugNear-1)]=1;   
-                    G._isValidMoveBitmask_rel_pos[numAction-1]=1371+dir+6*(bugNear-1);
+                    //G._isValidMoveBitmask_rel_pos[numAction-1]=1371+dir+6*(bugNear-1);
                     G.associatedAction[1371+dir+6*(bugNear-1)]=resAction[numAction-1];
                     break;
                 }                
