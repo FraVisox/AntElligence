@@ -42,6 +42,9 @@ int main(){
             v=base_state(7);
             i=0;
             while(1){
+                int numAction=0;
+                for(int i=0;i<MAX_ACTIONS_SIZE;i++)
+
                 getActions(v,ris);
                 int m=rand()%ris[0]+1;
                 //m=1;

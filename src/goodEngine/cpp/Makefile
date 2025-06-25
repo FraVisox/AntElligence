@@ -1,6 +1,6 @@
 # Compiler and flags
 CXX = g++ 
-SHARED_FLAG =  -fPIC -shared -Ofast  -O3
+SHARED_FLAG =  -fPIC -shared -Ofast  -O3 -std=c++17 
 TEST_FLAG = -g -O3 -Wall -fsanitize=address -fsanitize=null -fsanitize=leak
 OUT_DIR = out
 
@@ -72,8 +72,8 @@ engine.so: $(ENGINE_SOS)  interface.cpp
 	$(CXX) -fPIC -shared interface.cpp $(ENGINE_SOS)  -o engine.so
 
 
-interface.so: interface.h interface.cpp $(ENGINE_SOS)  $(OUT_DIR)/embadded_board.so
-	$(CXX) $(SHARED_FLAG) interface.h interface.cpp $(ENGINE_SOS)  $(OUT_DIR)/embadded_board.so -o interface.so
+interface.so: interface.h interface.cpp $(ENGINE_SOS)
+	$(CXX) $(SHARED_FLAG)  interface.h interface.cpp $(ENGINE_SOS)  -o interface.so
 
 clean:
 	rm -f $(OUT_DIR)/*.o $(OUT_DIR)/*.so test engine.so interface.so

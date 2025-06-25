@@ -4,8 +4,8 @@
 
 #ifndef INTERFACE_CPP
 #define INTERFACE_CPP
-#include "embadded_board.h"
-
+#include "engine/embadded_board.h"
+#include "interface.h"
 /*#include "engine/action.cpp"
 #include "engine/board.cpp"
 #include "engine/direction.cpp"
@@ -333,4 +333,50 @@ the Beetle's movement), simply state the target piece that is about to be covere
 A passing move (made because a side has no other moves) is simply pass
 
 */
+
+
+
+void* createMCTS(char* s) {
+    try {
+        // uses your MCTS(const std::string&) ctor
+        return new MCTS(std::string(s));
+    }
+    catch (const std::exception& e) {
+        std::cerr << "createMCTS error: " << e.what() << std::endl;
+        return nullptr;
+    }
+}
+
+
+void* searchMCTS(MCTS* tree, EBoard* board, int turn) {
+    if (!tree || !board) return nullptr;
+
+    std::vector<double> result;
+    try {
+        result = tree->search(board, turn);
+    }
+    catch (const std::exception& e) {
+        std::cerr << "searchMCTS error: " << e.what() << std::endl;
+        return nullptr;
+    }
+
+    double* arr = static_cast<double*>( std::malloc(sizeof(double) * 1575) );
+    if (!arr) return nullptr;
+
+    for (size_t i = 0; i < 1575; ++i) {
+        arr[i] = result[i];
+    }
+    return (arr);
+}
+
+
+void deleteMCTS(MCTS* tree) {
+    delete tree;
+}
+
+
+
+
+
+
 #endif

@@ -1,8 +1,8 @@
 #ifndef INTERFACE_H
 #define INTERFACE_H
 
-#include "embadded_board.h"
-
+#include "engine/embadded_board.h"
+#include "mcts/mcts.h"
 //extern uint8_t isValidMoveBitmask[1575];
 //extern actionT associatedAction[1575];
 
@@ -21,6 +21,10 @@ void actionToString(actionT a, EBoard *board, char* risBug);
 double boardEval(EBoard* b, double w[]);
 void delBoard(EBoard* b);
 
+
+void* createMCTS(char* s);
+void* searchMCTS(MCTS*,EBoard*,int);
+void deleteMCTS(MCTS*);
 
 // Forward declaration of the board structure
 
