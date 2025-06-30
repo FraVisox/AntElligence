@@ -48,8 +48,15 @@ class MinimaxAgentCPP(Agent):
             for move in listmoves:
                 self.playmove(move)
 
-    def undo(self, amount):
-        pass # TODO: make undo
+    def undo(self, amount):  # TODO: implement, this is just stupid
+        if amount <= 0:
+            return
+        moves = self.gameLog.split(";")[3:]
+        self.reset()
+        for move in moves[:-amount]:
+            self.playmove(move)
+
+        
 
     def gameinfo(self):
         if(self.gameTurn%2==0):
