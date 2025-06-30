@@ -106,6 +106,8 @@ class MinimaxAgentCPP(Agent):
     
     def reset(self):
         self.currentTurn=0
+        self.gameLog=""
+        self.gameState="NotStarted"
         GR.delBoard(self.state)
         self.state=GR.init_state(self.gametype)
 
