@@ -45,6 +45,9 @@ class MinimaxAgentCPP(Agent):
         self.gameLog=""
         self.gameType=encodeGamemode(typeGame)
 
+    def undo(self, amount):
+        pass
+
     def gameinfo(self):
         if(self.gameTurn%2==0):
             return self.gameType+";"+self.gameState+";White["+str(self.gameTurn//2)+"]"+self.gameLog
@@ -52,6 +55,12 @@ class MinimaxAgentCPP(Agent):
             return self.gameType+";"+self.gameState+";Black["+str(self.gameTurn//2)+"]"+self.gameLog
         
     def validmoves(self):
+        pass
+
+    def set_time_limit(self, seconds):
+        pass
+
+    def set_depth_limit(self, depth):
         pass
     
     def bestmove(self):

@@ -186,7 +186,7 @@ class Engine():
     :rtype: Optional[Board]
     """
     self.brain = minimaxAgent(typegame=self.getNumber(arguments[0]))
-    self.brain.gameinfo()
+    print(self.brain.gameinfo())
 
   def getNumber(self, gamemode):
     match gamemode:
@@ -215,7 +215,7 @@ class Engine():
     :param board: Current playing Board.
     :type board: Optional[Board]
     """
-    self.brain.validmoves()
+    print(self.brain.validmoves())
       
   def parse_time_to_seconds(self, time_str):
     # Split the time string by colon
@@ -248,8 +248,7 @@ class Engine():
         self.error("Invalid depth format. Use a positive integer")
         return
       self.brain.set_depth_limit(int(value))
-
-    print(self.brain.calculate_best_move(CPPInterface))
+    print(self.brain.bestmove())
 
   def play(self, move: str) -> None:
     """
@@ -261,16 +260,9 @@ class Engine():
     :type move: str
     """
     try:
-      ret = CPPInterface.play_move(move)
-      match(ret):
-        case ReturnTypes.INVALID_ARGUMENT:
-          self.invalidmove(move)
-        case ReturnTypes.INVALID_GAME_NOT_STARTED:
-          self.error("Game not in progress")
-        case _: 
-          # TODO: return something different if someone wins?
-          self.brain.empty_cache()
-          print(CPPInterface.get_board())
+      self.brain.playmove(move)
+      print(self.brain.gameinfo())
+      # TODO: what happens if there is a bad move?
     except ValueError as e:
       self.invalidmove(e)
 
@@ -287,13 +279,12 @@ class Engine():
       try:
         if arguments:
           if (amount := arguments[0]).isdigit():
-            CPPInterface.undo(int(amount))
+            self.brain.undo(int(amount))
           else:
             raise ValueError(f"Expected a positive integer but got '{amount}'")
         else:
-          CPPInterface.undo(1)
-        self.brain.empty_cache()
-        print(CPPInterface.get_board())
+          self.brain.undo(1)
+        print(self.brain.gameinfo())
       except ValueError as e:
         self.error(e)
     else:
