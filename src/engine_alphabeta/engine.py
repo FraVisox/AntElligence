@@ -21,7 +21,7 @@ class Engine():
   }
   
   BRAINS: Final[dict[str, Agent]] = {
-    "Random": randomAgent(),
+    "Random": randomAgent(), # TODO: random agent needs to be implemented with the new interface
     "Minimax": minimaxAgent(),
   }
 
@@ -185,7 +185,8 @@ class Engine():
     :return: The newly created Board if successful in creating a new game.
     :rtype: Optional[Board]
     """
-    self.brain = minimaxAgent(typegame=self.getNumber(arguments[0]))
+    self.brain.delGame()
+    self.brain = minimaxAgent(typegame=self.getNumber(arguments[0]), listmoves=arguments[1:])
     print(self.brain.gameinfo())
 
   def getNumber(self, gamemode):

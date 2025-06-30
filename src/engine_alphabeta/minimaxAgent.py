@@ -32,7 +32,7 @@ class MinimaxAgentCPP(Agent):
     gameTurn=1
     gameState=""
     gameType=""
-    def __init__(self,typeGame=0,weight=(ctypes.c_double * 6)(0,0,0,1,-2,30),depth=4) -> None:
+    def __init__(self,typeGame=0,weight=(ctypes.c_double * 6)(0,0,0,1,-2,30),depth=4, listmoves = None) -> None:
         self.w=weight
         self.currentTurn=1
         self.depth=depth
@@ -44,9 +44,12 @@ class MinimaxAgentCPP(Agent):
         self.gameState="NotStarted"
         self.gameLog=""
         self.gameType=encodeGamemode(typeGame)
+        if listmoves is not None:
+            for move in listmoves:
+                self.playmove(move)
 
     def undo(self, amount):
-        pass
+        pass # TODO: make undo
 
     def gameinfo(self):
         if(self.gameTurn%2==0):
@@ -55,39 +58,51 @@ class MinimaxAgentCPP(Agent):
             return self.gameType+";"+self.gameState+";Black["+str(self.gameTurn//2)+"]"+self.gameLog
         
     def validmoves(self):
-        pass
+        return GR.getActions(self.state)
 
     def set_time_limit(self, seconds):
-        pass
+        # TODO: change depth based on time limit
+        pass # Not implemented the time limit, but it's not a problem since it will always be 5 seconds
 
     def set_depth_limit(self, depth):
-        pass
+        self.depth=depth
     
     def bestmove(self):
         act=self.bestaction()
         return GR.actionToString(act,self.state)
     
     def playmove(self,actionStr):
-        act=GR.stringToAction(self.state,actionStr)
+        act=GR.stringToAction(self.state,actionStr) # TODO: what happens if it is not valid?
         self.executeAction(act)
         self.gameLog+=";"+actionStr
-        self.gameState="InProgress"
+
     def executeAction(self,action):
+        if GR.checkStatus(self.state) > 1:
+            pass # TODO: what to do? error?
         GR.next_state(self.state,action)
         self.currentTurn+=1
+        if GR.checkStatus(self.state) == 1:
+            self.gameState="InProgress"
+        elif GR.checkStatus(self.state) == 2:
+            self.gameState="WhiteWins"
+        elif GR.checkStatus(self.state) == 3:
+            self.gameState="BlackWins"
+        elif GR.checkStatus(self.state) == 4:
+            self.gameState="Draw"
     
     def bestaction(self):
         self.numEval=0
         _, best_action= self.minimax(self.state,self.depth,True,self.w,currentTurn=self.currentTurn)
         return best_action
+    
     def reset(self):
         self.currentTurn=0
         GR.delBoard(self.state)
         self.state=GR.init_state(self.gametype)
+
     def delGame(self):
         self.currentTurn=0
         GR.delBoard(self.state)
-        
 
     def minimax(self,state, depth, maximizing_player, w, alpha=-1000, beta=+1000, currentTurn=0):
         """
