@@ -3,7 +3,7 @@
 
 #include <string>
 using namespace std;
-typedef uint_fast16_t actionT;
+typedef uint16_t actionT;
 const  int MAX_ACTIONS_SIZE=512;
 
 

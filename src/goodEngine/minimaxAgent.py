@@ -1,5 +1,5 @@
 
-from game_rule import DLLGameRule 
+from game_rule_reduced import DLLGameRule 
 GR=DLLGameRule()
 import ctypes
 import Agent
@@ -56,7 +56,9 @@ class MinimaxAgentCPP:
         return GR.actionToString(act,self.state)
     
     def playmove(self,actionStr):
+        print("decoding action",flush=True)
         act=GR.stringToAction(self.state,actionStr)
+        print("Decoded action");
         self.executeAction(act)
         self.gameLog+=";"+actionStr
         self.gameState="InProgress"
@@ -93,7 +95,7 @@ class MinimaxAgentCPP:
         # 2) cutoff di profondità → valutazione statica
         if depth == 0:
             self.numEval+=1
-            return GR.calcVal(state, w), None
+            return GR.calcVal(state), None
 
         actionsVect = GR.getActions(state)  # es. [n, a1, a2, ..., a_n]
         n = actionsVect[0]

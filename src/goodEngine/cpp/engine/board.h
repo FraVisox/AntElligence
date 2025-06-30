@@ -1,11 +1,16 @@
 #ifndef BOARD_H
 #define BOARD_H
+
+#define MAX_TURN_SIZE 300
 #include <bitset>
 #include "gameboard.h"
 #include "action.h"
 #include <queue>
 #include <string.h>
 
+
+//extern uint8_t isValidMoveBitmask[1575];
+//extern actionT associatedAction[1575];
 class Board {
     public:
 
@@ -43,7 +48,7 @@ class Board {
     // returns the actions
     actionT resAction[MAX_ACTIONS_SIZE];
     int numAction;
-    bitset<308> confHistory[301];
+    bitset<308> confHistory[MAX_TURN_SIZE+2];
 
     private:
     
@@ -52,7 +57,6 @@ class Board {
     int pillbugTotMoves;
 
     // auxiliary for Ants moves
-    positionT quePM[200]; 
     bitset<1024> inQueue;
     
     void possibleMovesBug(pieceT b);
