@@ -9,7 +9,7 @@ class EBoard{
     EBoard(EBoard*);
     Board board_exp;
 
-    //bool isUpdated=false;
+    bool isUpdated=false;
     pieceT vectRapp[1033];
     //char graph_board[BOARDSIZE];
     void applyAction(actionT a);

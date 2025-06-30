@@ -82,9 +82,9 @@ char* BoardRapp(EBoard* p){
 
 
 void* getMask(EBoard* p){
-    //if(!p->isUpdated){
-    //    updatePossiblemoves(p);
-    //}
+    if(!p->isUpdated){
+        updatePossiblemoves(p);
+    }
     return p->board_exp.G.isValidMoveBitmask;
 
     //return isValidMoveBitmask;
@@ -92,23 +92,22 @@ void* getMask(EBoard* p){
 
 
 void* getAssociatedAction(EBoard* p){
+    if(!p->isUpdated){
+        updatePossiblemoves(p);
+    }
     return p->board_exp.G.associatedAction;
-    //if(!p->isUpdated){
-    //    updatePossiblemoves(p);
-    //}
     //return associatedAction;
 }
 
 
 void updatePossiblemoves(EBoard* state){
     state->board_exp.ComputePossibleMoves();
-    //state->isUpdated=true;
+    state->isUpdated=true;
 }
 
 EBoard* base_state(int gt){
     //cout<<"GT:"<<gt<<endl;
     return new EBoard((GameType)gt);
-    //p->isUpdated=false;
 }
 
 EBoard* copyBoard(EBoard* b){
@@ -117,12 +116,12 @@ EBoard* copyBoard(EBoard* b){
 
 void next_state(EBoard* state,actionT action){
     state->applyAction(action);
-    //state->isUpdated=false;
+    state->isUpdated=false;
 }
 
 void getActions(EBoard* state,actionT* actions){  // max 256 mosse
     state->getNextsActions(actions);   
-    //state->isUpdated=true;
+    state->isUpdated=true;
 }
 
 int checkStatus(EBoard* board){
@@ -202,10 +201,10 @@ void actionToString(actionT a, EBoard *board,char* risBug){
 
     
 
-double boardEval(EBoard* b, double w[]){
+/*double boardEval(EBoard* b, double w[]){
 
     return 0;
-    /*
+    
     PlayerColor MyCol=b->board_exp.currentColor();
     pieceT myQueen=(MyCol==PlayerColor::WHITE)?8:22;
     pieceT oppositeQueen=30-myQueen;
@@ -252,8 +251,8 @@ double boardEval(EBoard* b, double w[]){
     score += w[4] * nearMyQueen;
     score += w[5] * nearOpposite;
     
-    return score;*/
-}
+    return score;
+}*/
 
 
 void delBoard(EBoard* b){

@@ -100,3 +100,28 @@ set_target_properties(mcts PROPERTIES
 install(TARGETS mcts LIBRARY DESTINATION lib)
 install(DIRECTORY engine/             DESTINATION include/engine  FILES_MATCHING PATTERN "*.h")
 install(FILES embadded_board.h interface.h mcts.h node.h DESTINATION include)
+
+
+# at the bottom of CMakeLists.txt
+
+# 7) test executable
+add_executable(test_app
+    test.cpp
+)
+
+# make sure the headers from engine/, mcts/, and project root are visible:
+target_include_directories(test_app PRIVATE
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/engine
+    ${CMAKE_SOURCE_DIR}/mcts
+)
+
+# link against your shared interface.so (and transitively mcts, engine, Torch & Python)
+target_link_libraries(test_app PRIVATE
+    interface
+    ${TORCH_LIBRARIES}
+    Python3::Python
+)
+
+# if your Torch install isn’t in a standard path:
+# you already passed -DCMAKE_PREFIX_PATH=/path/to/libtorch to find_package(Torch)

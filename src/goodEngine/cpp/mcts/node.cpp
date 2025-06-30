@@ -1,6 +1,4 @@
 // MCTS.h
-#pragma once
-
 #include <vector>
 #include <memory>
 #include <cmath>
@@ -22,15 +20,15 @@ Node::Node(EBoard* state,
        double prior,
        int visit_count,
        actionT action):
-      state_(state)
-    , parent_(parent)
+      parent_(parent)
     , action_taken_(action_taken)
-    , prior_(prior)
+    , prior_(1)
     , action_(action)
     , visit_count_(visit_count)
     , value_sum_(0.0)
     , selected_(false)
-  {}
+  {
+  state_=state;}
 
 Node::~Node() { delete_nodes(); }
 
@@ -93,17 +91,18 @@ double Node::get_ucb() const {
 
   // lazily compute the feature tensors for this node
 std::pair<torch::Tensor,torch::Tensor> Node::getVectSplit() {
-    if (state_!=nullptr) {
+    if (state_==nullptr) {
       state_ = new EBoard(parent_->state_);
       state_ -> applyAction(action_);
     }
+    
     state_ ->updateVectRapp();
     auto t=torch::from_blob(
         state_->vectRapp,                           // data pointer
         {1033},                         // tensor shape
-        torch::TensorOptions().dtype(torch::kDouble));
+        torch::TensorOptions().dtype(torch::kFloat));
     auto board    = t.narrow(0, /*start=*/0, /*length=*/1024) .view({1, 32, 32});
-    auto metadata = t.narrow(0, /*start=*/1024, /*length=*/t.size(0) - 1024);            
+    auto metadata = t.narrow(0, /*start=*/1024, /*length=*/t.size(0) - 1024);    
 
     return make_pair(board, metadata);
     //torch::Tensor t(state_->vectRapp);
@@ -114,7 +113,7 @@ void Node::expand(const std::vector<double>& policy) {
     if (!children_.empty()) return;
 
     // ensure state_ is initialized
-    if (!state_) {
+    if (state_==nullptr) {
         state_ = new EBoard(parent_->state_);
         state_->applyAction(action_);
     }
@@ -171,7 +170,7 @@ void Node::delete_nodes() {
 }
 
 int Node::getStatus() {
-    if (!state_) {
+    if (state_==nullptr) {
         state_ =new EBoard(parent_->state_);
         state_->applyAction(action_);
     }

@@ -9,16 +9,23 @@
   // returns a vector of length MAX_ACTIONS
 std::vector<double> MCTS::search(EBoard* root_state,
                              int turn){
+                          
+    cout<<"Start search"<<endl;
     // 1) build root
     Node root(root_state, /*parent*/nullptr, /*action_taken*/-1, /*prior*/0.0, /*visit_count*/1);
     auto [bm, bmeta] = root.getVectSplit();
+    // 2) initial eval;
+    
+    torch::Tensor input_m = bm.unsqueeze(0).to(device_,true);
+    torch::Tensor input_t = bmeta.unsqueeze(0).to(device_,true);
+    std::vector<torch::jit::IValue> inputs;
+    inputs.push_back(input_m);
+    inputs.push_back(input_t);
 
-    // 2) initial eval
-    auto device = (*(model_.parameters().begin())).device();
-    auto input_m = bm.unsqueeze(0).to(device);
-    auto input_t = bmeta.unsqueeze(0).to(device);
+    
+    torch::NoGradGuard no_grad;
 
-    auto out = model_.forward({input_m, input_t}).toTuple();
+    auto out=model_.forward(inputs).toTuple();
     auto policy_t = out->elements()[0].toTensor();
     torch::Tensor policy = torch::softmax(policy_t, /*dim=*/1)
                              .squeeze(0)
@@ -41,13 +48,14 @@ std::vector<double> MCTS::search(EBoard* root_state,
 
     // 3) expand root
     root.expand(policy_v);
-
     // 4) main loop
     int64_t searched = 0;
+
     while (searched < ARG_num_searches) {
       // select a batch
       auto batch_nodes = root.selectMultiple(ARG_batch_size);
 
+      cout<<"Start for batch with "<<batch_nodes.size()<<" Nodes"<<endl;
       // gather evaluations
       std::vector<torch::Tensor> mats, metas;
       mats.reserve(batch_nodes.size());
@@ -70,8 +78,9 @@ std::vector<double> MCTS::search(EBoard* root_state,
       if (mats.empty()) break;
 
       // batch-eval
-      auto xb = torch::stack(mats).to(device, /*non_blocking=*/true);
-      auto xt = torch::stack(metas).to(device, /*non_blocking=*/true);
+      auto xb = torch::stack(mats).to(device_, /*non_blocking=*/true);
+      auto xt = torch::stack(metas).to(device_, /*non_blocking=*/true);
+
        std::vector<torch::jit::IValue> inputs;
             inputs.push_back(xb);
             inputs.push_back(xt);
@@ -80,7 +89,7 @@ std::vector<double> MCTS::search(EBoard* root_state,
       auto pols_t = out2->elements()[0].toTensor();
       auto vals_t = out2->elements()[1].toTensor();
       auto pols = torch::softmax(pols_t, /*dim=*/1).cpu();
-      auto vals = vals_t.cpu();
+      auto vals = vals_t.cpu().squeeze(-1);
 
       // apply results
       auto pols_data = pols.accessor<float,2>();
@@ -103,20 +112,23 @@ std::vector<double> MCTS::search(EBoard* root_state,
     if (s > 0) for (auto& x : final_probs) x /= s;
 
     // 6) cleanup
-    root.delete_nodes();
+    for(auto& c : root.children_) c->delete_nodes();
+    //root.delete_nodes();
     return final_probs;
 }
 
 
 
-MCTS::MCTS(const std::string& model_path)
+MCTS::MCTS(const std::string& model_path):device_(at::kCPU)
 {
+    device_ = torch::cuda::is_available() ? at::kCUDA : at::kCPU;
     try {
         // Load the serialized TorchScript module from file
-        model_ = torch::jit::load(model_path);
-
+        model_ = torch::jit::load(model_path);  
+        
+        model_.to(device_);
+        model_.eval();  
         // Optionally, move to the desired device:
-        // model_->to(at::kCPU);
         // model_->eval();    // if you want to disable dropout/batchnorm training behavior
     }
     catch (const c10::Error& e) {
