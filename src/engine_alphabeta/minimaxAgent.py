@@ -79,7 +79,9 @@ class MinimaxAgentCPP(Agent):
         return GR.actionToString(act,self.state)
     
     def playmove(self,actionStr):
+        print("decoding action",flush=True)
         act=GR.stringToAction(self.state,actionStr) # TODO: what happens if it is not valid?
+        print("Decoded action")
         self.executeAction(act)
         self.gameLog+=";"+actionStr
 

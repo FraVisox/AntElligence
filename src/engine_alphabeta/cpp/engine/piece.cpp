@@ -147,16 +147,17 @@ pieceT decodeBug(char* s){
     PlayerColor col=((s[0]=='w')?PlayerColor::WHITE : PlayerColor::BLACK);
     BugType bt;
     int numInc=0;
-    switch (s[1])
+    switch (s[1] |96)
     {
-    case 'S': numInc=(s[2]-'0'); bt=BugType::SPIDER; break;
-    case 'B': numInc=(s[2]-'0'); bt=BugType::BEETLE; break;
-    case 'G': numInc=(s[2]-'0'); bt=BugType::GRASSHOPPER; break;
-    case 'A': numInc=(s[2]-'0'); bt=BugType::SOLDIER_ANT; break;
-    case 'Q': numInc=0; bt=BugType::QUEEN; break;
-    case 'M': numInc=0; bt=BugType::MOSQUITO; break;
-    case 'L': numInc=0; bt=BugType::LADYBUG; break;
-    case 'P': numInc=0; bt=BugType::PILLBUG; break;
+    case 's': numInc=(s[2]-'0'); bt=BugType::SPIDER; break;
+    case 'b': numInc=(s[2]-'0'); bt=BugType::BEETLE; break;
+    case 'g': numInc=(s[2]-'0'); bt=BugType::GRASSHOPPER; break;
+    case 'a': numInc=(s[2]-'0'); bt=BugType::SOLDIER_ANT; break;
+    case 'q': numInc=0; bt=BugType::QUEEN; break;
+    case 'm': numInc=0; bt=BugType::MOSQUITO; break;
+    case 'l': numInc=0; bt=BugType::LADYBUG; break;
+    case 'p': numInc=0; bt=BugType::PILLBUG; break;
+    default: throw "Not a valid bug";
     }
     return buildPiece(bt,col,numInc);
 }

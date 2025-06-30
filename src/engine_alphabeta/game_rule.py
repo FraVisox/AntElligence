@@ -1,172 +1,207 @@
-# compile with  g++ -shared -o engine.dll *.cpp -static -static-libgcc -static-libstdc++ -I. -O2 -Wall -DBUILDING_DLL
-# for linux compile with g++ -fPIC -shared -o engine.dll *.cpp
-
-
-
-
-import ctypes
+from numpy.ctypeslib import ctypes as ctypes
 from abc import ABC, abstractmethod
 import os
+
+import copy
 import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.multiprocessing as mp
+from tqdm.notebook import trange
+#torch.use_deterministic_algorithms(True)
+
+import random
+import math
+
+#torch.manual_seed(0)
+#random.seed(0)
+#np.random.seed(0)
 
 EBoardP =ctypes.c_void_p
+MCTSP =ctypes.c_void_p
 argType=ctypes.c_int
-actionT=ctypes.c_uint64
+actionT=ctypes.c_uint16
+pointer_action=ctypes.POINTER(actionT)
+
+# FIXME: quando vedi i figli salvali
 
 
+# Abstract class that implements the game rules
 class game_rule(ABC):
     @abstractmethod
-    def init_state(self): 
+    def init_state(self):
         pass
     def next_state(self, state, action:actionT):
-        pass    
-    def getActions(self, state):
         pass
     def checkStatus(self, state):
         pass
 
+# Our game's rules
 class DLLGameRule(game_rule):
 
-    MAX_ACTIONS = 256
+    
     def __init__(self):
-        path = os.path.join(os.getcwd(), "cpp/interface.so")
+        global MAX_ACTIONS
+        path = os.path.join(os.getcwd(), '/home/matteo/Desktop/Elicsir/AntElligence/src/goodEngine/cpp/build/interface_reduced.so')
         dll = ctypes.CDLL(path)
         self.dll=dll
+
+        # board management basic function
         self.getBoard_low = dll._Z10base_statei
-        self.copyBoard = dll._Z9copyBoardP6EBoard
-        self.updateState_low = dll._Z10next_stateP6EBoardm
-        self.getAction_low = dll._Z10getActionsP6EBoardPm
+        self.copyBoard_low = dll._Z9copyBoardP6EBoard
+        self.updateState_low = dll._Z10next_stateP6EBoardt
         self.checkGameStatus_low = dll._Z11checkStatusP6EBoard
-        self.actionToString_low = dll._Z14actionToStringmP6EBoardPc
-        #self.printAct_low = dll._Z16printActionFancym
-        self.PrintBoard_low = dll._Z10printBoardP6EBoard  
-        self.evalBoard_low = dll._Z9boardEvalP6EBoardPd
+        self.PrintBoard_low = dll._Z10printBoardP6EBoard
         self.delBoardC_low=dll._Z8delBoardP6EBoard
         self.stringToAction_low=dll._Z14stringToActionP6EBoardPc
-        #self.boardToCVect_low=dll._Z9BoardRappP6EBoard
+        
+        
         self.getStatusVector_low=dll._Z15getStatusVectorP6EBoard
         self.getAssociatedAction_low=dll._Z19getAssociatedActionP6EBoard
         self.getMask_low=self.dll._Z7getMaskP6EBoard
+        self.compute_possible_low=self.dll._Z19updatePossiblemovesP6EBoard;
+        self.create_MCTS_low=self.dll._Z10createMCTSPc
+        self.search_MCTS_low=self.dll._Z10searchMCTSP4MCTSP6EBoardi
+        self.delete_MCTS_low=self.dll._Z10deleteMCTSP4MCTS
         # Set argument/return types
         self.getBoard_low.argtypes = [argType]  # the type of game, define in engine/enums.h
         self.getBoard_low.restype = EBoardP
 
-        self.copyBoard.argtypes = [EBoardP]  
-        self.copyBoard.restype = EBoardP
+        self.copyBoard_low.argtypes = [EBoardP]
+        self.copyBoard_low.restype = EBoardP
 
         self.updateState_low.argtypes = [EBoardP, actionT]
         self.updateState_low.restype = None
 
-        self.getAction_low.argtypes = [EBoardP, ctypes.POINTER(actionT)]
-        self.getAction_low.restype = None
-
         self.checkGameStatus_low.argtypes = [EBoardP]
         self.checkGameStatus_low.restype = ctypes.c_int
-
-        
-        #self.printAct_low.argtypes = [actionT]
-        #self.printAct_low.restype = None
-
-
-        self.evalBoard_low.argtypes = [EBoardP, ctypes.POINTER(ctypes.c_double)]
-        self.evalBoard_low.restype = ctypes.c_double 
-
-
-        self.actionToString_low.argtypes = [actionT,EBoardP,ctypes.POINTER(ctypes.c_char)]
-        self.actionToString_low.restype = None
 
         self.stringToAction_low.argtypes=[EBoardP,ctypes.c_char_p]
         self.stringToAction_low.restype=actionT
 
-        #self.boardToCVect_low.argtypes=[EBoardP]
-        #self.boardToCVect_low.restype=ctypes.POINTER(ctypes.c_char)        
-        self.actions = (actionT * self.MAX_ACTIONS)()
-
-        self.getMask_low.argtypes = [ctypes.c_void_p]
-        self.getMask_low.restype = ctypes.POINTER(ctypes.c_int8)
         
+        self.getMask_low.argtypes = [ctypes.c_void_p]
+        self.getMask_low.restype = ctypes.POINTER(ctypes.c_uint8)
+
         self.getAssociatedAction_low.argtypes = [ctypes.c_void_p]
         self.getAssociatedAction_low.restype = ctypes.POINTER(actionT)
 
         self.getStatusVector_low.argtypes = [ctypes.c_void_p]
         self.getStatusVector_low.restype = ctypes.POINTER(actionT)
 
+        self.create_MCTS_low.argtypes=[ctypes.c_void_p]
+        self.create_MCTS_low.restype=MCTSP
+        
+        self.search_MCTS_low.argtypes=[MCTSP,EBoardP,ctypes.c_int]
+        self.search_MCTS_low.restype=ctypes.POINTER(ctypes.c_double)
+        
+        self.delete_MCTS_low.argtypes=[MCTSP]
+        self.delete_MCTS_low.restype=None
 
-
+        # maybe usefull buffers
+        self.actions = (actionT * MAX_ACTIONS)()
         self.strBuff=(ctypes.c_char* 30)()
-    def init_state(self,gametype=0) -> EBoardP:
+
+
+    
+    # Returns the initial state
+    def init_state(self,gametype=7) -> EBoardP:
         return self.getBoard_low(gametype)  # default game type  0 ->base, ..., 7 -> MPL
 
-    def next_state(self, state:EBoardP, action:actionT):
-        self.updateState_low(state, ctypes.c_uint64(action))
 
-    def getActions(self, state:EBoardP)->ctypes.POINTER(actionT) :
-        self.getAction_low(state, self.actions)  # TODO: Mettere copia
-        return self.actions
+    # Update state given an action. action is a number. Doesn't return anything
+    def next_state(self, state:EBoardP, action:actionT): # FIXME: fa l'update della board che ci passi (action come intero)
+        self.updateState_low(state, actionT(action))
 
-    def checkStatus(self, state:EBoardP) :
+    def copyBoard(self,state):
+        CopyAddr=self.copyBoard_low(state)
+        return CopyAddr
+    # Get the set of possible actions. It is a vector of actions (ints).
+    STATUS_OK = 0
+    STATUS_INVALID = 1
+    STATUS_WHITE_WINS = 2
+    STATUS_BLACK_WINS = 3
+
+    # Check if someone has won
+    def checkStatus(self, state:EBoardP): # FIXME: ritorna il numero in base a cosa è successo
         code = self.checkGameStatus_low(state)
-        """
-            NOT_STARTED=0,
-            STARTED=1,
-            WHITE_WIN=2,
-            BLACK_WIN=3,
-            DRAW=4,
-        """
-        
+        status_map = {
+            0: "OK",
+            1: "INVALID_GAME_NOT_STARTED",
+            2: "GAME_OVER_WHITE_WINS or DRAW",
+            3: "GAME_OVER_BLACK_WINS",
+            4: "GAME_OVER_DRAW"
+        }
         return code
 
-    def actionToString(self, action:actionT,board:EBoardP):
-        self.actionToString_low(action,board,self.strBuff)
-        ris=""
-        i=0
-        while(self.strBuff[i]!=b"\0"):
-            ris+=self.strBuff[i].decode()
-            i+=1
-        return ris
 
 
-    def print_action(self, action:actionT) -> None:
-        print("DOIMPLEMENT")
-        return
-        self.printAct_low(ctypes.c_uint64(action))
-
-    def PrintState(self, state:EBoardP) -> None:
+    # Prints the board
+    def PrintState(self, state:EBoardP): # FIXME: for debug
         self.PrintBoard_low(state)
 
-    def calcVal(self,state:EBoardP,w) -> ctypes.c_double:
-        return self.evalBoard_low(state,w)
-        
+    # Deletes the board
     def delBoard(self,state:EBoardP):
         self.delBoardC_low(state)
-    
-    
-    def toVect(self,state:EBoardP):   # to get the status of the board as a np vector : 1024 + 6 + 2 + 1
+
+    # Converts the board to a vector of chars (284)
+    def toVect(self,state:EBoardP): # FIXME: sarebbe ottimo ritornare un numpy vector di 32*32 CNN 32*32 più altri neuroni (6 in teoria, +1 che rappresenta il turno (è endgame o startgame) +2 che sono i bug mossi appena adesso) che ci dicono chi è sopra a chi e cose del genere
         ptr = self.getStatusVector_low(state)
         arr = np.ctypeslib.as_array(ptr, shape=(1033,))
-        return arr.copy().astype(int)
+        return torch.from_numpy(arr.astype(np.float32))
 
+    def toVect_split(self, state: EBoardP) -> tuple[torch.FloatTensor, torch.FloatTensor]:
+        ptr = self.getStatusVector_low(state)
 
-    def stringToAction(self,state:EBoardP,str):
+        arr = np.ctypeslib.as_array(ptr, shape=(1033,)).astype(np.float32)
+        t = torch.from_numpy(arr).to(device, non_blocking=True)
+
+        board    = t[:1024].view(1, 32, 32)
+        metadata = t[1024:]
+
+        return board, metadata
+        #arr = np.ctypeslib.as_array(ptr, shape=(1033,)).astype(np.float32)
+
+        #board = torch.from_numpy(arr[:1024]).view(1, 32, 32).to(device)
+        #metadata = torch.from_numpy(arr[1024:]).to(device)
+        #return board, metadata
+
+    # Converts a string to an action
+    def stringToAction(self,state:EBoardP,str): #FIXME: ritorna un intero
         return self.stringToAction_low(state,str.encode())
 
-
-    #def getAllActions(self,state):
-    #    act=self.getActions(state)
-    #    ris=""
-    #    for i in range(1,act[0]+1):
-    #        ris+=";"+self.actionToString(act[i],state)
-    #    return ris
-    
-    
     def get_mask(self, state):          # mask for actions
         ptr = self.getMask_low(state)
-        arr = np.ctypeslib.as_array(ptr, shape=(1575,))
-        return arr.copy().astype(bool)  # copy to own Python memory
+        return np.ctypeslib.as_array(ptr, shape=(MAX_ACTIONS,)).astype(bool)
 
     def get_actions(self,state):   # all actions masked by getMask
         ptr = self.getAssociatedAction_low(state)
-        arr = np.ctypeslib.as_array(ptr, shape=(1575,))
-        return arr.copy().astype(int)  # copy to own Python memory
+        return np.ctypeslib.as_array(ptr, shape=(MAX_ACTIONS,)).astype(np.uint64)
 
+    def compute_actions(self,state:EBoardP):
+        self.compute_possible_low(state)
 
+    def get_opponent_value(self, value):
+        return -value
+
+    def get_opponent(self, player): # TODO: il player è 1 o -1
+        return -player
+
+    def create_mcts(self,model_path: str) -> MCTSP:
+        return self.create_MCTS_low(model_path.encode('utf-8'))
+
+    def search_mcts(self,tree: MCTSP, board: EBoardP, turn: int = 1) -> np.ndarray:
+        global MAX_ACTIONS
+        raw_ptr = self.search_MCTS_low(tree, board, turn)
+        if not raw_ptr:
+            raise RuntimeError("searchMCTS returned NULL")
+        arr = np.ctypeslib.as_array(raw_ptr, shape=(MAX_ACTIONS,)).astype(np.double)
+        print(arr,MAX_ACTIONS)
+        return arr
+    
+    def delete_mcts(self,tree: MCTSP) -> None:
+        self.delete_MCTS_low(tree)
+BOARD_VECTOR_SIZE = 32*32
+MAX_ACTIONS=1575
+game=DLLGameRule()

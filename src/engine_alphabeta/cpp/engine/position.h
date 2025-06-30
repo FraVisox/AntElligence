@@ -7,7 +7,7 @@
 #define SIZE_BOARD 32
 
 
-typedef uint_fast16_t positionT;
+typedef uint16_t positionT;
 
 positionT applayMove(positionT pos,direction d);
 extern positionT NULL_POSITION;

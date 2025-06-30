@@ -39,7 +39,10 @@ actionT placePiece(pieceT p,positionT pos,gameboard& g){
         if(!g.isFree(applayMove(pos,dir))){
             pieceT n=g.topPiece(applayMove(pos,dir));
             g.isValidMoveBitmask[
-                15+dir+6*kind(p)+48*((n-1)%14)]=1;
+                    15+dir+6*kind(p)+48*((n-1)%14)]=1;
+            //isValidMoveBitmask[
+            //    15+dir+6*kind(p)+48*((n-1)%14)]=1;
+            //associatedAction[15+dir+6*kind(p)+48*((n-1)%14)]=A;
             g.associatedAction[15+dir+6*kind(p)+48*((n-1)%14)]=A;
             break;
         }
