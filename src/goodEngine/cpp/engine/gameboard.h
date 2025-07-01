@@ -10,6 +10,8 @@
 using namespace  std;
 #define HIGHT_BOARD 6
 
+//extern uint8_t isValidMoveBitmask[1575];
+//extern actionT associatedAction[1575];
 class gameboard{
     public:
     gameboard();
@@ -21,7 +23,7 @@ class gameboard{
     int high[1024];
     
     bitset<32> isPlaced;
-
+    
         /*
     *   Valid moves are the followin in this order:
     *   X (0) -> 1 pass move
@@ -41,7 +43,7 @@ class gameboard{
     *   Total 
     */  // Idea in background
     uint8_t isValidMoveBitmask[1575];
-    uint8_t _isValidMoveBitmask_rel_pos[1575];
+    //uint8_t _isValidMoveBitmask_rel_pos[1575];
 
     actionT associatedAction[1575];
 

@@ -4,7 +4,7 @@ using namespace std;
 #include <string>
 
 
-typedef uint_fast16_t direction;
+typedef uint16_t direction;
 
 extern const direction RIGHT;
 extern const direction DOWN_RIGHT;

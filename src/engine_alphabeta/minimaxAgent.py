@@ -48,8 +48,15 @@ class MinimaxAgentCPP(Agent):
             for move in listmoves:
                 self.playmove(move)
 
-    def undo(self, amount):
-        pass # TODO: make undo
+    def undo(self, amount):  # TODO: implement, this is just stupid
+        if amount <= 0:
+            return
+        moves = self.gameLog.split(";")[3:]
+        self.reset()
+        for move in moves[:-amount]:
+            self.playmove(move)
+
+        
 
     def gameinfo(self):
         if(self.gameTurn%2==0):
@@ -72,7 +79,9 @@ class MinimaxAgentCPP(Agent):
         return GR.actionToString(act,self.state)
     
     def playmove(self,actionStr):
+        print("decoding action",flush=True)
         act=GR.stringToAction(self.state,actionStr) # TODO: what happens if it is not valid?
+        print("Decoded action")
         self.executeAction(act)
         self.gameLog+=";"+actionStr
 
@@ -97,6 +106,8 @@ class MinimaxAgentCPP(Agent):
     
     def reset(self):
         self.currentTurn=0
+        self.gameLog=""
+        self.gameState="NotStarted"
         GR.delBoard(self.state)
         self.state=GR.init_state(self.gametype)
 

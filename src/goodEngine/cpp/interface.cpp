@@ -4,8 +4,8 @@
 
 #ifndef INTERFACE_CPP
 #define INTERFACE_CPP
-#include "embadded_board.h"
-
+#include "engine/embadded_board.h"
+#include "interface.h"
 /*#include "engine/action.cpp"
 #include "engine/board.cpp"
 #include "engine/direction.cpp"
@@ -24,8 +24,11 @@
 #endif
 
 
+//uint8_t isValidMoveBitmask[1575];
+//actionT associatedAction[1575];
+
+
 actionT stringToAction(EBoard* b,char* str){
-    cout<<"_"<<str<<"_"<<endl;
     pieceT startP,destP;
     direction dir ;
 
@@ -77,18 +80,30 @@ char* BoardRapp(EBoard* p){
 
 */
 
+
 void* getMask(EBoard* p){
-
-
+    if(!p->isUpdated){
+        updatePossiblemoves(p);
+    }
     return p->board_exp.G.isValidMoveBitmask;
+
+    //return isValidMoveBitmask;
 }
 
 
 void* getAssociatedAction(EBoard* p){
+    if(!p->isUpdated){
+        updatePossiblemoves(p);
+    }
     return p->board_exp.G.associatedAction;
+    //return associatedAction;
 }
 
 
+void updatePossiblemoves(EBoard* state){
+    state->board_exp.ComputePossibleMoves();
+    state->isUpdated=true;
+}
 
 EBoard* base_state(int gt){
     //cout<<"GT:"<<gt<<endl;
@@ -101,16 +116,13 @@ EBoard* copyBoard(EBoard* b){
 
 void next_state(EBoard* state,actionT action){
     state->applyAction(action);
+    state->isUpdated=false;
 }
 
 void getActions(EBoard* state,actionT* actions){  // max 256 mosse
-    state->getNextsActions(actions);    
+    state->getNextsActions(actions);   
+    state->isUpdated=true;
 }
-
-void updatePossiblemoves(EBoard* state){
-    state->board_exp.ComputePossibleMoves();
-}
-
 
 int checkStatus(EBoard* board){
     return board->getState();
@@ -119,7 +131,7 @@ int checkStatus(EBoard* board){
 
 void* getStatusVector(EBoard* board){
     board->updateVectRapp();
-
+    
     return board->vectRapp;
 }
 
@@ -189,10 +201,10 @@ void actionToString(actionT a, EBoard *board,char* risBug){
 
     
 
-double boardEval(EBoard* b, double w[]){
+/*double boardEval(EBoard* b, double w[]){
 
     return 0;
-    /*
+    
     PlayerColor MyCol=b->board_exp.currentColor();
     pieceT myQueen=(MyCol==PlayerColor::WHITE)?8:22;
     pieceT oppositeQueen=30-myQueen;
@@ -239,8 +251,8 @@ double boardEval(EBoard* b, double w[]){
     score += w[4] * nearMyQueen;
     score += w[5] * nearOpposite;
     
-    return score;*/
-}
+    return score;
+}*/
 
 
 void delBoard(EBoard* b){
@@ -320,4 +332,50 @@ the Beetle's movement), simply state the target piece that is about to be covere
 A passing move (made because a side has no other moves) is simply pass
 
 */
+
+
+
+void* createMCTS(char* s) {
+    try {
+        // uses your MCTS(const std::string&) ctor
+        return new MCTS(std::string(s));
+    }
+    catch (const std::exception& e) {
+        std::cerr << "createMCTS error: " << e.what() << std::endl;
+        return nullptr;
+    }
+}
+
+
+void* searchMCTS(MCTS* tree, EBoard* board, int turn) {
+    if (!tree || !board) return nullptr;
+
+    std::vector<double> result;
+    try {
+        result = tree->search(board, turn);
+    }
+    catch (const std::exception& e) {
+        std::cerr << "searchMCTS error: " << e.what() << std::endl;
+        return nullptr;
+    }
+
+    double* arr = static_cast<double*>( std::malloc(sizeof(double) * 1575) );
+    if (!arr) return nullptr;
+
+    for (size_t i = 0; i < 1575; ++i) {
+        arr[i] = result[i];
+    }
+    return (arr);
+}
+
+
+void deleteMCTS(MCTS* tree) {
+    delete tree;
+}
+
+
+
+
+
+
 #endif
