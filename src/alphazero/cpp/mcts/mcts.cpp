@@ -12,6 +12,7 @@ std::vector<double> MCTS::search(EBoard* root_state,
                           
     // 1) build root
     Node root(root_state, /*parent*/nullptr, /*action_taken*/-1, /*prior*/0.0, /*visit_count*/1);
+    root.isExplicitState=true;
     auto [bm, bmeta] = root.getVectSplit();
 
     // 2) initial eval;
@@ -21,7 +22,7 @@ std::vector<double> MCTS::search(EBoard* root_state,
     std::vector<torch::jit::IValue> inputs;
     inputs.push_back(input_m);
     inputs.push_back(input_t);
-
+    
     
     torch::NoGradGuard no_grad;
 
@@ -33,11 +34,11 @@ std::vector<double> MCTS::search(EBoard* root_state,
 
     std::vector<double> policy_v(policy.data_ptr<float>(),
                                  policy.data_ptr<float>() + policy.numel());
-
+    
     // Dirichlet noise
     if (turn <= ARG_dirichlet_turn) {
       std::gamma_distribution<double> g(ARG_dirichlet_alpha, 1.0);
-      std::mt19937_64 gen{std::random_device{}()};
+        thread_local static std::mt19937_64 gen{std::random_device{}()};
       std::vector<double> noise(policy_v.size());
       for (auto& x : noise) x = g(gen);
       double sum_n = std::accumulate(noise.begin(), noise.end(), 0.0);
@@ -47,17 +48,15 @@ std::vector<double> MCTS::search(EBoard* root_state,
     }
 
     // 3) expand root
-    cout<<"Start expand"<<endl;
     root.expand(policy_v);
     
     // 4) main loop
     int64_t searched = 0;
-
     while (searched < ARG_num_searches) {
       // select a batch
-      auto batch_nodes = root.selectMultiple(ARG_batch_size);
-
-    cout<<"Batcheeeeee"<<endl;
+        
+      vector<Node*> batch_nodes = root.selectMultiple(ARG_batch_size);
+        vector<Node*> nodeToAnalize;
     
 
       // gather evaluations
@@ -65,36 +64,36 @@ std::vector<double> MCTS::search(EBoard* root_state,
       mats.reserve(batch_nodes.size());
       metas.reserve(batch_nodes.size());
 
-      for (auto* node : batch_nodes) {
-        cout<<"Expanding node " << node <<endl;
+       // generate the batcs
+      for (Node* node : batch_nodes) {
           
         int status = node->getStatus();
-        cout << status << endl;
         if (status == 0|| status ==1) {
         
           auto [m, t] = node->getVectSplit();
           mats.push_back(m);
           metas.push_back(t);
-            cout << "Got vect split" << endl;
+          nodeToAnalize.push_back(node);
         } else {
+            node->toExpand=false;
             
           double v = (status == 2? 1.0
                    : (status == 3? -1.0 : 0.0));
           node->backpropagate(v);
-            cout << "baaa" << endl;
         }
       }
       
-    cout<<"backpropagaete"<<endl;
-
+        
       searched += (int)mats.size();
-      if (mats.empty()) {
+      if (mats.size()==0) {
           break;
       }
+        
       // batch-eval
+        
       auto xb = torch::stack(mats).to(device_, /*non_blocking=*/true);
       auto xt = torch::stack(metas).to(device_, /*non_blocking=*/true);
-
+        
        std::vector<torch::jit::IValue> inputs;
             inputs.push_back(xb);
             inputs.push_back(xt);
@@ -105,19 +104,22 @@ std::vector<double> MCTS::search(EBoard* root_state,
       auto pols = torch::softmax(pols_t, /*dim=*/1).cpu();
       auto vals = vals_t.cpu().squeeze(-1);
         
-
+        
       // apply results
       auto pols_data = pols.accessor<float,2>();
       auto vals_data = vals.accessor<float,1>();
-      for (size_t i = 0; i < batch_nodes.size(); ++i) {
-        std::vector<double> pv(pols.size(1));
-        for (int j = 0; j < pols.size(1); ++j)
-          pv[j] = pols_data[i][j];
-        batch_nodes[i]->expand(pv);
-        batch_nodes[i]->backpropagate(vals_data[i]);
+        
+      for (size_t i = 0; i < nodeToAnalize.size(); ++i) {
+            std::vector<double> pv(pols.size(1));
+            for (int j = 0; j < pols.size(1); ++j)
+              pv[j] = pols_data[i][j];
+            nodeToAnalize[i]->expand(pv);
+            nodeToAnalize[i]->backpropagate(vals_data[i]);
+    
       }
-     
+        
     }
+    
 
     // 5) collect final policy (visit counts)
     std::vector<double> final_probs(MAX_ACTIONS, 0.0);

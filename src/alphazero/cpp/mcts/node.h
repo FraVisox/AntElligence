@@ -46,8 +46,8 @@ public:
     // Public data for final policy tally
     int expandable_sons;
     int inQueue_sons;
-
-
+    void needGeState();
+    void explicitateState();
     // Node attributes
     EBoard*             state_;
     Node*               parent_;
@@ -58,6 +58,8 @@ public:
     double              value_sum_;
     bool                selected_;
     std::vector<Node*>  children_;
+    bool isExplicitState=false;
+    bool toExpand = true;
 };
 
 #endif // NODE_H

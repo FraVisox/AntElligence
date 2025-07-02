@@ -6,7 +6,7 @@ project(ProgettoHive LANGUAGES CXX)
 # -----------------------------------------------------------------------------
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -g -O0")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -O3 -Ofast")
 # -----------------------------------------------------------------------------
 # 2) Find LibTorch & Python3 dev
 # -----------------------------------------------------------------------------

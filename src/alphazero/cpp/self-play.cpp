@@ -20,33 +20,29 @@ struct History {
 using ReturnType = std::tuple<torch::Tensor, torch::Tensor,
                               std::vector<double>, int>;
 int main(){
+    auto gen = at::make_generator<at::CPUGeneratorImpl>(1);
     string model_name="model_0-mcts.pt";
     
     int turn_sp = 0;
     std::vector<History> memory;
     int player = 1;
     
-    cout<<"Create MCTS";
     
     MCTS mcts(model_name);
 
     // Start from initial state
     EBoard* state=new EBoard((GameType)7);
 
-        cout<<"Loaded Model"<<endl;
-    while (turn_sp<100) {
-        cout<<"start turn"<<endl;
+    while (turn_sp<1000) {
+        cout<<"Start turn "<<turn_sp<<endl;
         // 1) make a neutral copy for MCTS
         EBoard* neutral_state = new EBoard(state);
-        cout<<"copied b"<<endl;
-
+        
 
         auto action_probs = mcts.search(neutral_state);
-        cout<<"Start seach"<<endl;
+        cout<<"Seacrhed"<<endl;
         turn_sp++;
-        cout<<"neutral state "<<state<<endl;
         state ->updateVectRapp();
-        cout<<"updated vec b"<<endl;
 
         auto t=torch::from_blob(
             state->vectRapp,                           // data pointer
@@ -57,8 +53,7 @@ int main(){
                             t.narrow(0, /*start=*/1024, /*length=*/t.size(0) - 1024),
                             action_probs,
                             player });
-        cout<<"Saved data"<<endl;
-
+        
         double inv_temp = 1.0 / ARG_temperature;
         std::vector<double> temp_probs(action_probs.size());
         for (size_t i = 0; i < action_probs.size(); ++i) {
@@ -72,26 +67,20 @@ int main(){
             std::fill(temp_probs.begin(), temp_probs.end(), u);
         }
 
-        cout<<"got prob"<<endl;
         std::discrete_distribution<int> dist(temp_probs.begin(), temp_probs.end());
         int idx = dist(RNG);
-        cout<<"chosen index"<<endl;
-
+        
         // map to actual game move
         state->board_exp.ComputePossibleMoves();
-        cout<<"Computed possible moves"<<endl;
         auto moves=state ->board_exp.G.associatedAction;
         int action = moves[idx];
-        cout<<"Execute action"<<action<<endl;
         state->applyAction(action);
         
-        cout<<"applied action"<<endl;
         
         // 5) check for terminal
         int value = state->getState();
-        cout<<"Got state"<<value<<endl;
         if (value>1) {
-            cout<<"We are in a final state"<<endl;
+            cout<<" Ended value"<<endl;
             // build return memory
             std::vector<ReturnType> result;
             for (auto &h : memory) {
@@ -102,12 +91,13 @@ int main(){
                 // get tensors for training
                 
             }
+            cout<<"Game ended with status "<<value<<endl;
             delete state;
             return 0;
         }
+        
 
         // 6) next turn
         player = -(player);
-        cout<<"End while"<<endl;
     }
 }

@@ -1,7 +1,7 @@
 #ifndef BOARD_H
 #define BOARD_H
 
-#define MAX_TURN_SIZE 500
+#define MAX_TURN_SIZE 1000
 #include <bitset>
 #include "gameboard.h"
 #include "action.h"

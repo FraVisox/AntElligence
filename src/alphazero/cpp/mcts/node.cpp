@@ -28,11 +28,20 @@ Node::Node(EBoard* state,
     , value_sum_(0.0)
     , selected_(false)
   {
-      if(state!=nullptr)
-          //cout<<"Created node for "<<state_<<endl;
-  state_=state;}
+          state_=state;
+  }
 
 Node::~Node() { delete_nodes(); }
+
+void Node::explicitateState(){
+    if (!isExplicitState) {
+        
+      state_ = new EBoard(parent_->state_);
+      state_ -> applyAction(action_);
+        isExplicitState=true;
+    }
+}
+    
 
 bool Node::is_fully_expanded() const {
 return !children_.empty();
@@ -93,49 +102,30 @@ double Node::get_ucb() const {
 
   // lazily compute the feature tensors for this node
 std::pair<torch::Tensor,torch::Tensor> Node::getVectSplit() {
-    if (state_==nullptr) {
-      state_ = new EBoard(parent_->state_);
-      cout<<"Created node for "<<state_<<endl;
-      state_ -> applyAction(action_);
-    }
-
-    cout << "Getting vect split" << endl;
+    
+    explicitateState();
+    //cout << "Getting vect split" << endl;
     
     state_ ->updateVectRapp();
-    cout << "Updated rap" << endl;
-    auto t=torch::from_blob(
-        state_->vectRapp,                           // data pointer
-        {1033},                         // tensor shape
-        torch::TensorOptions().dtype(torch::kFloat));
-    auto board    = t.narrow(0, /*start=*/0, /*length=*/1024) .view({1, 32, 32});
-    auto metadata = t.narrow(0, /*start=*/1024, /*length=*/t.size(0) - 1024);    
-
-    cout << "Returning pair" << endl;
+    auto t = torch::from_blob(state_->vectRapp, {1033}, torch::kShort).clone();
+    auto board = t.narrow(0, 0, 1024).to(torch::kFloat).view({1, 32, 32});
+    auto metadata = t.narrow(0, 1024, 9).to(torch::kFloat);
+    
     return make_pair(board, metadata);
     //torch::Tensor t(state_->vectRapp);
 }
 
 // Expand all legal children according to `policy` vector
 void Node::expand(const std::vector<double>& policy) {
-    cout<<"Start expand"<<endl;
     if (!children_.empty()) return;
 
     // ensure state_ is initialized
-    if (state_==nullptr) {
-        cout << "Nullptr" << endl;
-        state_ = new EBoard(parent_->state_);
-      //cout<<"Created node for "<<state_<<endl;
-        state_->applyAction(action_);
-    }
-
-    cout << "Possible moves" << endl;
-
+    explicitateState();
     state_->board_exp.ComputePossibleMoves();
     auto mask  = state_->board_exp.G.isValidMoveBitmask;    // std::vector<int> or Eigen/Array
     auto moves = state_->board_exp.G.associatedAction;
 
     // elementwise mask & normalize
-    cout << "Mask" << endl;
     
     std::vector<double> p = policy;
     for (size_t i = 0; i < p.size(); ++i) p[i] *= mask[i];
@@ -149,7 +139,6 @@ void Node::expand(const std::vector<double>& policy) {
       for (size_t i = 0; i < p.size(); ++i)
         p[i] = mask[i] ? (1.0/sum) : 0.0;
     }
-    cout << "Emplace" << endl;
     
 
     for (size_t i = 0; i < p.size(); ++i) {
@@ -163,7 +152,7 @@ void Node::expand(const std::vector<double>& policy) {
         ));
       }
     }
-    cout<<"End expand"<<endl;
+    
 }
 
   // iterative backpropagation
@@ -182,19 +171,14 @@ void Node::delete_nodes() {
         c->delete_nodes();
     }
     children_.clear();
-    if (state_ && parent_!= nullptr) {
-      //cout<< "Deleting node"<<state_<<endl;
+    if (isExplicitState) {
       delete (state_);
       state_=nullptr;
     }
 }
 
 int Node::getStatus() {
-    if (state_==nullptr) {
-        state_ =new EBoard(parent_->state_);
-        cout<<"Created node for "<<state_<<endl;
-        state_->applyAction(action_);
-    }
+    explicitateState();
     return state_->getState();
 } 
 

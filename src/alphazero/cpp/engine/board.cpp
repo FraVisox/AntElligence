@@ -219,31 +219,26 @@ void Board::applayAction(actionT act){
 GameState Board::getGameState(){
     int bugWQ=0,bugBQ=0;
 
-    cout << "Getting game state" << endl;
 
     positionT WQPos=G.getPosition(8);
     positionT BQPos=G.getPosition(22);
-    cout << "r" << endl;
     
     for(int i=0;i<6;i++){
         if(!G.isFree(applayMove(WQPos,i)))bugWQ++;
         if(!G.isFree(applayMove(BQPos,i)))bugBQ++;
     }
-    cout << "r" << endl;
     
     if(bugWQ==6 && bugBQ==6)return (GameState)(2+currentColor());
     if(bugBQ==6)return GameState::WHITE_WIN;
     if(bugWQ==6)return GameState::BLACK_WIN;
 
-    cout << "r" << endl;
-
-    bitset<308> r=G.toHash();
+    
+    //bitset<308> r=G.toHash();
     int ne=0;
-    for(int i=1;i<currentTurn; i++){
+    /*for(int i=1;i<currentTurn; i++){
         if(r==confHistory[i])
             ne++;
-    }
-    cout << "r" << endl;
+    }*/
     
     
     if(currentTurn==0) return GameState::NOT_STARTED;
