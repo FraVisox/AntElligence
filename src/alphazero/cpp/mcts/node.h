@@ -31,6 +31,7 @@ public:
     void expand(const std::vector<double>& policy);
     void backpropagate(double value);
     void delete_nodes();
+    void selectMultipleHelper(int k, std::vector<Node*>& result);
 
     // Evaluation & status
     std::pair<torch::Tensor, torch::Tensor> getVectSplit();

@@ -62,30 +62,38 @@ Node* Node::select() {
     return best;
 }
 
-  // gather up to k leaves to expand
 std::vector<Node*> Node::selectMultiple(int k) {
-    if (k <= 0) return {};
-    if (!selected_ && !is_fully_expanded()) {
-        selected_ = true;
-        return { this };
-    }
-    // compute all UCBs
-    std::vector<std::pair<double,Node*>> ucbs;
-    ucbs.reserve(children_.size());
-    for (auto& cptr : children_)
-        ucbs.emplace_back(cptr->get_ucb(), cptr);
-    // sort ascending, so largest at end
-    std::sort(ucbs.begin(), ucbs.end(),
-                [](auto &a, auto &b){ return a.first < b.first; });
+    std::vector<Node*> result;
+    selectMultipleHelper(k, result);
+    return result;
+}
 
-    std::vector<Node*> out;
-    out.reserve(k);
-    for (auto& [_, child] : ucbs) {
-        auto sub = child->selectMultiple(k - (int)out.size());
-        out.insert(out.end(), sub.begin(), sub.end());
-        if ((int)out.size() >= k) break;
+void Node::selectMultipleHelper(int k, std::vector<Node*>& result) {
+    if ((int)result.size() >= k)
+        return;
+
+    if (!selected_ && !is_fully_expanded()) {
+        selected_ = true;  
+        result.push_back(this);
+        return;
     }
-    return out;
+
+    if (children_.empty())  // No children to select
+        return;
+
+    // Compute UCBs and partially sort for top candidates (efficiency)
+    std::vector<std::pair<double, Node*>> ucbs;
+    ucbs.reserve(children_.size());
+    for (auto& child : children_)
+        ucbs.emplace_back(child->get_ucb(), child);
+
+    // Partial sort to get highest UCB first
+    std::partial_sort(ucbs.begin(), ucbs.begin() + std::min(k, (int)ucbs.size()), ucbs.end(),
+        [](const auto& a, const auto& b) { return a.first > b.first; });
+
+    for (int i = 0; i < (int)ucbs.size() && (int)result.size() < k; ++i) {
+        ucbs[i].second->selectMultipleHelper(k, result);
+    }
 }
 
 double Node::get_ucb() const {

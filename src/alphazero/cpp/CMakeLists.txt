@@ -124,5 +124,27 @@ target_link_libraries(test_app PRIVATE
     Python3::Python
 )
 
+
+
+
+# 8) test executable
+add_executable(duel_nets
+    duel.cpp
+)
+
+# make sure the headers from engine/, mcts/, and project root are visible:
+target_include_directories(duel_nets PRIVATE
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/engine
+    ${CMAKE_SOURCE_DIR}/mcts
+)
+
+# link against your shared interface.so (and transitively mcts, engine, Torch & Python)
+target_link_libraries(duel_nets PRIVATE
+    interface
+    ${TORCH_LIBRARIES}
+    Python3::Python
+)
+
 # if your Torch install isn’t in a standard path:
 # you already passed -DCMAKE_PREFIX_PATH=/path/to/libtorch to find_package(Torch)

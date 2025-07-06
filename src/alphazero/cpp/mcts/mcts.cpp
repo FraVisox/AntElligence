@@ -17,8 +17,8 @@ std::vector<double> MCTS::search(EBoard* root_state,
 
     // 2) initial eval;
     
-    torch::Tensor input_m = bm.unsqueeze(0).to(device_,true);
-    torch::Tensor input_t = bmeta.unsqueeze(0).to(device_,true);
+    torch::Tensor input_m = bm.unsqueeze(0).to(device_);
+    torch::Tensor input_t = bmeta.unsqueeze(0).to(device_);
     std::vector<torch::jit::IValue> inputs;
     inputs.push_back(input_m);
     inputs.push_back(input_t);
@@ -91,8 +91,8 @@ std::vector<double> MCTS::search(EBoard* root_state,
         
       // batch-eval
         
-      auto xb = torch::stack(mats).to(device_, /*non_blocking=*/true);
-      auto xt = torch::stack(metas).to(device_, /*non_blocking=*/true);
+      auto xb = torch::stack(mats).to(device_ /*non_blocking=*/);
+      auto xt = torch::stack(metas).to(device_ /*non_blocking=*/);
         
        std::vector<torch::jit::IValue> inputs;
             inputs.push_back(xb);
