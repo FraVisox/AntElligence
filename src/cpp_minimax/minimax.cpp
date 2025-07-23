@@ -35,7 +35,6 @@ TODO: se alleniamo la NN, possiamo poi semplicemente usare i pesi
 
 */
 
-
 #include <chrono>
 
 int MinimaxAgent::utility(GameState state, Board& board) {
