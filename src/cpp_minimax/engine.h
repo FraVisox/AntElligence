@@ -2,8 +2,10 @@
 #define ENGINE_H
 #include <string>
 #include <iostream>
-#include "agents/agent.h"
+#include "cpp_minimax/minimax.h"
+#include "cpp_minimax/cpp/engine/enums.h"
 using namespace std;
+typedef uint16_t actionT;
 
 
 class Engine{
@@ -11,12 +13,16 @@ class Engine{
     //  Engine version
     string VERSION="3.0";
 
+    // What I pass around
     EBoard* board;
+    actionT* actions;
 
     // Agent
-    Agent& agent;
+    MinimaxAgent& agent;
     
-    Engine(Agent& a):agent(a){}
+    Engine(MinimaxAgent& a):agent(a){
+      actions = new actionT[256]; //TODO: forse MAX_ACTIONS è 1575
+    }
 
   void start(){
     //Engine main loop to handle commands.
@@ -122,18 +128,6 @@ class Engine{
 
   void options(string arguments){
     error("Not available options");
-    /*
-    if (!arguments.empty()) {
-        if (arguments == "get") {
-          get_option(arguments);
-        } else if (arguments == "set") {
-          set_option(arguments);
-        }
-        error("Unknown option " + arguments[0]);
-    } else {
-      cout << "Not available options\n";
-    }
-    */
   }
   void get_option(string arguments){
   }
@@ -146,7 +140,9 @@ class Engine{
   void validmoves();
   void bestmove(string);
   void play(string);
-  void undo(string arguments);
+  void undo(string arguments) {
+    error("Not implemented");
+  }
 
 
    void error(string  error){

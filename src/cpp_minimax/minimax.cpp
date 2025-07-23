@@ -4,40 +4,10 @@
 #include <algorithm>
 #include <limits>
 #include <iostream>
-
-//https://github.com/jonthysell/Mzinga/blob/main/src/Mzinga/Core/AI/GameAI.cs
-
-
-/*
-//Noisy means that it moves near to opponent queen
-//Quiet means everything else
-
-
-score += colorValue * metricWeights.Get(bugType, BugTypeWeight.InPlayWeight) * boardMetrics[pieceName].InPlay; //inplay is 0 or 1
-score += colorValue * metricWeights.Get(bugType, BugTypeWeight.IsPinnedWeight) * boardMetrics[pieceName].IsPinned; //ispinned is 0 or 1
-score += colorValue * metricWeights.Get(bugType, BugTypeWeight.IsCoveredWeight) * boardMetrics[pieceName].IsCovered; //iscovered is 0 or 1
-score += colorValue * metricWeights.Get(bugType, BugTypeWeight.NoisyMoveWeight) * boardMetrics[pieceName].NoisyMoveCount; //how many moves he has that are "noisy"
-score += colorValue * metricWeights.Get(bugType, BugTypeWeight.QuietMoveWeight) * boardMetrics[pieceName].QuietMoveCount; //how many moves he has that are "quiet"
-score += colorValue * metricWeights.Get(bugType, BugTypeWeight.FriendlyNeighborWeight) * boardMetrics[pieceName].FriendlyNeighborCount; //how many friendly neighbors
-score += colorValue * metricWeights.Get(bugType, BugTypeWeight.EnemyNeighborWeight) * boardMetrics[pieceName].EnemyNeighborCount; //how many enemy neighbors
-
-If I have not placed pieces
-// Pieces still in hand, blend start and end scores
-double startScore = CalculateBoardScore(boardMetrics, startMetricWeights);
-
-double startRatio = boardMetrics.PiecesInHand / (double)(boardMetrics.PiecesInHand + boardMetrics.PiecesInPlay);
-double endRatio = 1 - startRatio;
-
-return (startRatio * startScore) + (endRatio * endScore);
-
-
-TODO: se alleniamo la NN, possiamo poi semplicemente usare i pesi
-
-*/
-
 #include <chrono>
 
-int MinimaxAgent::utility(GameState state, Board& board) {
+int MinimaxAgent::utility(GameState state, EBoard* board) {
+    
 
     if (state == GameState::DRAW) {
         return 0;
@@ -58,20 +28,23 @@ int MinimaxAgent::utility(GameState state, Board& board) {
             return MIN_EVAL;
         }
     }
-    return board.getScore(color);
+    return board->getScore(color);
+
+    return 0;
 }
 
-action MinimaxAgent::initiate_minimax(Board& board) {
-
+string MinimaxAgent::initiate_minimax(EBoard* board) {
     int max_eval = MIN_EVAL;
     int alpha = MIN_EVAL;
     int beta = MAX_EVAL;
-    action todo_action = pass();
+    actionT todo_action = 2000;
 
+    actionT* valids = new actionT[256];
 
     // Get all valid moves
-    std::vector<action> valids = board.possibleMoves();
+    board->getNextsActions(valids);
 
+    // TODO: how to do this?
     if (!valids.empty()) {
         todo_action = valids[0];
     }
@@ -79,23 +52,13 @@ action MinimaxAgent::initiate_minimax(Board& board) {
         return todo_action;
     }
 
-    /*cout << "Initial: ";
-    cout << board.moves.size() << endl;
-    */
-
     // For every action available, play it and calculate the utility (recursively)
     for (int i = 0; i < valids.size(); i++) {
         // Play the move on the copy
-        board.executeActionUnsafe(valids[i]);
+        board->applyAction(valids[i]);
 
-        /*cout << "--------------------------UP-----------------------------" << endl;
-
-        cout << "Executing one action: ";
-        cout << board.moves.size() << endl;
-        */
-        
         // Try a simplified call first
-        int eval = this->minmax(board.state, board, 1, alpha, beta);
+        int eval = this->minmax(board, board, 1, alpha, beta);
         
         
         if (eval > max_eval) {
@@ -107,33 +70,29 @@ action MinimaxAgent::initiate_minimax(Board& board) {
 
         board.undo(1);
 
-        /*
-        cout << "Removing the action just tried: ";
-        cout << board.moves.size() << endl;
-
-        cout << "--------------------------DOWN-----------------------------" << endl;
-        */
     }
     
-    return todo_action;
+    return ActionToString(todo_action);
 }
 
-int MinimaxAgent::minmax(GameState state, Board& board, int depth, int alpha, int beta) {
+int MinimaxAgent::minmax(GameState state, EBoard* board, int depth, int alpha, int beta) {
+
     // Debug print
     calledBoard++;
     // Check if we've reached a terminal state or maximum depth
     if (state == GameState::DRAW || 
         state == GameState::WHITE_WIN || 
         state == GameState::BLACK_WIN || 
-        depth >= depth_limit) {
+        depth >= depthLimit) {
         // Return a simple evaluation for debugging
         int eval = 0;
-            // If Oracle fails, use utility as fallback
+        // If Oracle fails, use utility as fallback
         eval = utility(state, board);
         return eval;
     }
     
-    std::vector<action> valid_moves = board.possibleMoves();
+    actionT* valids = new actionT[256];
+    board->getNextsActions(valid_moves);
 
     
     int max_eval = MIN_EVAL;
@@ -141,16 +100,6 @@ int MinimaxAgent::minmax(GameState state, Board& board, int depth, int alpha, in
     for (const auto& action : valid_moves) {
         // Play the move
         board.executeAction(ActionToString(action));
-
-        /*
-
-        cout << "--------------------------UP-----------------------------" << endl;
-
-        cout << "Executing one action: ";
-        cout << board.moves.size() << endl;
-
-        */
-
         
         for (const auto& action : valid_moves) {
                 // Play the move
@@ -174,16 +123,7 @@ int MinimaxAgent::minmax(GameState state, Board& board, int depth, int alpha, in
 }
 
 
-string MinimaxAgent::calculate_best_move(Board& board) {
-
-    // Get starting timepoint
-    auto start = std::chrono::high_resolution_clock::now();
-    calledBoard=0;
-
-    // Initial moves
-    if (board.currentTurn <= 4) {
-
-        /*
+/*
         STARTING TIPS:
 
         WHITE:
@@ -206,19 +146,33 @@ string MinimaxAgent::calculate_best_move(Board& board) {
         Turn 6: Add bA1 near bQ
         
         */
-        if (board.currentTurn == 1) {
+
+string MinimaxAgent::calculate_best_move(EBoard* board) {
+
+    // Get starting timepoint
+    auto start = std::chrono::high_resolution_clock::now();
+    calledBoard=0;
+
+    // Initial moves
+    int cached_turn_new = board->getTurn();
+    if (cached_turn_new <= 4) {
+
+        if (cached_turn_new == 1) {
             return "wG1";
-        } else if (board.currentTurn == 2) {
+        } else if (cached_turn_new == 2) {
             return "wS1 -"+board.firstPiece();
+        // TODO: understand what to do here
+        } else if (cached_turn_new == 3) {
+            return "wQ -"+board.firstPiece();
+        } else {
+            return "wA1 -"+board.firstPiece();
         }
     }
 
-    if (DISABLE_CACHE || _cache == INVALID_ACTION || board.currentTurn != cached_turn) {
-        color = board.currentColor();
-        cached_turn = board.currentTurn;
+    if (DISABLE_CACHE || _cache == "" || cached_turn_new != cached_turn) {
+        cached_turn = cached_turn_new;
         _cache = initiate_minimax(board);
     }
-
 
     // Get ending timepoint
     auto stop = std::chrono::high_resolution_clock::now();

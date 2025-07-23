@@ -31,6 +31,8 @@ class Board {
     // update the state
     void applayAction(actionT a);
 
+    int getScore(PlayerColor color);
+
     
     // compute possible moves
     void ComputePossibleMoves();

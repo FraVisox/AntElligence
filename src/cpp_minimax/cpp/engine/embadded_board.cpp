@@ -83,6 +83,10 @@ int EBoard::getTurn(){
     return board_exp.currentTurn;
 }
 
+int EBoard::getScore(PlayerColor color){
+    return board_exp.getScore(color);
+}
+
 /*
 
 void EBoard::checkConsistency(){

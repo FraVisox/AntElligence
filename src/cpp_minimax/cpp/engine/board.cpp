@@ -1041,4 +1041,8 @@ int Board::enemyNeighbour(pieceT bug) {
 }
 
 
+int Board::getScore(PlayerColor color) {
+    return 0;
+}
+
 #endif

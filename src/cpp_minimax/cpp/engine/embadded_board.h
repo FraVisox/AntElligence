@@ -16,6 +16,8 @@ class EBoard{
     void getNextsActions(actionT* ris);
     int getState();
 
+    int getScore(PlayerColor color);
+
     void updateVectRapp();
     int getTurn();
     //void checkConsistency();
