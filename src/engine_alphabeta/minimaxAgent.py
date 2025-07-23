@@ -119,6 +119,14 @@ class MinimaxAgentCPP(Agent):
         """
         Restituisce (valore, migliore_azione)
         """
+        turn = 2
+
+        otherbug = "wG1"
+
+        if turn == 1:
+            return (0, "wG1")
+        elif turn == 2:
+            return (0, "bS1 -"+str(otherbug))
 
         # 1) verifica immediata di terminale
         status = GR.checkStatus(state)

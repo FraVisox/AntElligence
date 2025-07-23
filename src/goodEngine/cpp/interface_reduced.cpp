@@ -186,7 +186,33 @@ void actionToString(actionT a, EBoard *board,char* risBug){
 
 double boardEval(EBoard* b){
 
-    return 0;
+    // TODO: inizia da qui per capire una buona euristica. Vedi chat
+
+    /*
+    STARTING TIPS:
+
+    WHITE:
+
+    Turn 1: Place wG1
+
+    Turn 3: Place wQ to form elbow:
+    - If opponent is on your right → place Queen on left of wG1
+    - If opponent is on your left → place Queen on right of wG1
+
+    Turn 5: Place wA1 toward where you expect enemy Queen
+
+    BLACK:
+
+    Turn 2: Place bS1 adjacent to wG1 (only one legal choice)
+
+    Turn 4: Place bQ next to bS1 (form inline or elbow shape)
+        - Prefer inline (bQ opposite wG1 from bS1), unless blocked
+
+    Turn 6: Add bA1 near bQ
+    
+    */
+
+    //return 0;
     
     PlayerColor MyCol=b->board_exp.currentColor();
     pieceT myQueen=(MyCol==PlayerColor::WHITE)?8:22;
