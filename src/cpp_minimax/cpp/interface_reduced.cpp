@@ -15,7 +15,7 @@
 
 void updatePossiblemoves(EBoard* state);
 
-actionT stringToAction(EBoard* b,char* str){
+actionT stringToAction(Board b, string str){
     cout<<"Start string_to_action"<<endl;
     /*for(int i=0;str[i]!=0;i++){
         if(str[i]>='A' && str[i]<='Z')
@@ -27,8 +27,9 @@ actionT stringToAction(EBoard* b,char* str){
     direction dir ;
 
     if(str[0]=='p')return pass();
-    
-    startP=decodeBug(str);
+
+
+    startP=decodeBug((char*)str.c_str());
 
 
     int q=1; 
@@ -36,7 +37,7 @@ actionT stringToAction(EBoard* b,char* str){
 
     if(str[q]==0) return placeFirst(startP);
     
-    destP=decodeBug(str+q);
+    destP=decodeBug((char*)str.c_str()+q);
 
     q=2;
     if(str[q]=='1' || str[q]=='2' || str[q]=='3') q++;
@@ -62,7 +63,7 @@ actionT stringToAction(EBoard* b,char* str){
         }
     }
     //cout<<"Conver"<< str<<" to :"<<0+startP<<","<<0+destP<<" "<<dir<<endl;
-    positionT destPos=applayMove(b->board_exp.G.getPosition(destP),dir);
+    positionT destPos=applayMove(b.G.getPosition(destP),dir);
     return movement(startP,destPos);
 }
 
@@ -145,30 +146,27 @@ void printBoard(EBoard* board){
 
 
 
-void actionToString(actionT a, EBoard *board,char* risBug){
+string actionToString(actionT a, Board board){
+    string risBug;
     if(a==0){
-        risBug[0]='p';
-        risBug[1]='a';
-        risBug[2]='s';
-        risBug[3]='s';
-        risBug[4]=0;
-        return;
+        risBug = "pass";
+        return risBug;
     }
     
     pieceT bug=a&31;
     positionT pos=a>>5;
 
     string s=PiecetoString(bug);
-    gameboard& g=board->board_exp.G;
+    gameboard& g=board.G;
     if(!g.isFree(pos)){
-        pieceT resPiece=board->board_exp.G.topPiece(pos);   
+        pieceT resPiece=board.G.topPiece(pos);   
         s+=" "+nameDirToString(PiecetoString(resPiece),opposite(6));  
 
     }else{
         for(int dir=0;dir<6;dir++){
             positionT next=applayMove(pos,dir);
             if(!g.isFree(next)){
-                pieceT resPiece=board->board_exp.G.topPiece(next);
+                pieceT resPiece=board.G.topPiece(next);
                 s+=" "+nameDirToString(PiecetoString(resPiece),opposite(dir));  
                 break; 
             }
@@ -180,6 +178,7 @@ void actionToString(actionT a, EBoard *board,char* risBug){
         risBug[i]=s[i];
     }
     risBug[s.size()]=0;
+    return risBug;
 }
 
     

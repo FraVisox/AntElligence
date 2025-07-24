@@ -4,6 +4,7 @@
 #include <iostream>
 #include "cpp_minimax/minimax.h"
 #include "cpp_minimax/cpp/engine/enums.h"
+#include "cpp_minimax/cpp/engine/board.h"
 using namespace std;
 typedef uint16_t actionT;
 
@@ -14,14 +15,12 @@ class Engine{
     string VERSION="3.0";
 
     // What I pass around
-    EBoard* board;
-    actionT* actions;
+    Board board;
 
     // Agent
     MinimaxAgent& agent;
     
     Engine(MinimaxAgent& a):agent(a){
-      actions = new actionT[256]; //TODO: forse MAX_ACTIONS è 1575
     }
 
   void start(){
@@ -136,7 +135,7 @@ class Engine{
   }
 
 
-  void newgame( string arguments);   
+  void newgame(string arguments);   
   void validmoves();
   void bestmove(string);
   void play(string);

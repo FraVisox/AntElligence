@@ -1,4 +1,4 @@
-#include "minimax.h"
+#include "cpp_minimax/minimax.h"
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -6,9 +6,7 @@
 #include <iostream>
 #include <chrono>
 
-int MinimaxAgent::utility(GameState state, EBoard* board) {
-    
-
+int MinimaxAgent::utility(GameState state, Board board) {
     if (state == GameState::DRAW) {
         return 0;
     }
@@ -28,54 +26,50 @@ int MinimaxAgent::utility(GameState state, EBoard* board) {
             return MIN_EVAL;
         }
     }
-    return board->getScore(color);
-
+    //return board.getScore(color);
     return 0;
 }
 
-string MinimaxAgent::initiate_minimax(EBoard* board) {
+actionT MinimaxAgent::initiate_minimax(Board board) {
     int max_eval = MIN_EVAL;
     int alpha = MIN_EVAL;
     int beta = MAX_EVAL;
-    actionT todo_action = 2000;
+    actionT todo_action = pass();
 
-    actionT* valids = new actionT[256];
 
     // Get all valid moves
-    board->getNextsActions(valids);
+    board.ComputePossibleMoves();
 
-    // TODO: how to do this?
-    if (!valids.empty()) {
-        todo_action = valids[0];
+    if (board.numAction != 0) {
+        todo_action = board.resAction[0];
     }
-    if (valids.size() == 1) {
+    if (board.numAction == 1) {
         return todo_action;
     }
 
     // For every action available, play it and calculate the utility (recursively)
-    for (int i = 0; i < valids.size(); i++) {
+    for (int i = 0; i < board.numAction; i++) {
         // Play the move on the copy
-        board->applyAction(valids[i]);
+        Board b1 = Board(board);
+        b1.applayAction(board.resAction[i]);
 
         // Try a simplified call first
-        int eval = this->minmax(board, board, 1, alpha, beta);
-        
+        int eval = this->minmax(b1.getGameState(), b1, 1, alpha, beta);
         
         if (eval > max_eval) {
             max_eval = eval;
-            todo_action = valids[i];
+            todo_action = board.resAction[i];
         }
         
         alpha = std::max(alpha, max_eval);
 
-        board.undo(1);
-
+        // TODO: undo
     }
     
-    return ActionToString(todo_action);
+    return todo_action;
 }
 
-int MinimaxAgent::minmax(GameState state, EBoard* board, int depth, int alpha, int beta) {
+int MinimaxAgent::minmax(GameState state, Board board, int depth, int alpha, int beta) {
 
     // Debug print
     calledBoard++;
@@ -86,31 +80,24 @@ int MinimaxAgent::minmax(GameState state, EBoard* board, int depth, int alpha, i
         depth >= depthLimit) {
         // Return a simple evaluation for debugging
         int eval = 0;
-        // If Oracle fails, use utility as fallback
+            // If Oracle fails, use utility as fallback
         eval = utility(state, board);
         return eval;
     }
     
-    actionT* valids = new actionT[256];
-    board->getNextsActions(valid_moves);
+    board.ComputePossibleMoves();
 
     
     int max_eval = MIN_EVAL;
     
-    for (const auto& action : valid_moves) {
-        // Play the move
-        board.executeAction(ActionToString(action));
-        
-        for (const auto& action : valid_moves) {
-                // Play the move
-                board.executeActionUnsafe(action);
-        }
+    for (int i = 0; i < board.numAction; i++) {
 
-        int eval = minmax(board.state, board, depth + 1, -beta, -alpha);
+        Board b1 = Board(board);
+        b1.applayAction(board.resAction[i]);
+
+        int eval = minmax(b1.getGameState(), b1, depth + 1, -beta, -alpha);
         max_eval = std::max(max_eval, eval);
         alpha = std::max(alpha, max_eval);
-
-        board.undo(1);
 
         // Alpha-beta pruning
         if (beta <= alpha) {
@@ -147,32 +134,24 @@ int MinimaxAgent::minmax(GameState state, EBoard* board, int depth, int alpha, i
         
         */
 
-string MinimaxAgent::calculate_best_move(EBoard* board) {
+actionT MinimaxAgent::calculate_best_move(Board board) {
 
     // Get starting timepoint
     auto start = std::chrono::high_resolution_clock::now();
     calledBoard=0;
 
     // Initial moves
-    int cached_turn_new = board->getTurn();
-    if (cached_turn_new <= 4) {
-
-        if (cached_turn_new == 1) {
-            return "wG1";
-        } else if (cached_turn_new == 2) {
-            return "wS1 -"+board.firstPiece();
-        // TODO: understand what to do here
-        } else if (cached_turn_new == 3) {
-            return "wQ -"+board.firstPiece();
-        } else {
-            return "wA1 -"+board.firstPiece();
-        }
+    if (board.currentTurn <= 4) {
+        // TODO
+        return pass();
     }
 
-    if (DISABLE_CACHE || _cache == "" || cached_turn_new != cached_turn) {
-        cached_turn = cached_turn_new;
+    if (DISABLE_CACHE || _cache == pass() || board.currentTurn != cached_turn) {
+        color = board.currentColor();
+        cached_turn = board.currentTurn;
         _cache = initiate_minimax(board);
     }
+
 
     // Get ending timepoint
     auto stop = std::chrono::high_resolution_clock::now();

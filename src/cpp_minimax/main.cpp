@@ -16,7 +16,6 @@
 
 int main(){
 
-    //RandomAgent a;
     MinimaxAgent a;
 
     Engine e(a);
