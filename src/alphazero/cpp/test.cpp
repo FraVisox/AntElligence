@@ -1,4 +1,4 @@
-#include "embadded_board.h"
+#include "engine/board.h"
 #include <chrono>
 #include <iostream>
 /*
@@ -24,35 +24,35 @@ int main(){
     int i=0;
     int totMov=0;
         
+    auto seed=time(0);
     for(int TR=0;TR<200;TR++){
-        auto seed=time(0);
-        cout<<"Run with seed:"<<seed<<endl;
+        cout<<"Run with seed:"<<seed+TR<<endl;
+        srand(seed+TR);
 
-        actionT ris[256];
-        EBoard eb(GameType::Base_MLP);
+        Board eb(GameType::Base_MLP);
         int rt;
         try{
         i=0;
-        srand(seed+rt);
         
-        EBoard eb(GameType::Base_MLP);
         i=0;
         while(1){
-            eb.getNextsActions(ris);
-            int m=rand()%ris[0]+1;
+            eb.ComputePossibleMoves();
+            if(eb.numAction==0){
+                
+            }
+            int m=rand()%eb.numAction;
             //m=1;
                 
                 
-            eb.applyAction(ris[m]);
+            eb.applayAction(eb.resAction[m]);
 
             //eb.checkConsistency();
-            if(eb.getState()>1){
-                cout<<eb.getState()<<endl;
-                cout<<eb.board_exp.currentTurn<<endl;
+            if(eb.getGameState()>1){
+                cout<<eb.getGameState()<<endl;
+                cout<<eb.currentTurn<<endl;
                 cout<<rt<<": X"<<endl;
                 break;
             }
-            cout<<"No";
 
             totMov++;
             i++;

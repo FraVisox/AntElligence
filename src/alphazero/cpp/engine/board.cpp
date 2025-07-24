@@ -113,8 +113,8 @@ void Board::copy(Board &b){
 
     for(int i=0;i<MAX_ACTIONS_SIZE;i++)
         this->resAction[i]=b.resAction[i];
-    for(int i=0;i<MAX_TURN_SIZE;i++)
-        this->confHistory[i]=b.confHistory[i];
+    //for(int i=0;i<MAX_TURN_SIZE;i++)
+    //    this->confHistory[i]=b.confHistory[i];
     for(int i=0;i<20;i++)
         this->pillbugMoves[i]=b.pillbugMoves[i];
     this->pillbugTotMoves=b.pillbugTotMoves;
@@ -181,7 +181,7 @@ void Board::addPieceHand(pieceT p){
 
 
 void Board::applayAction(actionT act){
-    confHistory[currentTurn]=G.toHash();
+    //confHistory[currentTurn]=G.toHash();
     if(act==0){
         currentTurn++;
         prevMoved[currentColor()]=0;
@@ -395,6 +395,8 @@ void Board::ComputePossibleMoves(){
     if(numAction==0){
         G.isValidMoveBitmask[0]=1;
         G.associatedAction[0]=0;
+        numAction=1;
+        resAction[0]=0;
     }
     return;
 }
@@ -493,9 +495,14 @@ void Board::possibleMoves_Grasshopper(pieceT bug){
     }
 }
 
+void rotBS(bitset<1024> &b, uint64_t l){
+    b=(b<<l)| (b>>(1024ull-l));
+}
 
 void Board::possibleMoves_SoldierAnt(pieceT bug){
     if (G.canPieceMove(bug,currentTurn)) {
+        
+
 
         int fQ=0;
         int bQ=0;
@@ -512,8 +519,33 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
         inQueue.set(startPos ,1);
         G.removePiece(bug);
         
+        bitset<1024> isOccupiedNear[6];
         
+
+        for(int i=0;i<6;i++){
+            isOccupiedNear[i]=G.occupied;
+            rotBS(isOccupiedNear[i],dirDif[i]);
+        }
+        
+        bitset<1024> canGoTo[6];
+        for(int i=0;i<6;i++){
+            canGoTo[i]=(isOccupiedNear[(i+5)%6] ^ isOccupiedNear[(i+1)%6]) & (~isOccupiedNear[i]);
+        }
+
+        bitset<1024> reachable(0);
+        reachable.set(startPos,1);
+        for(int i=0;i<54;i++){
+            for(int j=0;j<6;j++){
+                bitset<1024> r1m=(canGoTo[j] & reachable);
+                rotBS(r1m,dirDif[(j+3)%6]);
+                reachable=reachable| r1m;        
+            }
+        }
+        
+        reachable.set(startPos,0);
+        /*
         bitset<1024> occN[6],canSlide[6];
+        bitset<1024> canVisit(0);
         
         for(int d=0;d<6;d++)
             occN[d]=((G.occupied)<<dirDif[d])|((G.occupied)>>(1024-dirDif[d]));
@@ -523,7 +555,6 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
         
 
         while(fQ!=bQ){
-            
             const positionT& current=quePM[bQ++];
             
             for(int dir=0;dir<6;++dir){
@@ -549,12 +580,41 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
                     //G._isValidMoveBitmask_rel_pos[numAction]=r;
 
                     G.associatedAction[r]=resAction[numAction++]=(movement(bug,neighbor));
-                    
+                    canVisit.set(neighbor,1);
                     quePM[fQ++]=neighbor;
                     inQueue.set(neighbor,1);
                 //}
             }
         }
+*/
+        for(int i=0;i<1024;i++){
+            if(reachable[i])
+                resAction[numAction++]=(movement(bug,i));
+        }
+/*
+        if(canVisit!=reachable){
+            cout<<"Not the same::: "<<endl;
+            for(int i=0;i<32;i++){
+                for(int j=0;j<32;j++){
+                    cout<<(reachable[i+32*j]?'1':'.');
+                }
+                cout<< "   ";
+                for(int j=0;j<32;j++){
+                    cout<<(G.occupied[i+32*j]?'1':'.');
+                }
+
+                cout<< "   ";
+                for(int j=0;j<32;j++){
+                    cout<<(isOccupiedNear[1][i+32*j]?'1':'.');
+                }
+                cout<<"   ";
+                for(int j=0;j<32;j++){
+                    cout<<(canVisit[i+j*32]?'1':'.');
+                }
+                cout<<endl;
+            }
+        }
+            */
         G.addPiece(startPos,bug);    
     }
 }
