@@ -1045,4 +1045,8 @@ int Board::getScore(PlayerColor color) {
     return 0;
 }
 
+string Board::toString() {
+    return "";
+}
+
 #endif

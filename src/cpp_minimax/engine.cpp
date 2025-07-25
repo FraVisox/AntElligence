@@ -7,7 +7,7 @@ using namespace std;
 
 void Engine::newgame(string s){
     board = Board(Base_MLP);
-    //cout << board.toString() << "\n"; TODO: to string
+    printBoard();
 }
    
 
@@ -47,5 +47,13 @@ void Engine::bestmove(string param){
 
 void Engine::play(string move){
     board.applayAction(stringToAction(board, move));
-    //cout<<board.toString()<<"\n";
+    printBoard();
+}
+
+void Engine::printBoard(){
+    cout<<board.toString();
+    for (string el : actions) {
+        cout<< ";" << el;
+    }
+    cout<<"\n";
 }

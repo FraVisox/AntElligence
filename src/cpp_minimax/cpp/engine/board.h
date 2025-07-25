@@ -39,6 +39,8 @@ class Board {
 
 
     GameState getGameState();
+
+    string toString();
     
     int currentTurn;
     

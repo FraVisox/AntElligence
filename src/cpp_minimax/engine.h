@@ -2,6 +2,7 @@
 #define ENGINE_H
 #include <string>
 #include <iostream>
+#include <vector>
 #include "cpp_minimax/minimax.h"
 #include "cpp_minimax/cpp/engine/enums.h"
 #include "cpp_minimax/cpp/engine/board.h"
@@ -17,10 +18,13 @@ class Engine{
     // What I pass around
     Board board;
 
+    vector<string> actions;
+
     // Agent
     MinimaxAgent& agent;
     
     Engine(MinimaxAgent& a):agent(a){
+      actions = vector<string>(200);
     }
 
   void start(){
@@ -134,6 +138,7 @@ class Engine{
   void set_option(string arguments){
   }
 
+  void printBoard();
 
   void newgame(string arguments);   
   void validmoves();
