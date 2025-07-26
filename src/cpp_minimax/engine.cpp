@@ -5,10 +5,8 @@
 using namespace std;
 
 string actionToString(actionT a, Board board){
-    string risBug;
     if(a==0){
-        risBug = "pass";
-        return risBug;
+        return "pass";
     }
     
     pieceT bug=a&31;
@@ -30,13 +28,7 @@ string actionToString(actionT a, Board board){
             }
         }
     }
-
-    
-    for(int i=0;i<s.size();i++){
-        risBug[i]=s[i];
-    }
-    risBug[s.size()]=0;
-    return risBug;
+    return s;
 }
 
 actionT stringToAction(Board b, string str){

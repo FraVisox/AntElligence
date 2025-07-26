@@ -16,7 +16,7 @@ private:
     bool DISABLE_CACHE = true;
 
     int timeLimit = 5;
-    int depthLimit = 5;
+    int depthLimit = 8;
 
     const int MIN_EVAL = -10000;
     const int MAX_EVAL = 10000;
