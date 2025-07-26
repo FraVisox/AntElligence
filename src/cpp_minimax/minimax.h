@@ -1,7 +1,8 @@
 #ifndef MINIMAX_H
 #define MINIMAX_H
 
-#include "cpp_minimax/cpp/engine/embadded_board.h"
+#include "engine/board.h"
+#include "engine/enums.h"
 #include <vector>
 #include <algorithm>
 #include <memory>

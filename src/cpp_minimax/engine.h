@@ -3,9 +3,9 @@
 #include <string>
 #include <iostream>
 #include <vector>
-#include "cpp_minimax/minimax.h"
-#include "cpp_minimax/cpp/engine/enums.h"
-#include "cpp_minimax/cpp/engine/board.h"
+#include "minimax.h"
+#include "engine/enums.h"
+#include "engine/board.h"
 using namespace std;
 typedef uint16_t actionT;
 
@@ -13,7 +13,7 @@ typedef uint16_t actionT;
 class Engine{
     public:
     //  Engine version
-    string VERSION="3.0";
+    string VERSION="4.0";
 
     // What I pass around
     Board board;
@@ -24,7 +24,7 @@ class Engine{
     MinimaxAgent& agent;
     
     Engine(MinimaxAgent& a):agent(a){
-      actions = vector<string>(200);
+      actions = vector<string>();
     }
 
   void start(){

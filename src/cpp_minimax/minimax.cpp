@@ -1,4 +1,4 @@
-#include "cpp_minimax/minimax.h"
+#include "minimax.h"
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -109,31 +109,6 @@ int MinimaxAgent::minmax(GameState state, Board board, int depth, int alpha, int
     return max_eval;
 }
 
-
-/*
-        STARTING TIPS:
-
-        WHITE:
-
-        Turn 1: Place wG1
-
-        Turn 3: Place wQ to form elbow:
-        - If opponent is on your right → place Queen on left of wG1
-        - If opponent is on your left → place Queen on right of wG1
-
-        Turn 5: Place wA1 toward where you expect enemy Queen
-
-        BLACK:
-
-        Turn 2: Place bS1 adjacent to wG1 (only one legal choice)
-
-        Turn 4: Place bQ next to bS1 (form inline or elbow shape)
-            - Prefer inline (bQ opposite wG1 from bS1), unless blocked
-
-        Turn 6: Add bA1 near bQ
-        
-        */
-
 actionT MinimaxAgent::calculate_best_move(Board board) {
 
     // Get starting timepoint
@@ -141,9 +116,8 @@ actionT MinimaxAgent::calculate_best_move(Board board) {
     calledBoard=0;
 
     // Initial moves
-    if (board.currentTurn <= 4) {
-        // TODO
-        return pass();
+    if (board.currentTurn <= 2) {
+        return board.suggestInitialMove();
     }
 
     if (DISABLE_CACHE || _cache == pass() || board.currentTurn != cached_turn) {
