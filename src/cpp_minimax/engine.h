@@ -2,21 +2,30 @@
 #define ENGINE_H
 #include <string>
 #include <iostream>
-#include "agents/agent.h"
+#include <vector>
+#include "minimax.h"
+#include "engine/enums.h"
+#include "engine/board.h"
 using namespace std;
+typedef uint16_t actionT;
 
 
 class Engine{
     public:
     //  Engine version
-    string VERSION="3.0";
+    string VERSION="4.0";
 
+    // What I pass around
     Board board;
 
+    vector<string> actions;
+
     // Agent
-    Agent& agent;
+    MinimaxAgent& agent;
     
-    Engine(Agent& a):agent(a){}
+    Engine(MinimaxAgent& a):agent(a){
+      actions = vector<string>();
+    }
 
   void start(){
     //Engine main loop to handle commands.
@@ -43,7 +52,7 @@ class Engine{
       else if(command=="options")
           options(arg);
       else if(command=="newgame")
-        newgame(arg.c_str());
+        newgame(arg);
       else if(command=="validmoves")
         validmoves();
       else if(command=="bestmove")
@@ -122,18 +131,6 @@ class Engine{
 
   void options(string arguments){
     error("Not available options");
-    /*
-    if (!arguments.empty()) {
-        if (arguments == "get") {
-          get_option(arguments);
-        } else if (arguments == "set") {
-          set_option(arguments);
-        }
-        error("Unknown option " + arguments[0]);
-    } else {
-      cout << "Not available options\n";
-    }
-    */
   }
   void get_option(string arguments){
   }
@@ -141,12 +138,15 @@ class Engine{
   void set_option(string arguments){
   }
 
+  void printBoard();
 
-  void newgame(const char* arguments);   
+  void newgame(string arguments);   
   void validmoves();
   void bestmove(string);
   void play(string);
-  void undo(string arguments);
+  void undo(string arguments) {
+    error("Not implemented");
+  }
 
 
    void error(string  error){
@@ -157,5 +157,10 @@ class Engine{
     cout<<"invalidmove "<<error << "\n";
   }
 };
+
+string actionToString(actionT a, Board &board);
+actionT stringToAction(Board &b, string str);
+
+
 
 #endif

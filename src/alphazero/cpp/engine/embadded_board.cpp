@@ -6,10 +6,16 @@ using namespace std;
 EBoard::EBoard(GameType gt) : board_exp(gt){}
 
 void EBoard::applyAction(actionT action){
+    //cout<<"Applay actions"<<action<<endl;
     board_exp.applayAction(action);
 }
 
 void EBoard::getNextsActions(actionT* ris){
+    if(getState()>1){
+        cout<<"Asking to expand a finished state, not possible"<<endl;
+        throw "Not expandible";
+    }
+    
     board_exp.ComputePossibleMoves();
     
     if(board_exp.numAction==0){
@@ -44,7 +50,7 @@ void EBoard::updateVectRapp(){
             occC.set(p&31,1);
         }
     }
-    cout << "A" << endl;
+    //cout << "A" << endl;
 
     positionT fr=0;
     while(occR[fr]&& fr<32)fr++;
@@ -52,7 +58,7 @@ void EBoard::updateVectRapp(){
     positionT fc=0;
     while(occC[fc]&& fc<32)fc++;
     while((!occC[fc+1]) && fc<31)fc++;
-    cout << "A" << endl;
+    //cout << "A" << endl;
     
     
     positionT bp=(fr<<5)+fc;
@@ -62,11 +68,11 @@ void EBoard::updateVectRapp(){
                             ?0
                             :(gb.topPiece((i+bp)&1023));
     }
-    cout << "A" << endl;
+    //cout << "A" << endl;
 
     // put climber pieces
     int climberPiece[]={3,4,12,17,18,26};
-    cout << "A" << endl;
+    //cout << "A" << endl;
 
     for(int i=0;i<6;i++){
         pieceT cp=climberPiece[i];
@@ -80,13 +86,13 @@ void EBoard::updateVectRapp(){
             }
         }
     }
-    cout << "A" << endl;
+    //cout << "A" << endl;
     
 
     this->vectRapp[1030]=this->board_exp.prevMoved[0];
     this->vectRapp[1031]=this->board_exp.prevMoved[1];
     this->vectRapp[1032]=this->board_exp.currentTurn;
-    cout << "A" << endl;
+    //cout << "A" << endl;
     
 }
 

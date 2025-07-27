@@ -1,4 +1,4 @@
-#include "engine/board.h"
+#include "../engine/board.h"
 #include <chrono>
 #include <iostream>
 /*
@@ -25,7 +25,7 @@ int main(){
     int totMov=0;
         
     auto seed=time(0);
-    for(int TR=0;TR<100;TR++){
+    for(int TR=0;TR<20;TR++){
         cout<<"Run with seed:"<<seed+TR<<endl;
         srand(seed+TR);
 
@@ -34,7 +34,6 @@ int main(){
         try{
         i=0;
         
-        i=0;
         while(1){
             eb.ComputePossibleMoves();
             if(eb.numAction==0){
@@ -71,6 +70,8 @@ int main(){
 
 
 }
+
+
 
 
 /*

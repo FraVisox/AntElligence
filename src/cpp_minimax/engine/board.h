@@ -31,12 +31,14 @@ class Board {
     // update the state
     void applayAction(actionT a);
 
-    
+    actionT suggestInitialMove();
+
     // compute possible moves
     void ComputePossibleMoves();
 
 
     GameState getGameState();
+    string toString();
     
     int currentTurn;
     
@@ -45,10 +47,14 @@ class Board {
     bitset<32> inHandPiece;
     pieceT prevMoved[2];
 
+    string toString();
+    actionT suggestInitialMove();
+    bitset<308> simple_hash(PlayerColor color);
+
     // returns the actions
     actionT resAction[MAX_ACTIONS_SIZE];
     int numAction;
-    //bitset<308> confHistory[MAX_TURN_SIZE+2];
+    bitset<285> confHistory[MAX_TURN_SIZE+2];
 
     private:
     

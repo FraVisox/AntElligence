@@ -6,7 +6,7 @@ project(ProgettoHive LANGUAGES CXX)
 # -----------------------------------------------------------------------------
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -g -O0")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -O3 -Ofast")
 # -----------------------------------------------------------------------------
 # 2) Find LibTorch & Python3 dev
 # -----------------------------------------------------------------------------
@@ -119,6 +119,28 @@ target_include_directories(test_app PRIVATE
 
 # link against your shared interface.so (and transitively mcts, engine, Torch & Python)
 target_link_libraries(test_app PRIVATE
+    interface
+    ${TORCH_LIBRARIES}
+    Python3::Python
+)
+
+
+
+
+# 8) test executable
+add_executable(duel_nets
+    duel.cpp
+)
+
+# make sure the headers from engine/, mcts/, and project root are visible:
+target_include_directories(duel_nets PRIVATE
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/engine
+    ${CMAKE_SOURCE_DIR}/mcts
+)
+
+# link against your shared interface.so (and transitively mcts, engine, Torch & Python)
+target_link_libraries(duel_nets PRIVATE
     interface
     ${TORCH_LIBRARIES}
     Python3::Python

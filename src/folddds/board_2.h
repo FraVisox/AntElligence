@@ -1,10 +1,11 @@
 #ifndef BOARD_H
 #define BOARD_H
 
-#define MAX_TURN_SIZE 1000
+#define MAX_TURN_SIZE 300
 #include <bitset>
 #include "gameboard.h"
 #include "action.h"
+#include <cstdint>
 #include <queue>
 #include <string.h>
 
@@ -31,12 +32,17 @@ class Board {
     // update the state
     void applayAction(actionT a);
 
+    actionT suggestInitialMove();
+
+    int simple_hash(PlayerColor color);
     
     // compute possible moves
     void ComputePossibleMoves();
 
 
     GameState getGameState();
+
+    string toString();
     
     int currentTurn;
     
@@ -48,7 +54,7 @@ class Board {
     // returns the actions
     actionT resAction[MAX_ACTIONS_SIZE];
     int numAction;
-    //bitset<308> confHistory[MAX_TURN_SIZE+2];
+    bitset<308> confHistory[MAX_TURN_SIZE+2];
 
     private:
     
@@ -57,7 +63,7 @@ class Board {
     int pillbugTotMoves;
 
     // auxiliary for Ants moves
-    BoardBitSet inQueue;
+    bitset<1024> inQueue;
     
     void possibleMovesBug(pieceT b);
     void possibleMoves_Queen(pieceT bug);
