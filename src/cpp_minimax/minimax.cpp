@@ -5,6 +5,7 @@
 #include <limits>
 #include <iostream>
 #include <chrono>
+#include <bitset>
 
 int MinimaxAgent::utility(GameState state, Board board) {
     if (state == GameState::DRAW) {
@@ -30,7 +31,8 @@ int MinimaxAgent::utility(GameState state, Board board) {
     return 0;
 }
 
-/* ITERATIVE DEEPENING:
+/*
+//ITERATIVE DEEPENING:
 actionT MinimaxAgent::initiate_minimax(Board board) {
     actionT best_move = pass();
     int best_eval = MIN_EVAL;
@@ -98,7 +100,7 @@ actionT MinimaxAgent::initiate_minimax(Board board) {
 
     return best_move;
 }
-*/
+    */
 
 /*
 // TRANSPOSITION TABLE
@@ -114,7 +116,7 @@ int MinimaxAgent::minmax(GameState state, Board board, int depth, int alpha, int
         return utility(state, board);
     }
 
-    std::size_t hash = board.simple_hash(color);
+    bitset<308> hash = board.simple_hash(color);
 
     // Transposition Table Lookup
     auto it = transposition_table.find(hash);

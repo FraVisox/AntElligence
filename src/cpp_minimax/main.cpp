@@ -3,6 +3,7 @@
 #include "minimax.h"
 
 #include "engine/action.cpp"
+#include "engine/board_bitset.cpp"
 #include "engine/board.cpp"
 #include "engine/direction.cpp"
 #include "engine/enums.cpp"

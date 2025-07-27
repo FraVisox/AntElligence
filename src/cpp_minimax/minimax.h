@@ -18,7 +18,7 @@ struct TTEntry {
     BoundType bound;
 };
 
-std::unordered_map<std::size_t, TTEntry> transposition_table;
+std::unordered_map<bitset<308>, TTEntry> transposition_table;
 
 
 class MinimaxAgent {

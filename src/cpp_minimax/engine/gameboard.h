@@ -3,11 +3,11 @@
 #define TOTAL_POSSIBLE_MOVES 1575
 #include <vector>
 #include <bitset>
-#include <cstdint>
 #include "piece.h"
 #include "position.h"
 #include "enums.h"
 #include "direction.h"
+#include "board_bitset.h"
 using namespace  std;
 #define HIGHT_BOARD 6
 
@@ -20,8 +20,8 @@ class gameboard{
 
     pieceT gb[8][1024];  // Vector of stacks that contain bugs. One stack at each position. The board is thus 100*100
     positionT bugPosition[32];
-    bitset<1024> occupied;
-    int high[1024];
+    BoardBitSet occupied;
+    uint8_t high[1024];
     
     bitset<32> isPlaced;
     
@@ -43,17 +43,17 @@ class gameboard{
     *   x (1545) -> 30 mosquito copy pillbug
     *   Total 
     */  // Idea in background
-    uint8_t isValidMoveBitmask[1575];
+    //uint8_t isValidMoveBitmask[1575];
     //uint8_t _isValidMoveBitmask_rel_pos[1575];
 
-    actionT associatedAction[1575];
+    //actionT associatedAction[1575];
 
     //Initialization
     //bool checIfCanMove(position &to, position &from, bool canOver);
 
     
     //And the placing
-    positionT validPositionPlaceBuffer[400];
+    positionT validPositionPlaceBuffer[70];
     int numValidPosition;
     void computeValidPositionPlaceNew(PlayerColor color);
 
