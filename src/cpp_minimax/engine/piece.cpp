@@ -50,7 +50,6 @@ const BugType PIECE_KIND_NUM[]={
 BugType kind(pieceT p){
     if(p>0 && p<=28)
         return PIECE_KIND_NUM[(p-1)%14];
-    if(p==29 && isSimulatingPiece)return kind(simulatedPiece);
     throw "Asking kind of a non-piece";
 }
 

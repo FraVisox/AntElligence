@@ -35,6 +35,7 @@ actionT movement(const pieceT p,const positionT &destPos){
  */
 actionT placePiece(pieceT p,positionT pos,gameboard& g){
     actionT A=movement(p,pos);
+    /*
     for(int dir=0;dir<6;dir++){
         if(!g.isFree(applayMove(pos,dir))){
             pieceT n=g.topPiece(applayMove(pos,dir));
@@ -46,7 +47,7 @@ actionT placePiece(pieceT p,positionT pos,gameboard& g){
             //g.associatedAction[15+dir+6*kind(p)+48*((n-1)%14)]=A;
             break;
         }
-    }
+    }*/
     return A;
 }   
 

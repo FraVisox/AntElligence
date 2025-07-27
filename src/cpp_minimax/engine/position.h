@@ -11,7 +11,6 @@
 typedef uint16_t positionT;
 
 positionT applayMove(positionT pos,direction d);
-extern positionT NULL_POSITION;
 
 
 

@@ -1,7 +1,5 @@
 # Compiler and flags
-CXX = g++
-SHARED_FLAG =  -fPIC -shared -Ofast  -O3 -std=c++17 
-TEST_FLAG = -g -O3  #-std=c++2a -Wall -fsanitize=address -fsanitize=null -fsanitize=leak
+CXX = g++ -Ofast  -O3 -g
 OUT_DIR = out
 
 # Sources
@@ -18,7 +16,7 @@ ALL_OJB = $(ENGINE_OBJS) out/engine.o out/minimax.o
 all: $(ENGINE_OBJS)
 
 out/minimax.o : minimax.cpp $(ENGINE_H)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CXX)  $(CXXFLAGS) -c $< -o $@
 
 out/engine.o : engine.cpp $(ENGINE_H)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
@@ -31,7 +29,7 @@ $(OUT_DIR)/%.o: engine/%.cpp $(ENGINE_H)
 
 # Build final targets
 test-% : test/test-%.cpp $(ALL_OJB)  
-	$(CXX) $(TEST_FLAG) test/$@.cpp $(ALL_OJB) -o test/$@
+	$(CXX) $(CXXFLAGS) test/$@.cpp $(ALL_OJB) -o test/$@
 
 clean:
 	rm -f $(OUT_DIR)/*.o

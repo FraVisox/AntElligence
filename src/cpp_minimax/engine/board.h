@@ -52,7 +52,7 @@ class Board {
     // returns the actions
     actionT resAction[MAX_ACTIONS_SIZE];
     int numAction;
-    bitset<308> confHistory[MAX_TURN_SIZE+2];
+    bitset<285> confHistory[MAX_TURN_SIZE+2];
 
     private:
     
