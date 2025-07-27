@@ -225,7 +225,6 @@ void gameboard::computeValidPositionPlaceNew(PlayerColor color){  // there is a 
 
 */
 
-    
     BoardBitSet  hons,hono;
     for(int p=1;p<=28;p++){
         if(isPlaced[p] && isTop(p)){
@@ -233,21 +232,22 @@ void gameboard::computeValidPositionPlaceNew(PlayerColor color){  // there is a 
         }
     }
     
-
-
-
-    
     BoardBitSet xbbs=(occupied &colEq);
-    BoardBitSet ybbs=(occupied & (~colEq));
-
-    
+    BoardBitSet ybbs=(occupied & ~colEq);
         
     for(int d=0;d<6;d++){
         hons.updateOr(xbbs.getRot(d));
         hono.updateOr(ybbs.getRot(d));
-
     }
-    
+    /*
+    for(int d=0;d<6;d++){
+        hons|=sameCN[d];
+    }
+    for(int d=0;d<6;d++){
+        hono|=diffCN[d];
+    }
+
+
     canPlace.updateAnd(hons);
     canPlace.updateAnd(~hono);
     for(unsigned int IPos=0;IPos<1024;IPos++){

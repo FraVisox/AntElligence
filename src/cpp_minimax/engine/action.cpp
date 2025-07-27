@@ -15,7 +15,7 @@
  *   :rtype: action
  */
 actionT movement(const pieceT p,const positionT &destPos){
-    return (actionT)(p+((destPos&1023)*32));
+    return (actionT)(p|((destPos&1023)<<5));
 
 }
 

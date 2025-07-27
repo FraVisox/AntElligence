@@ -12,6 +12,7 @@ class BoardBitSet {
 
         uint64_t bv[16];
         void printDBG();
+
         BoardBitSet() ;
         BoardBitSet(BoardBitSet* b1);
 

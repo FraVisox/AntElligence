@@ -6,7 +6,7 @@ using namespace std;
 #include <bitset>
 #include "board_bitset.h"
 
-BoardBitSet::BoardBitSet(){
+BoardBitSet::BoardBitSet() {
     for(int i=0;i<16;i++){
         bv[i]=0;
     }
@@ -104,7 +104,6 @@ bool operator==(const BoardBitSet& a,const BoardBitSet &b ){
     }
     return r==0; 
 }
-
 BoardBitSet operator|(const BoardBitSet& a,const BoardBitSet& b){
     BoardBitSet r;
     for(int i=0;i<16;i++){
@@ -136,7 +135,6 @@ BoardBitSet operator~(const BoardBitSet& a){
     }
     return r;
 }
-
 
 
 
