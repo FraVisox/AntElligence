@@ -5,89 +5,30 @@
 
 gameboard::gameboard(){
     memset(high, 0, sizeof(high));
-    for(int i=0;i<32;i++)
-        bugPosition[i]=NULL_POSITION;
-    
     isPlaced.reset();
 }
 
 
 gameboard::gameboard(GameType gt){
     memset(high, 0, sizeof(high));
-    for(int i=0;i<32;i++)
-        bugPosition[i]=NULL_POSITION;
     isPlaced.reset();
 }
 
-/**
- * \brief Gets the positionT of a bug on the board.
- *
- * If the bug is not on the board, NULL_POSITION is returned.
- *
- * \param p The bug to get the positionT of.
- * \return The positionT of the bug on the board, NULL_POSITION if the bug is not on the board.
- */
 positionT gameboard::getPosition(const pieceT &p){
-    //if(bugPosition[p]!=10000  && bugPosition[p]>1023 )
-    //    throw "Out of pos";
     return  bugPosition[p];
-
-}
-
-/**
- * \brief Updates the positionT of a bug on the gameboard.
- *
- * This function updates the positionT of the specified bug in the bugPosition map.
- * If the bug is already present in the map, its positionT is updated to the new
- * positionT provided. If the bug is not present, it is added to the map with the
- * given position.
- *
- * \param bug The bug whose positionT is to be updated.
- * \param pos The new positionT of the bug.
- */
-
-void gameboard::updatePos(const pieceT &bug, const positionT &pos){
-    bugPosition[bug]=pos;
 }
 
 
 
-/**
- * \brief Pops the top piece from the stack at the given position.
- *
- * If the stack at the given positionT is not empty, the top piece is removed from
- * the stack and its positionT in the bugPosition map is set to NULL_POSITION. If
- * the stack is empty, the positionT is removed from the occupied set.
- *
- * \param pos The positionT at which to pop the top piece.
- */
-void gameboard::popPosition(const positionT &pos){
-    if(!isFree(pos)){
-        updatePos(topPiece(pos),NULL_POSITION);
-        high[pos&1023]--;
-    }
+
+ 
+
+void gameboard::removePiece(const pieceT &b){
+    positionT pos=getPosition(b);
+    isPlaced.set(b,0);
+    high[pos &1023]--;
     if(isFree(pos))
         occupied.set(pos,0);
-}
-
-
-/**
- * \brief Removes a bug from the gameboard.
- *
- * If the bug is the top piece at its current position, it is removed from the
- * stack and its positionT in the bugPosition map is set to NULL_POSITION. If
- * the bug is not the top piece, it is simply removed from the bugPosition map.
- *
- * \param b The bug to be removed from the gameboard.
- */
-void gameboard::removePiece(const pieceT &b){
-    //if(isTop(b)){
-        isPlaced.set(b,0);
-        popPosition(getPosition(b));
-        bugPosition[b]=NULL_POSITION;
-    //}else{
-    //    throw "Removing a non-top piece";
-    //}
 }
 
 /**
@@ -105,7 +46,7 @@ void gameboard::addPiece(const positionT &pos, const pieceT &b){
     isPlaced.set(b,1);
     gb[getHight(pos)][pos&1023]=b;
     high[pos]++;
-    updatePos(b,pos);
+    bugPosition[b]=pos;
     occupied.set(pos ,1);
 }
 
@@ -135,8 +76,6 @@ void gameboard::copy(gameboard& g){
     }
     this->occupied=g.occupied;
     this->isPlaced=g.isPlaced;
-    //for(int i=0;i<TOTAL_POSSIBLE_MOVES;i++)
-    //    this->isValidMoveBitmask[i]=g.isValidMoveBitmask[i];
 }
 /**
  * \brief Checks if the given bug is at the top of the stack.
@@ -225,28 +164,22 @@ pieceT gameboard::basePiece(const positionT &pos){
 }
 
 
-bitset<308> gameboard::toHash(){
-    bitset<308> bs;
-    for(int i=0;i<27;i++){
+bitset<285> gameboard::toHash(){
+    int numPlaced=0;
+    bitset<285> bs(0);
+    for(int i=0;i<=27;i++){
         pieceT b=i+1;
-        int rb=0;
-        bool ip=isPlaced[b];
-        if(!ip){
-            rb=1024;
-        }else{
+        
+        if(isPlaced[b]){
+            numPlaced++;
             positionT pos=getPosition(b);
-            int h0=(basePiece(pos)==b);
-            if(h0){
-                rb=pos;
-            }else{
-                int j=1;
-                while(gb[j][pos &1023]!= b) j++;
-                rb=gb[j-1][pos &1023]+1024;
-            }
+            
+            bs=(bs<<10);
+            bs|=pos;
         }
-        bs=(bs<<11);
-        bs|=rb;
     }
+    bs<<5;
+    bs|=numPlaced;
     return bs;
 }
 
@@ -292,7 +225,6 @@ void gameboard::computeValidPositionPlaceNew(PlayerColor color){  // there is a 
 
 */
 
-
     BoardBitSet  hons,hono;
     for(int p=1;p<=28;p++){
         if(isPlaced[p] && isTop(p)){
@@ -315,16 +247,6 @@ void gameboard::computeValidPositionPlaceNew(PlayerColor color){  // there is a 
         hono|=diffCN[d];
     }
 
-
-    if(hono!=hasOneNearOpp){
-        cout<<"NO HONO";
-        throw "NOT Same HONO";
-    }
-    if(hons!=hasOneNearSame){
-        cout<<"NO HONS";
-        throw "NOT Same HONS";
-    }
-*/
 
     canPlace.updateAnd(hons);
     canPlace.updateAnd(~hono);

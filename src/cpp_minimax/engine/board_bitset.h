@@ -11,14 +11,13 @@ class BoardBitSet {
     public:
 
         uint64_t bv[16];
-
+        void printDBG();
 
         BoardBitSet() ;
         BoardBitSet(BoardBitSet* b1);
 
         bool none();
 
-        void set_bit(uint64_t i) ;
         void set(uint64_t i,uint64_t v);
 
         bool get_bit(uint64_t i) const;
@@ -29,6 +28,7 @@ class BoardBitSet {
 
         BoardBitSet getRot(int d) const ;
     void reset();
+
 };
 
 bool operator==(const BoardBitSet& a,const BoardBitSet &b );

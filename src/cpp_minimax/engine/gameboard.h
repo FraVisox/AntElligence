@@ -64,10 +64,9 @@ class gameboard{
 
     //Manage positions
 
-    void popPosition(const positionT &pos);
     bool isFree(const positionT &pos);
     bool isAtLevel1(const positionT &pos);
-    bitset<308> toHash();
+    bitset<285> toHash();
     //Manage pieces
     
     positionT getPosition(const pieceT &p);
@@ -122,7 +121,7 @@ class gameboard{
             }
         }
 
-        dfs(startPos);
+        dfs(startPos,0);
     }
 
 
@@ -135,7 +134,7 @@ class gameboard{
      * \param v The current position.
      * \param p The parent position, defaults to NULL_POSITION.
      */
-    void dfs(positionT &v, const positionT &p = NULL_POSITION) {
+    void dfs(positionT &v, const positionT &p, bool flag=false) {
 
         //Mark this as visited
         visited_dfs.set(v,1);
@@ -152,18 +151,18 @@ class gameboard{
                 low[v] = min(low[v], disc[to]);
             } else {
                 //Make it a children of this node and visit it
-                dfs(to, v);
+                dfs(to, v,true);
                 //Check if the subtree rooted at v has a connection to one of the ancestors of u
                 low[v] = min(low[v], low[to]);
                 
                 //If the subtree rooted at to has not a connection to one of the ancestors of u, this is an articulation point
-                if (low[to] >= disc[v] && p!=NULL_POSITION)
+                if (low[to] >= disc[v] && flag)
                     not_movable_position.set(v,1);
                 
                 ++children;
             }
         }
-        if(p == NULL_POSITION && children > 1)
+        if(!flag && children > 1)
             not_movable_position.set(v,1);
     }
 
