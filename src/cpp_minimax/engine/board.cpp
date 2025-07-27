@@ -111,6 +111,10 @@ actionT Board::suggestInitialMove() {
    return 0;
 }
 
+int Board::simple_hash(PlayerColor color) {
+    //TODO: implement
+}
+
 
 int Board::countSurrounding(pieceT p) {
     positionT pos = G.getPosition(p);

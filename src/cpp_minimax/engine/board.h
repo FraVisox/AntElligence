@@ -33,6 +33,8 @@ class Board {
     void applayAction(actionT a);
 
     actionT suggestInitialMove();
+
+    int simple_hash(PlayerColor color);
     
     // compute possible moves
     void ComputePossibleMoves();
