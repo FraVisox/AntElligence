@@ -1128,6 +1128,7 @@ string Board::toString() {
 }
 
 bitset<308> Board::simple_hash(PlayerColor color) {
+    // TODO: use color
     return G.toHash();
 }
 

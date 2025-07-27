@@ -17,16 +17,21 @@ def wait_for_ok(process):
     """Wait until the engine outputs a line starting with 'ok'."""
     line = process.stdout.readline()
     while line and not line.startswith(end_sequence):
-        print(line)
+        #print(line)
         line = process.stdout.readline()
     return line
 
 def get_bestmove(process):
-    """Get the move returned by bestmove command."""
-    line = process.stdout.readline()
-    while line and not line.strip() and not line.startswith("ok"):
+    """Read lines until we find the best move starting with 'w' or 'b'."""
+    while True:
         line = process.stdout.readline()
-    move = line.strip()
+        if not line:
+            continue  # skip empty
+        print("ENGINE:", line.strip())  # Print all output lines
+        stripped = line.strip()
+        if stripped.startswith("w") or stripped.startswith("b"):
+            move = stripped
+            break
     wait_for_ok(process)
     return move
 

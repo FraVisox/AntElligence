@@ -31,7 +31,6 @@ int MinimaxAgent::utility(GameState state, Board board) {
     return 0;
 }
 
-/*
 //ITERATIVE DEEPENING:
 actionT MinimaxAgent::initiate_minimax(Board board) {
     actionT best_move = pass();
@@ -43,7 +42,7 @@ actionT MinimaxAgent::initiate_minimax(Board board) {
 
     std::vector<actionT> actions(board.resAction, board.resAction + board.numAction);
 
-    int current_depth = 4;
+    int current_depth = 5;
 
     while (!is_time_up()) {
         actionT move_this_depth = best_move;
@@ -100,11 +99,10 @@ actionT MinimaxAgent::initiate_minimax(Board board) {
 
     return best_move;
 }
-    */
 
 /*
 // TRANSPOSITION TABLE
-int MinimaxAgent::minmax(GameState state, Board board, int depth, int alpha, int beta) {
+int MinimaxAgent::minmax(GameState state, Board board, int depth_remaining, int alpha, int beta) {
     calledBoard++;
 
     if (is_time_up()) return 0;
@@ -112,7 +110,7 @@ int MinimaxAgent::minmax(GameState state, Board board, int depth, int alpha, int
     if (state == GameState::DRAW || 
         state == GameState::WHITE_WIN || 
         state == GameState::BLACK_WIN || 
-        depth >= depthLimit) {
+        depth_remaining == 0) {
         return utility(state, board);
     }
 
@@ -123,11 +121,9 @@ int MinimaxAgent::minmax(GameState state, Board board, int depth, int alpha, int
     if (it != transposition_table.end()) {
         const TTEntry& entry = it->second;
 
-        if (entry.depth >= depth) {
-            if (entry.bound == BoundType::EXACT) return entry.value;
-            if (entry.bound == BoundType::LOWER_BOUND && entry.value >= beta) return entry.value;
-            if (entry.bound == BoundType::UPPER_BOUND && entry.value <= alpha) return entry.value;
-        }
+        if (entry.bound == BoundType::EXACT) return entry.value;
+        if (entry.bound == BoundType::LOWER_BOUND && entry.value >= beta) return entry.value;
+        if (entry.bound == BoundType::UPPER_BOUND && entry.value <= alpha) return entry.value;
     }
 
     board.ComputePossibleMoves();
@@ -140,7 +136,7 @@ int MinimaxAgent::minmax(GameState state, Board board, int depth, int alpha, int
         Board b1 = Board(board);
         b1.applayAction(board.resAction[i]);
 
-        int eval = minmax(b1.getGameState(), b1, depth + 1, -beta, -alpha);
+        int eval = -minmax(b1.getGameState(), b1, depth_remaining - 1, -beta, -alpha);
         max_eval = std::max(max_eval, eval);
         alpha = std::max(alpha, max_eval);
 
@@ -153,7 +149,7 @@ int MinimaxAgent::minmax(GameState state, Board board, int depth, int alpha, int
     else if (max_eval >= beta) bound = BoundType::LOWER_BOUND;
     else bound = BoundType::EXACT;
 
-    transposition_table[hash] = { max_eval, depth, bound };
+    transposition_table[hash] = { max_eval, bound };
 
     return max_eval;
 }
@@ -161,7 +157,7 @@ int MinimaxAgent::minmax(GameState state, Board board, int depth, int alpha, int
 
 
 //FIXED DEPTH:
-
+/*
 actionT MinimaxAgent::initiate_minimax(Board board) {
     int max_eval = MIN_EVAL;
     int alpha = MIN_EVAL;
@@ -195,13 +191,13 @@ actionT MinimaxAgent::initiate_minimax(Board board) {
         
         alpha = std::max(alpha, max_eval);
 
-        // TODO: undo
     }
     
     return todo_action;
 }
+    */
 
-int MinimaxAgent::minmax(GameState state, Board board, int depth, int alpha, int beta) {
+int MinimaxAgent::minmax(GameState state, Board board, int depth_remaining, int alpha, int beta) {
 
     // Debug print
     calledBoard++;
@@ -215,7 +211,7 @@ int MinimaxAgent::minmax(GameState state, Board board, int depth, int alpha, int
     if (state == GameState::DRAW || 
         state == GameState::WHITE_WIN || 
         state == GameState::BLACK_WIN || 
-        depth >= depthLimit) {
+        depth_remaining == 0) {
         // Return a simple evaluation for debugging
         int eval = 0;
             // If Oracle fails, use utility as fallback
@@ -233,7 +229,7 @@ int MinimaxAgent::minmax(GameState state, Board board, int depth, int alpha, int
         Board b1 = Board(board);
         b1.applayAction(board.resAction[i]);
 
-        int eval = minmax(b1.getGameState(), b1, depth + 1, -beta, -alpha);
+        int eval = -minmax(b1.getGameState(), b1, depth_remaining - 1, -beta, -alpha);
         max_eval = std::max(max_eval, eval);
         alpha = std::max(alpha, max_eval);
 

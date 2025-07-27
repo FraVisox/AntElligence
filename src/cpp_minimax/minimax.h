@@ -14,7 +14,6 @@ enum class BoundType { EXACT, LOWER_BOUND, UPPER_BOUND };
 
 struct TTEntry {
     int value;
-    int depth;
     BoundType bound;
 };
 
