@@ -1,15 +1,14 @@
 # Compiler and flags
-CXX = g++ 
+CXX = g++
 SHARED_FLAG =  -fPIC -shared -Ofast  -O3 -std=c++17 
-TEST_FLAG = -g -O3 -Wall -fsanitize=address -fsanitize=null -fsanitize=leak
+TEST_FLAG = -g -O3  #-std=c++2a -Wall -fsanitize=address -fsanitize=null -fsanitize=leak
 OUT_DIR = out
 
 # Sources
-SRC_ENGINE = action board direction enums gameboard piece position
-SRC_EGRAPG = embadded_board
+SRC_ENGINE = action board direction enums gameboard piece position board_bitset
 
 # Extensions
-ENGINE_OBJS = $(addprefix $(OUT_DIR)/, $(addsuffix .o, $(SRC_ENGINE)))
+ENGINE_OBJS = $(addprefix $(OUT_DIR), $(addsuffix .o, $(SRC_ENGINE)))
 ENGINE_SOS  = $(addprefix $(OUT_DIR)/, $(addsuffix .so, $(SRC_ENGINE)))
 ENGINE_TESTS = $(addprefix $(OUT_DIR)/, $(addsuffix -test.o, $(SRC_ENGINE)))
 ENGINE_CPPS = $(addprefix engine/, $(addsuffix .cpp, $(SRC_ENGINE)))
@@ -18,8 +17,9 @@ ENGINE_H = $(addprefix engine/, $(addsuffix .h, $(SRC_ENGINE)))
 
 
 # Special cases
-TEST_OBJS = $(ENGINE_TESTS)  \
-	$(OUT_DIR)/embadded_board-test.o
+TEST_OBJS = $(ENGINE_TESTS)  
+
+
 
 
 
@@ -33,8 +33,8 @@ $(OUT_DIR)/%.o: engine/%.cpp $(ENGINE_H)
 #$(OUT_DIR)/%.o: graph_board/%.cpp $(GRAPH_H) 
 #	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(OUT_DIR)/embadded_board.o: embadded_board.cpp embadded_board.h  $(ENGINE_H)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+#$(OUT_DIR)/embadded_board.o: embadded_board.cpp embadded_board.h  $(ENGINE_H)
+#	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Pattern rule for shared objects
 $(OUT_DIR)/%.so: engine/%.cpp $(ENGINE_H)
