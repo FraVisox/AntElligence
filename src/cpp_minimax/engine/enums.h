@@ -16,16 +16,14 @@ enum PlayerColor{
     BLACK=1
 };
 
-string ColorToCompleteString(PlayerColor c) {
-    if (c == PlayerColor::WHITE) return "White";
-    return "Black";
-}
+string ColorToCompleteString(PlayerColor c);
 
 int opposite(int x);
 
 PlayerColor parseColor(string s);
 
 //Game state
+
 
 enum GameState{   
     NOT_STARTED=0,
@@ -34,26 +32,6 @@ enum GameState{
     BLACK_WIN=3,
     DRAW=4,
 };
-
-string GameStateToString(GameState gs) {
-    switch (gs)
-    {
-        case NOT_STARTED:
-            return "NotStarted";
-        case STARTED:
-            return "InProgress";
-        case WHITE_WIN:
-            return "WhiteWins";
-        case BLACK_WIN:
-            return "BlackWins";
-        case DRAW:
-            return "Draw";
-    }
-    throw "Invalid game state";
-}
-
-
-//Game type
 
 enum GameType{
     Base=0,
@@ -66,31 +44,15 @@ enum GameType{
     Base_MLP=7
 };
 
-string GameTypeToString(GameType gt){
-    switch (gt)
-    {
-        case Base:
-            return "Base";
-        case Base_L:
-            return "Base+L";
-        case Base_M:
-            return "Base+M";
-        case Base_P:
-            return "Base+P";
-        case Base_ML:
-            return "Base+ML";
-        case Base_MP:
-            return "Base+MP";
-        case Base_LP:
-            return "Base+LP";
-        case Base_MLP:
-            return "Base+MLP";
-    }
-    throw "Invalid game type";
-}
+string GameStateToString(GameState gs) ;
 
 
-//Type of bug
+
+string GameTypeToString(GameType gt);
+
+
+
+
 
 enum BugType{
     SPIDER=0,
@@ -103,10 +65,6 @@ enum BugType{
     PILLBUG=7
 };
 
-//Parsing
-
-BugType parseBugType(string s);
-
 
 enum class StrategyName {
     RANDOM = 0,
@@ -114,4 +72,9 @@ enum class StrategyName {
     DRL = 2
 };
 
+
+BugType parseBugType(string s);
+
+
+enum class StrategyName;
 #endif

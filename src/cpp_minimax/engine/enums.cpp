@@ -51,3 +51,54 @@ int opposite(int x){
         return (x+3)%6;
     return 13-x;
 }
+
+
+
+string GameStateToString(GameState gs){
+    switch (gs)
+    {
+        case NOT_STARTED:
+            return "NotStarted";
+        case STARTED:
+            return "InProgress";
+        case WHITE_WIN:
+            return "WhiteWins";
+        case BLACK_WIN:
+            return "BlackWins";
+        case DRAW:
+            return "Draw";
+    }
+    throw "Invalid game state";
+}
+
+
+
+
+
+string GameTypeToString(GameType gt){
+    switch (gt)
+    {
+        case Base:
+            return "Base";
+        case Base_L:
+            return "Base+L";
+        case Base_M:
+            return "Base+M";
+        case Base_P:
+            return "Base+P";
+        case Base_ML:
+            return "Base+ML";
+        case Base_MP:
+            return "Base+MP";
+        case Base_LP:
+            return "Base+LP";
+        case Base_MLP:
+            return "Base+MLP";
+    }
+    throw "Invalid game type";
+}
+
+string ColorToCompleteString(PlayerColor c){
+    if (c == PlayerColor::WHITE) return "White";
+    return "Black";
+}

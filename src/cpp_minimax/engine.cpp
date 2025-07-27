@@ -4,34 +4,40 @@
 #include <string>
 using namespace std;
 
-string actionToString(actionT a, Board board){
+string actionToString(actionT a, Board &board){
     if(a==0){
         return "pass";
     }
     
     pieceT bug=a&31;
     positionT pos=a>>5;
-
+    clog<<" Bug : "<<bug<<" pos: "<<pos<<endl;
     string s=PiecetoString(bug);
+
+    clog<<"Starting bug  "<<s<<endl;
     gameboard& g=board.G;
     if(!g.isFree(pos)){
+        clog<<"Free pos"<<endl;
         pieceT resPiece=board.G.topPiece(pos);   
         s+=" "+nameDirToString(PiecetoString(resPiece),opposite(6));  
-
+        return s;
     }else{
+        clog<<"Retriving movement "<<endl;
         for(int dir=0;dir<6;dir++){
             positionT next=applayMove(pos,dir);
             if(!g.isFree(next)){
                 pieceT resPiece=board.G.topPiece(next);
                 s+=" "+nameDirToString(PiecetoString(resPiece),opposite(dir));  
-                break; 
+                return s; 
             }
         }
     }
+    clog<<" Error!!! ";
     return s;
+//    return s;
 }
 
-actionT stringToAction(Board b, string str){
+actionT stringToAction(Board &b, string str){
     pieceT startP,destP;
     direction dir ;
 

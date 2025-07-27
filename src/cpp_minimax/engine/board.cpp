@@ -159,8 +159,8 @@ void Board::copy(Board &b){
 
     for(int i=0;i<MAX_ACTIONS_SIZE;i++)
         this->resAction[i]=b.resAction[i];
-    for(int i=0;i<MAX_TURN_SIZE;i++)
-        this->confHistory[i]=b.confHistory[i];
+    //for(int i=0;i<MAX_TURN_SIZE;i++)
+    //    this->confHistory[i]=b.confHistory[i];
     for(int i=0;i<20;i++)
         this->pillbugMoves[i]=b.pillbugMoves[i];
     this->pillbugTotMoves=b.pillbugTotMoves;
@@ -227,7 +227,7 @@ void Board::addPieceHand(pieceT p){
 
 
 void Board::applayAction(actionT act){
-    confHistory[currentTurn]=G.toHash();
+    //confHistory[currentTurn]=G.toHash();
     if(act==0){
         currentTurn++;
         prevMoved[currentColor()]=0;
@@ -266,21 +266,21 @@ GameState Board::getGameState(){
     int bugWQ=0,bugBQ=0;
 
     positionT WQPos=G.getPosition(8);
-    positionT BQPos=G.getPosition(22);
+    positionT BQPos=G.getPosition(22); 
     for(int i=0;i<6;i++){
         if(!G.isFree(applayMove(WQPos,i)))bugWQ++;
         if(!G.isFree(applayMove(BQPos,i)))bugBQ++;
-    }
+    }    
     if(bugWQ==6 && bugBQ==6)return (GameState)(2+currentColor());
     if(bugBQ==6)return GameState::WHITE_WIN;
     if(bugWQ==6)return GameState::BLACK_WIN;
-
+    
     bitset<308> r=G.toHash();
     int ne=0;
     for(int i=1;i<currentTurn; i++){
         if(r==confHistory[i])
             ne++;
-    }
+    }  
     
     if(currentTurn==0) return GameState::NOT_STARTED;
     if(currentTurn>MAX_TURN_SIZE || ne>1)return GameState::DRAW;
@@ -290,15 +290,13 @@ GameState Board::getGameState(){
 
 void Board::ComputePossibleMoves(){
     numAction=0;  
-    for(int i=0;i<TOTAL_POSSIBLE_MOVES;i++) G.isValidMoveBitmask[i]=0;
     pillbugTotMoves=0;
     // 1 If turn == 1, then place something that is not the queen
     if(currentTurn==1){
         for(int b=1;b<=28;b++){
             if(inHandPiece[b]){
-            if(col(b)==currentColor() && kind(b) != QUEEN && (numInc(b) == 0 || numInc(b) == 1)) {
-                G.isValidMoveBitmask[b]=1;
-                G.associatedAction[b]=resAction[numAction]=placeFirst(b);
+            if(col(b)==currentColor() && kind(b) != QUEEN && (numInc(b) == 0 || numInc(b) == 1)) {                
+                resAction[numAction]=placeFirst(b);
                 numAction++;
             }
             }
@@ -373,6 +371,10 @@ void Board::ComputePossibleMoves(){
             possibleMovesBug(b);
         }
         computePillbugMovinPieces();
+        for(int i=0;i<pillbugTotMoves;i++){
+            resAction[numAction]=pillbugMoves[i];
+        }
+        /*
         if(pillbugTotMoves>0){ 
 
             bitset<32> seen(0);
@@ -430,12 +432,14 @@ void Board::ComputePossibleMoves(){
                     resAction[numAction]=pillbugMoves[i];
                     numAction++;
                 }
-            }*/
-        }   
+            }
+        }  */ 
     }
     if(numAction==0){
-        G.isValidMoveBitmask[0]=1;
-        G.associatedAction[0]=0;
+        //G.isValidMoveBitmask[0]=1;
+        //G.associatedAction[0]=0;
+        numAction=1;
+        resAction[0]=0;
     }
     return;
 }
@@ -480,10 +484,11 @@ void Board::possibleMoves_Queen(pieceT bug){
         positionT pos = G.getPosition(bug);
         for(int i=0;i<6;i++){
             if(G.isFree(applayMove(pos,i))&&G.canSlideToFreeDir(pos,applayMove(pos,i),i)){
-                    G.isValidMoveBitmask[687+i]=1;
+                    //G.isValidMoveBitmask[687+i]=1;
                     //G._isValidMoveBitmask_rel_pos[numAction]=687+i;
                     
-                    G.associatedAction[687+i]=resAction[numAction]=movement(bug,applayMove(pos,i));
+                    //G.associatedAction[687+i]=
+                    resAction[numAction]=movement(bug,applayMove(pos,i));
                     numAction++;
             }
         }
@@ -505,10 +510,11 @@ void Board::possibleMoves_Beetle(pieceT bug){
                 int maxH=max(h,G.getHight(dest));
                 
                 if(G.getHight(p1)<=maxH || G.getHight(p2)<=maxH){
-                    G.isValidMoveBitmask[693+i+6*(bug&1)]=1;
+                    //G.isValidMoveBitmask[693+i+6*(bug&1)]=1;
                     //G._isValidMoveBitmask_rel_pos[numAction]=693+i+6*(bug&1);
 
-                    G.associatedAction[693+i+6*(bug&1)]=resAction[numAction]=(movement(bug, dest));
+                    //G.associatedAction[693+i+6*(bug&1)]=
+                    resAction[numAction]=(movement(bug, dest));
                     numAction++;
                 }
             }
@@ -525,25 +531,29 @@ void Board::possibleMoves_Grasshopper(pieceT bug){
                 do{
                     next=applayMove(next,dir);
                 } while(!G.isFree(next));
-                G.isValidMoveBitmask[705+dir+6*((bug-5)%14)]=1;
+                //G.isValidMoveBitmask[705+dir+6*((bug-5)%14)]=1;
                 //G._isValidMoveBitmask_rel_pos[numAction]=705+dir+6*((bug-5)%14);
-                G.associatedAction[705+dir+6*((bug-5)%14)]=resAction[numAction]=(movement(bug, next));
+                //G.associatedAction[705+dir+6*((bug-5)%14)]=
+                resAction[numAction]=(movement(bug, next));
                 numAction++;
             }
         }
     }
 }
 
+void rotBS(bitset<1024> &b, uint64_t l){
+    b=(b<<l)| (b>>(1024ull-l));
+}
 
 void Board::possibleMoves_SoldierAnt(pieceT bug){
     if (G.canPieceMove(bug,currentTurn)) {
+        
+
 
         int fQ=0;
         int bQ=0;
         inQueue.reset();
-        inQueue|=G.occupied;
-
-        
+        inQueue.updateOr(G.occupied);
 
         const positionT startPos=G.getPosition(bug);
 
@@ -553,8 +563,34 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
         inQueue.set(startPos ,1);
         G.removePiece(bug);
         
+        BoardBitSet isOccupiedNear[6];
         
+
+        for(int i=0;i<6;i++){
+            isOccupiedNear[i]=G.occupied;
+            isOccupiedNear[i].getRot(i);
+        }
+        
+        BoardBitSet canGoTo[6];
+        for(int i=0;i<6;i++){
+            canGoTo[i]=(isOccupiedNear[(i+5)%6] ^ isOccupiedNear[(i+1)%6]) & (~isOccupiedNear[i]);
+        }
+
+        BoardBitSet reachable;
+        reachable.set(startPos,1);
+        BoardBitSet pr;
+        for(int i=0;i<54;i++){
+            pr=reachable;
+            for(int j=0;j<6;j++){
+                reachable.updateOr((canGoTo[j] & reachable).getRot((j+3)%6));     
+            }
+            if(reachable==pr)break;
+        }
+        
+        reachable.set(startPos,0);
+        /*
         bitset<1024> occN[6],canSlide[6];
+        bitset<1024> canVisit(0);
         
         for(int d=0;d<6;d++)
             occN[d]=((G.occupied)<<dirDif[d])|((G.occupied)>>(1024-dirDif[d]));
@@ -564,7 +600,7 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
         
 
         while(fQ!=bQ){
-            
+
             const positionT& current=quePM[bQ++];
             
             for(int dir=0;dir<6;++dir){
@@ -590,12 +626,47 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
                     //G._isValidMoveBitmask_rel_pos[numAction]=r;
 
                     G.associatedAction[r]=resAction[numAction++]=(movement(bug,neighbor));
-                    
+                    canVisit.set(neighbor,1);
                     quePM[fQ++]=neighbor;
                     inQueue.set(neighbor,1);
                 //}
             }
         }
+*/
+
+        for(uint64_t i=0;i<16;i++){
+            if(reachable.bv[i]>0){
+                for(uint64_t j=0;j<64;j++){
+                    if(reachable.bv[i]&(1ull<<(63-j))){
+                        resAction[numAction++]=(actionT)(bug|(i<<11)|(j<<5));
+                    }
+                }
+            }
+        }
+/*
+        if(canVisit!=reachable){
+            cout<<"Not the same::: "<<endl;
+            for(int i=0;i<32;i++){
+                for(int j=0;j<32;j++){
+                    cout<<(reachable[i+32*j]?'1':'.');
+                }
+                cout<< "   ";
+                for(int j=0;j<32;j++){
+                    cout<<(G.occupied[i+32*j]?'1':'.');
+                }
+
+                cout<< "   ";
+                for(int j=0;j<32;j++){
+                    cout<<(isOccupiedNear[1][i+32*j]?'1':'.');
+                }
+                cout<<"   ";
+                for(int j=0;j<32;j++){
+                    cout<<(canVisit[i+j*32]?'1':'.');
+                }
+                cout<<endl;
+            }
+        }
+            */
         G.addPiece(startPos,bug);    
     }
 }
@@ -614,18 +685,18 @@ void Board::possibleMoves_Spider(pieceT bug){
             positionT next1=applayMove(startPos,dr1);
             positionT p1=applayMove(startPos,(dr1+1)%6);
             positionT p2=applayMove(startPos,(dr1+5)%6);
-            if(!G.occupied[next1] && (G.occupied[p1]^G.occupied[p2])){
+            if(!G.occupied.get_bit(next1) && (G.occupied.get_bit(p1)^G.occupied.get_bit(p2))){
                 for(int dr2=0;dr2<6;dr2++){
                     if(dr1==(dr2+3)%6) continue;
                     positionT next2=applayMove(next1,dr2);
                     positionT p1=applayMove(next1,(dr2+1)%6);
                     positionT p2=applayMove(next1,(dr2+5)%6);
-                    if(next2!=startPos && !G.occupied[next2] &&   (G.occupied[p1]^G.occupied[p2])){
+                    if(next2!=startPos && !G.occupied.get_bit(next2) &&   (G.occupied.get_bit(p1)^G.occupied.get_bit(p2))){
                          for(int dr3=0;dr3<6;dr3++){
                             positionT next3=applayMove(next2,dr3);
                             positionT p1=applayMove(next2,(dr3+1)%6);
                             positionT p2=applayMove(next2,(dr3+5)%6);
-                            if( !G.occupied[next3] && (dr3!=(dr2+3)%6) && (G.occupied[p1]^G.occupied[p2])){
+                            if( !G.occupied.get_bit(next3) && (dr3!=(dr2+3)%6) && (G.occupied.get_bit(p1)^G.occupied.get_bit(p2))){
                                     reached.set(next3,1);
                             }
                          }
@@ -646,9 +717,10 @@ void Board::possibleMoves_Spider(pieceT bug){
             positionT rPos[]={n1,n2,n3,n4,n5,n6};
             for(int ni=0;ni<6;ni++){
                 if(reached[rPos[ni]]){
-                    G.isValidMoveBitmask[1227+ni+dir1*6+(numInc(bug)-1)*36]=1;
+                    //G.isValidMoveBitmask[1227+ni+dir1*6+(numInc(bug)-1)*36]=1;
                     //G._isValidMoveBitmask_rel_pos[numAction]=1227+ni+dir1*6+(numInc(bug)-1)*36;
-                    G.associatedAction[1227+ni+dir1*6+(numInc(bug)-1)*36]=resAction[numAction]=movement(bug,rPos[ni]);
+                    //G.associatedAction[1227+ni+dir1*6+(numInc(bug)-1)*36]=
+                    resAction[numAction]=movement(bug,rPos[ni]);
                     numAction++;
                 }
             }        
@@ -668,9 +740,10 @@ void Board::possibleMoves_Pillbug(pieceT bug){
     if (G.canPieceMove(bug,currentTurn)) {
         for(int i=0;i<6;i++){
             if(G.isFree(applayMove(pos,i))&&G.canSlideToFreeDir(pos,applayMove(pos,i),i)){
-                G.isValidMoveBitmask[1299+i]=1;
+                //G.isValidMoveBitmask[1299+i]=1;
                 //G._isValidMoveBitmask_rel_pos[numAction]=1299+i;
-                G.associatedAction[1299+i]=resAction[numAction]=movement(bug,applayMove(pos,i));
+                //G.associatedAction[1299+i]=
+                resAction[numAction]=movement(bug,applayMove(pos,i));
                 numAction++;
             }
         }
@@ -699,7 +772,7 @@ void Board::possibleMoves_Ladybug(pieceT bug){
             int hp2=G.getHight(applayMove(startPos,(dr1+5)%6));
             int hPos1=G.getHight(next1);
             int next1IDX=next1 ;
-            if(G.occupied[next1IDX]&& (hp1<=hPos1 ||hp2<=hPos1) ){
+            if(G.occupied.get_bit(next1IDX)&& (hp1<=hPos1 ||hp2<=hPos1) ){
                 for(int dr2=0;dr2<6;dr2++){
                     positionT next2=applayMove(next1,dr2);
                     hp1=G.getHight(applayMove(next1,(dr2+1)%6));
@@ -707,14 +780,14 @@ void Board::possibleMoves_Ladybug(pieceT bug){
                     int hPos2=G.getHight(next2);
             
                     int next2IDX=next2 ;
-                    if(G.occupied[next2IDX] && (hp1<=hPos1 ||hp2<=hPos1 || hp1<=hPos2 || hp2<=hPos2)){
+                    if(G.occupied.get_bit(next2IDX) && (hp1<=hPos1 ||hp2<=hPos1 || hp1<=hPos2 || hp2<=hPos2)){
                          for(int dr3=0;dr3<6;dr3++){
                             positionT next3=applayMove(next2,dr3);
                             hp1=G.getHight( applayMove(next2,(dr3+1)%6));
                             hp2=G.getHight( applayMove(next2,(dr3+5)%6));
             
                             int next3IDX=next3 ;
-                            if(!G.occupied[next3IDX] && !reached[next3IDX] && (hp1<=hPos2 || hp2<=hPos2)){
+                            if(!G.occupied.get_bit(next3IDX) && !reached[next3IDX] && (hp1<=hPos2 || hp2<=hPos2)){
                                     reached.set(next3IDX,1);
                             }
                          }
@@ -741,9 +814,10 @@ void Board::possibleMoves_Ladybug(pieceT bug){
 
             for(int i=0;i<6;i++){
                 if(reached[nei[i] ]){
-                    G.isValidMoveBitmask[1227+i+dir1*6+(numInc(bug)-1)*36]=1;
+                    //G.isValidMoveBitmask[1227+i+dir1*6+(numInc(bug)-1)*36]=1;
                     //G._isValidMoveBitmask_rel_pos[numAction]=1227+i+dir1*6+(numInc(bug)-1)*36;
-                    G.associatedAction[1227+i+dir1*6+(numInc(bug)-1)*36]= resAction[numAction]=movement(bug,nei[i]);
+                    //G.associatedAction[1227+i+dir1*6+(numInc(bug)-1)*36]= 
+                    resAction[numAction]=movement(bug,nei[i]);
                     numAction++;
                 }
             }
@@ -774,9 +848,10 @@ void Board::possibleMoves_Mosquito(pieceT bug){  // TODO
                 int maxH=max(h,G.getHight(dest));
                 
                 if(G.getHight(p1)<=maxH || G.getHight(p2)<=maxH){
-                    G.isValidMoveBitmask[1539+i]=1;
+                    //G.isValidMoveBitmask[1539+i]=1;
                     //G._isValidMoveBitmask_rel_pos[numAction]=1539+i;
-                    G.associatedAction[1539+i]=resAction[numAction]=(movement(bug, dest));
+                    //G.associatedAction[1539+i]=
+                    resAction[numAction]=(movement(bug, dest));
                     numAction++;
                 }
             }
@@ -802,15 +877,15 @@ void Board::possibleMoves_Mosquito(pieceT bug){  // TODO
         for(int dr1=0;dr1<6;dr1++){
             positionT next1=applayMove(pos,dr1);
             int next1IDX=next1 ;
-            if(!G.occupied[next1IDX] && G.canSlideToFreeDir(pos,next1,dr1)){
+            if(!G.occupied.get_bit(next1IDX) && G.canSlideToFreeDir(pos,next1,dr1)){
                 for(int dr2=0;dr2<6;dr2++){
                     positionT next2=applayMove(next1,dr2);
                     int next2IDX=next2 ;
-                    if(next2IDX!=startPosIDX && next2IDX!=next1IDX  &&!G.occupied[next2IDX] && G.canSlideToFreeDir(next1,next2,dr2)){
+                    if(next2IDX!=startPosIDX && next2IDX!=next1IDX  &&!G.occupied.get_bit(next2IDX) && G.canSlideToFreeDir(next1,next2,dr2)){
                          for(int dr3=0;dr3<6;dr3++){
                             positionT next3=applayMove(next2,dr3);
                             int next3IDX=next3 ;
-                            if( !G.occupied[next3IDX] &&  
+                            if( !G.occupied.get_bit(next3IDX) &&  
                                 next3IDX!=next1IDX  && next3IDX!=next2IDX && next3IDX!=startPosIDX 
                                 && !reachable[next3IDX] &&G.canSlideToFreeDir(next2,next3,dr3)){
                                     reachable.set(next3IDX,1);
@@ -834,20 +909,20 @@ void Board::possibleMoves_Mosquito(pieceT bug){  // TODO
                 int hp2=G.getHight(applayMove(pos,(dr1+5)%6));
                 int hPos1=G.getHight(next1);
                 int next1IDX=next1 ;
-                if(G.occupied[next1IDX] && (hp1<=hPos1 ||hp2<=hPos1)){
+                if(G.occupied.get_bit(next1IDX) && (hp1<=hPos1 ||hp2<=hPos1)){
                     for(int dr2=0;dr2<6;dr2++){
                         positionT next2=applayMove(next1,dr2);
                         hp1=G.getHight( applayMove(next1,(dr2+1)%6));
                         hp2=G.getHight( applayMove(next1,(dr2+5)%6));
                         int hPos2=G.getHight(next2);
                         int next2IDX=next2 ;
-                        if(G.occupied[next2IDX]  && (hp1<=hPos1 ||hp2<=hPos1 || hp1<=hPos2 || hp2<=hPos2)){
+                        if(G.occupied.get_bit(next2IDX)  && (hp1<=hPos1 ||hp2<=hPos1 || hp1<=hPos2 || hp2<=hPos2)){
                             for(int dr3=0;dr3<6;dr3++){
                                 positionT next3=applayMove(next2,dr3);
                                 hp1=G.getHight( applayMove(next2,(dr3+1)%6));
                                 hp2=G.getHight( applayMove(next2,(dr3+5)%6));
                                 int next3IDX=next3 ;
-                                if(!G.occupied[next3IDX] && !reachable[next3IDX]  && (hp1<=hPos2 || hp2<=hPos2)){
+                                if(!G.occupied.get_bit(next3IDX) && !reachable[next3IDX]  && (hp1<=hPos2 || hp2<=hPos2)){
                                         reachable.set(next3IDX,1);
                                 }
                             }
@@ -872,9 +947,10 @@ void Board::possibleMoves_Mosquito(pieceT bug){  // TODO
                 
                 if(G.getHight(p1)<=maxH || G.getHight(p2)<=maxH){
                     if(!G.isFree(dest)){
-                        G.isValidMoveBitmask[1539+i]=1;
+                        //G.isValidMoveBitmask[1539+i]=1;
                         //G._isValidMoveBitmask_rel_pos[numAction]=1539+i;
-                        G.associatedAction[1539+i]=resAction[numAction]=(movement(bug, dest));
+                        //G.associatedAction[1539+i]=
+                        resAction[numAction]=(movement(bug, dest));
                         numAction++;      
                     }else{
                         reachable.set(dest ,1);
@@ -910,7 +986,7 @@ void Board::possibleMoves_Mosquito(pieceT bug){  // TODO
         int fQ=0;
         int bQ=0;
         inQueue.reset();
-        inQueue|=G.occupied;
+        inQueue.updateOr(G.occupied);
         
         const positionT startPos=G.getPosition(bug);
 
@@ -938,7 +1014,7 @@ void Board::possibleMoves_Mosquito(pieceT bug){  // TODO
                 
                 const positionT& neighbor = neighbors[dir];
                 const int neighborIdx = neighbor ;
-                if(inQueue[neighborIdx]) 
+                if(inQueue.get_bit(neighborIdx)) 
                     continue;
                 const int &p1=(dir+1)%6;
                 const int &p2=(dir+5)%6;
@@ -974,20 +1050,20 @@ void Board::possibleMoves_Mosquito(pieceT bug){  // TODO
             positionT dest(pi);
             resAction[numAction]=(movement(bug, dest));
             numAction++;
-
+            /*
             for(int dir=0;dir<6;dir++){
                 near=applayMove(dest,dir);
                 if(!G.isFree(near) && G.topPiece(near)!=bug){
                     pieceT bugNear=G.topPiece(near);
-                    G.isValidMoveBitmask[
-                    1371+  // base
-                    dir+
-                    6*(bugNear-1)]=1;   
+                    //G.isValidMoveBitmask[
+                    //1371+  // base
+                    //dir+
+                    //6*(bugNear-1)]=1;   
                     //G._isValidMoveBitmask_rel_pos[numAction-1]=1371+dir+6*(bugNear-1);
-                    G.associatedAction[1371+dir+6*(bugNear-1)]=resAction[numAction-1];
+                    //G.associatedAction[1371+dir+6*(bugNear-1)]=resAction[numAction-1];
                     break;
                 }                
-            }   
+            }   */
         }
     }
 }
@@ -1048,8 +1124,8 @@ void Board::computePillbugMovinPieces(){
                 if(canGetFrom[i] && canGoTo[j]){
                     pillbugMoves[pillbugTotMoves]=movement(G.topPiece(posS[i]),posS[j]);
                     pillbugTotMoves++;
-                    G.isValidMoveBitmask[1545+k]=1;
-                    G.associatedAction[1545+k]=pillbugMoves[pillbugTotMoves-1];
+                    //G.isValidMoveBitmask[1545+k]=1;
+                    //G.associatedAction[1545+k]=pillbugMoves[pillbugTotMoves-1];
                 }
                 k++;
             }

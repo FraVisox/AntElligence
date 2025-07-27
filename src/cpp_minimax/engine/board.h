@@ -33,13 +33,13 @@ class Board {
     void applayAction(actionT a);
 
     actionT suggestInitialMove();
-    
+
     // compute possible moves
     void ComputePossibleMoves();
 
 
     GameState getGameState();
-
+    
     string toString();
     
     int currentTurn;
@@ -61,7 +61,7 @@ class Board {
     int pillbugTotMoves;
 
     // auxiliary for Ants moves
-    bitset<1024> inQueue;
+    BoardBitSet inQueue;
     
     void possibleMovesBug(pieceT b);
     void possibleMoves_Queen(pieceT bug);

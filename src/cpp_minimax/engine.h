@@ -158,4 +158,9 @@ class Engine{
   }
 };
 
+string actionToString(actionT a, Board &board);
+actionT stringToAction(Board &b, string str);
+
+
+
 #endif
