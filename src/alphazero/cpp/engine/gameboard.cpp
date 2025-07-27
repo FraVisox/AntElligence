@@ -8,7 +8,6 @@ gameboard::gameboard(){
     for(int i=0;i<32;i++)
         bugPosition[i]=NULL_POSITION;
     
-    occupied.reset();
     isPlaced.reset();
 }
 
@@ -17,7 +16,6 @@ gameboard::gameboard(GameType gt){
     memset(high, 0, sizeof(high));
     for(int i=0;i<32;i++)
         bugPosition[i]=NULL_POSITION;
-    occupied.reset();
     isPlaced.reset();
 }
 
@@ -137,8 +135,8 @@ void gameboard::copy(gameboard& g){
     }
     this->occupied=g.occupied;
     this->isPlaced=g.isPlaced;
-    for(int i=0;i<TOTAL_POSSIBLE_MOVES;i++)
-        this->isValidMoveBitmask[i]=g.isValidMoveBitmask[i];
+    //for(int i=0;i<TOTAL_POSSIBLE_MOVES;i++)
+    //    this->isValidMoveBitmask[i]=g.isValidMoveBitmask[i];
 }
 /**
  * \brief Checks if the given bug is at the top of the stack.
@@ -266,14 +264,13 @@ bitset<308> gameboard::toHash(){
  */
 void gameboard::computeValidPositionPlaceNew(PlayerColor color){  // there is a faster way using bit map, but is boring
     numValidPosition=0;
-    bitset<1024> colEq,canPlace;
+    BoardBitSet colEq,canPlace(~occupied);
     
     //bitset<1024> hasOneNearSame,hasOneNearOpp;
     
     
     //hasOneNearSame.reset();
     //hasOneNearOpp.reset();
-    canPlace=~occupied;
 
     //positionT pos;
 
@@ -296,17 +293,19 @@ void gameboard::computeValidPositionPlaceNew(PlayerColor color){  // there is a 
 */
 
 
-    bitset<1024>  hons(0),hono(0);
-
+    BoardBitSet  hons,hono;
     for(int p=1;p<=28;p++){
         if(isPlaced[p] && isTop(p)){
             colEq.set(getPosition(p),(col(p)==color));
         }
     }
     
+    BoardBitSet xbbs=(occupied &colEq);
+    BoardBitSet ybbs=(occupied & ~colEq);
+        
     for(int d=0;d<6;d++){
-        hons|=((occupied &  colEq)<<dirDif[d])|((occupied &  colEq)>>(1024-dirDif[d]));
-        hono|=((occupied & ~colEq)<<dirDif[d])|((occupied & ~colEq)>>(1024-dirDif[d]));
+        hons.updateOr(xbbs.getRot(d));
+        hono.updateOr(ybbs.getRot(d));
     }
     /*
     for(int d=0;d<6;d++){
@@ -327,14 +326,15 @@ void gameboard::computeValidPositionPlaceNew(PlayerColor color){  // there is a 
     }
 */
 
-    canPlace&=hons;
-    canPlace&=~hono;
+    canPlace.updateAnd(hons);
+    canPlace.updateAnd(~hono);
     for(unsigned int IPos=0;IPos<1024;IPos++){
-        if(canPlace[IPos]){
+        if(canPlace.get_bit(IPos)){
             validPositionPlaceBuffer[numValidPosition]=IPos;
             numValidPosition++;
         }
     }
+    //cout<<numValidPosition<<endl;
 }
 
 

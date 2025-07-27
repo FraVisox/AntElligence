@@ -25,7 +25,7 @@ int main(){
     int totMov=0;
         
     auto seed=time(0);
-    for(int TR=0;TR<200;TR++){
+    for(int TR=0;TR<100;TR++){
         cout<<"Run with seed:"<<seed+TR<<endl;
         srand(seed+TR);
 
@@ -38,7 +38,7 @@ int main(){
         while(1){
             eb.ComputePossibleMoves();
             if(eb.numAction==0){
-                
+
             }
             int m=rand()%eb.numAction;
             //m=1;

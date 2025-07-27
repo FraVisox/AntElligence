@@ -1,36 +1,43 @@
+#pragma once
 using namespace std;
 
 #include <cassert>
 #include <iostream>
 #include <cstring>
+#include <bitset>
 
-class OrzoBitvector {
-
-    private:
-
-        uint64_t bv[16];
+class BoardBitSet {
 
     public:
 
-        OrzoBitvector() {
-            memset(bv, 0, sizeof(bv));
-        }
+        uint64_t bv[16];
 
 
+        BoardBitSet() ;
+        BoardBitSet(BoardBitSet* b1);
 
-        void set_bit(uint64_t i) {
-            uint64_t word_idx = i / 64;
-            this->bv[word_idx] |= (1ul << (i % 64));
-        }
-        void set(uint64_t i,uint64_t v){
-        
-            uint64_t word_idx = i / 64;
-            this->bv[word_idx] |= (v << (i % 64));
-        }
+        bool none();
 
-        bool get_bit(uint64_t i) {
-            uint64_t word_idx = i / 64;
-            return (bool) (this->bv[word_idx] & (1 << (i % 64)));
-        }
+        void set_bit(uint64_t i) ;
+        void set(uint64_t i,uint64_t v);
 
+        bool get_bit(uint64_t i) const;
+
+        void updateOr(const BoardBitSet& b);
+
+        void updateAnd(const BoardBitSet& b);
+
+        BoardBitSet getRot(int d) const ;
+    void reset();
 };
+
+bool operator==(const BoardBitSet& a,const BoardBitSet &b );
+BoardBitSet operator|(const BoardBitSet& a,const BoardBitSet& b);
+
+BoardBitSet operator&(const BoardBitSet& a,const BoardBitSet& b);
+
+BoardBitSet operator^(const BoardBitSet& a,const BoardBitSet& b);
+
+BoardBitSet operator~(const BoardBitSet& a);
+
+BoardBitSet operator<<(const BoardBitSet& a,const int x);

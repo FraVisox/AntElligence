@@ -57,7 +57,7 @@ class Board {
     int pillbugTotMoves;
 
     // auxiliary for Ants moves
-    bitset<1024> inQueue;
+    BoardBitSet inQueue;
     
     void possibleMovesBug(pieceT b);
     void possibleMoves_Queen(pieceT bug);
