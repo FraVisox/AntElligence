@@ -1039,6 +1039,7 @@ actionT Board::suggestInitialMove() {
     //Place near nears[0]
     return parseAction("bQ "+insertDirection(moves[1].bug.toString(), getNextDir(G.getPosition(moves[1].bug), nears[0], G.getPosition(moves[0].bug))), inHandPiece);
     */
+   cout << "Suggesting initial" << endl;
    return 0;
 }
 

@@ -246,6 +246,7 @@ void gameboard::computeValidPositionPlaceNew(PlayerColor color){  // there is a 
     for(int d=0;d<6;d++){
         hono|=diffCN[d];
     }
+        */
 
 
     canPlace.updateAnd(hons);
@@ -257,7 +258,6 @@ void gameboard::computeValidPositionPlaceNew(PlayerColor color){  // there is a 
         }
     }
     //cout<<numValidPosition<<endl;
-    */
 }
 
 

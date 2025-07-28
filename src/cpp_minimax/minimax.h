@@ -33,13 +33,14 @@ private:
     bool DISABLE_CACHE = true;
 
     int timeLimit = 5;
-    int depthLimit = 15;
+    int depthLimit = 4;
 
     const int MIN_EVAL = -10000;
     const int MAX_EVAL = 10000;
 
     int utility(GameState state, Board board);
-    actionT initiate_minimax(Board board);
+    actionT initiate_minimax_iterative(Board board);
+    actionT initiate_minimax_fixed(Board board);
     int minmax(GameState state, Board board, int depth, int alpha, int beta);
 
     bool is_time_up() const {

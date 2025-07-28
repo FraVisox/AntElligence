@@ -31,15 +31,15 @@ int MinimaxAgent::utility(GameState state, Board board) {
     return 0;
 }
 
-/*
 //ITERATIVE DEEPENING:
-actionT MinimaxAgent::initiate_minimax(Board board) {
-    actionT best_move = pass();
-    int best_eval = MIN_EVAL;
+actionT MinimaxAgent::initiate_minimax_iterative(Board board) {
 
     board.ComputePossibleMoves();
+
     if (board.numAction == 0) return pass();
-    best_move = board.resAction[0];
+
+    int best_eval = MIN_EVAL;
+    actionT best_move = board.resAction[0];
 
     std::vector<actionT> actions(board.resAction, board.resAction + board.numAction);
 
@@ -59,8 +59,7 @@ actionT MinimaxAgent::initiate_minimax(Board board) {
             if (is_time_up()) break;
             Board temp = board;
             temp.applayAction(action);
-            int eval = minmax(temp.getGameState(), temp, 1, alpha, beta); // depth=1 eval
-            scored_actions.emplace_back(eval, action);
+            scored_actions.emplace_back(utility(temp.getGameState(), temp), action);
         }
 
         // Sort actions descending by score (most promising first)
@@ -80,7 +79,7 @@ actionT MinimaxAgent::initiate_minimax(Board board) {
             Board b1 = board;
             b1.applayAction(action);
 
-            int eval = minmax(b1.getGameState(), b1, current_depth, alpha, beta);
+            int eval = -minmax(b1.getGameState(), b1, current_depth, -beta, -alpha);
             if (eval > max_eval) {
                 max_eval = eval;
                 move_this_depth = action;
@@ -100,71 +99,13 @@ actionT MinimaxAgent::initiate_minimax(Board board) {
 
     return best_move;
 }
-*/
-
-/*
-// TRANSPOSITION TABLE
-int MinimaxAgent::minmax(GameState state, Board board, int depth_remaining, int alpha, int beta) {
-    calledBoard++;
-
-    if (is_time_up()) return 0;
-
-    if (state == GameState::DRAW || 
-        state == GameState::WHITE_WIN || 
-        state == GameState::BLACK_WIN || 
-        depth_remaining == 0) {
-        return utility(state, board);
-    }
-
-    bitset<308> hash = board.simple_hash(color);
-
-    // Transposition Table Lookup
-    auto it = transposition_table.find(hash);
-    if (it != transposition_table.end()) {
-        const TTEntry& entry = it->second;
-
-        if (entry.bound == BoundType::EXACT) return entry.value;
-        if (entry.bound == BoundType::LOWER_BOUND && entry.value >= beta) return entry.value;
-        if (entry.bound == BoundType::UPPER_BOUND && entry.value <= alpha) return entry.value;
-    }
-
-    board.ComputePossibleMoves();
-    int max_eval = MIN_EVAL;
-    int original_alpha = alpha;
-
-    for (int i = 0; i < board.numAction; i++) {
-        if (is_time_up()) break;
-
-        Board b1 = Board(board);
-        b1.applayAction(board.resAction[i]);
-
-        int eval = -minmax(b1.getGameState(), b1, depth_remaining - 1, -beta, -alpha);
-        max_eval = std::max(max_eval, eval);
-        alpha = std::max(alpha, max_eval);
-
-        if (beta <= alpha) break;
-    }
-
-    // Transposition Table Store
-    BoundType bound;
-    if (max_eval <= original_alpha) bound = BoundType::UPPER_BOUND;
-    else if (max_eval >= beta) bound = BoundType::LOWER_BOUND;
-    else bound = BoundType::EXACT;
-
-    transposition_table[hash] = { max_eval, bound };
-
-    return max_eval;
-}
-    */
-
 
 //FIXED DEPTH:
-actionT MinimaxAgent::initiate_minimax(Board board) {
+actionT MinimaxAgent::initiate_minimax_fixed(Board board) {
     int max_eval = MIN_EVAL;
     int alpha = MIN_EVAL;
     int beta = MAX_EVAL;
     actionT todo_action = pass();
-
 
     // Get all valid moves
     board.ComputePossibleMoves();
@@ -172,7 +113,7 @@ actionT MinimaxAgent::initiate_minimax(Board board) {
     if (board.numAction != 0) {
         todo_action = board.resAction[0];
     }
-    if (board.numAction == 1) {
+    if (board.numAction <= 1) {
         return todo_action;
     }
 
@@ -182,9 +123,8 @@ actionT MinimaxAgent::initiate_minimax(Board board) {
         Board b1 = Board(board);
         b1.applayAction(board.resAction[i]);
 
-        // Try a simplified call first
-        int eval = this->minmax(b1.getGameState(), b1, 1, alpha, beta);
-        
+        int eval = -minmax(b1.getGameState(), b1, depthLimit-1, -beta, -alpha);
+
         if (eval > max_eval) {
             max_eval = eval;
             todo_action = board.resAction[i];
@@ -192,6 +132,9 @@ actionT MinimaxAgent::initiate_minimax(Board board) {
         
         alpha = std::max(alpha, max_eval);
 
+        if (beta <= alpha) {
+            break;
+        }
     }
     
     return todo_action;
@@ -199,28 +142,21 @@ actionT MinimaxAgent::initiate_minimax(Board board) {
 
 int MinimaxAgent::minmax(GameState state, Board board, int depth_remaining, int alpha, int beta) {
 
-    // Debug print
-    calledBoard++;
-
     if (is_time_up()) {
         return 0;  // Return a neutral evaluation when time runs out
     }
-
 
     // Check if we've reached a terminal state or maximum depth
     if (state == GameState::DRAW || 
         state == GameState::WHITE_WIN || 
         state == GameState::BLACK_WIN || 
         depth_remaining == 0) {
-        // Return a simple evaluation for debugging
-        int eval = 0;
-            // If Oracle fails, use utility as fallback
-        eval = utility(state, board);
-        return eval;
+
+        // Return an evaluation of the board
+        return utility(state, board);
     }
     
     board.ComputePossibleMoves();
-
     
     int max_eval = MIN_EVAL;
     
@@ -259,7 +195,7 @@ actionT MinimaxAgent::calculate_best_move(Board board) {
     if (DISABLE_CACHE || _cache == pass() || board.currentTurn != cached_turn) {
         color = board.currentColor();
         cached_turn = board.currentTurn;
-        _cache = initiate_minimax(board);
+        _cache = initiate_minimax_iterative(board);
     }
 
 
