@@ -25,61 +25,7 @@ Board::Board(){
     inHandPiece.reset();
     prevMoved[0]=0;
     prevMoved[1]=0;
-};
-
-
-
-/*
-    QUEEN=0,
-    SPIDER=1,
-    BEETLE=2,
-    GRASSHOPPER=3,
-    SOLDIER_ANT=4,
-    MOSQUITO=5,
-    LADYBUG=6,
-    PILLBUG=7
-*/
-
-int kindValue[] = {100, 10, 70, 40, 90, 35, 60, 45};
-
-int Board::getScoreBug(pieceT p) {
-    int multipl = kindValue[kind(p)];
-    if (isPinned(p) || isCovered(p)) {
-        return -multipl;
-    }
-    return multipl*(friendlyNeighbour(p)-enemyNeighbour(p));
-}
-
-int Board::getScore(PlayerColor color) {
-    int res = 0;
-    if (G.isPlaced[22] && G.isPlaced[8]) {
-        for (pieceT p=1;p<=28;p++) {
-            if(G.isPlaced[p]){
-                if (col(p) == color) {
-                    res += getScoreBug(p);
-                } else {
-                    res -= getScoreBug(p);
-                }
-            }
-        }
-    }
-    return res;
-}
-
-
-
-int Board::countSurrounding(pieceT p) {
-    positionT pos = G.getPosition(p);
-    int ret = 0;
-    for (direction dir=0;dir<6;dir++){
-        positionT adj= applayMove(pos,dir);
-        if (!G.isFree(adj)) {
-            ret += 1;
-        }
-    }
-    return ret;
-}
-    
+};    
 
 
 /**
@@ -980,34 +926,6 @@ void Board::computePillbugMovinPieces(){
     }
 }
 
-
-int Board::isPinned(pieceT bug) {
-    return !G.canPieceMove(bug, currentTurn);
-}
-
-int Board::isCovered(pieceT bug) {
-    return !G.isTop(bug);
-}
-int Board::friendlyNeighbour(pieceT bug) {
-    int res = 0;
-    for (int di=0;di<6;di++){
-        positionT adj=applayMove(G.getPosition(bug),di);
-        if (G.isFree(adj) || col(G.topPiece(adj)) == col(bug)) {
-            res++;
-        }
-    }
-    return res;
-}
-int Board::enemyNeighbour(pieceT bug) {
-    int res = 0;
-    for (int di=0;di<6;di++){
-        positionT adj=applayMove(G.getPosition(bug),di);
-        if (!G.isFree(adj) && col(G.topPiece(adj)) != col(bug)) {
-            res++;
-        }
-    }
-    return res;
-}
 
 string Board::toString() {
     return "Base+MLP;"+GameStateToString(getGameState())+";"+ColorToCompleteString(currentColor())+"["+to_string(currentPlayerTurn())+"]";
