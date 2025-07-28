@@ -8,17 +8,6 @@
 #include <memory>
 #include <chrono>
 
-#include <unordered_map>
-
-enum class BoundType { EXACT, LOWER_BOUND, UPPER_BOUND };
-
-struct TTEntry {
-    int value;
-    BoundType bound;
-};
-
-std::unordered_map<bitset<308>, TTEntry> transposition_table;
-
 
 class MinimaxAgent {
 private:

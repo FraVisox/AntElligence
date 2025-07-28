@@ -48,6 +48,10 @@ class Board {
     string toString();
     actionT suggestInitialMove();
     bitset<285> simple_hash(PlayerColor color);
+    uint64_t getHash();
+
+    int getScore(PlayerColor color);
+
 
     // returns the actions
     actionT resAction[MAX_ACTIONS_SIZE];
@@ -77,7 +81,6 @@ class Board {
 
 
 
-    int getScore(PlayerColor color);
     int getScoreBug(pieceT p);
     int countSurrounding(pieceT p);
     int isPinned(pieceT bug);

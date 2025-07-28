@@ -6,28 +6,25 @@ import time
 # To set
 file_results = "../results/game_results.csv"
 number_of_matches = 21
-number_of_turns_per_match = 1000
-number_moves_log = 10
+number_of_turns_per_match = 200
+number_moves_log = 1
 
 # Commands to pass to the engine
 game_start = "newgame Base+MLP\n"
 ending_sequence = "ok"
-#bestmove = "bestmove time 00:00:05\n"
-bestmove = "bestmove depth 5\n" # Empirically, the minimax remains under 5 seconds only if depth <= 2. But this doesn't help at all, too few states
+bestmove = "bestmove time 00:00:05\n"
+#bestmove = "bestmove depth 5\n" # Empirically, the minimax remains under 5 seconds only if depth <= 2. But this doesn't help at all, too few states
 
 
 if platform.system()=="Linux":
     files_to_match = {
-        "Random": "../dist/AntElligenceEngine",
-        "Minimax": "../dist/AntElligenceEngine",
-        #"Mzinga": "C:\\Users\\vison\\OneDrive\\Desktop\\Progetti\\Hive\\AntElligence\\dist\\MzingaEngine.exe"
+        #"Random": "../dist/AntElligenceEngine",
+        "Minimax": "./cpp_minimax/main",
+        "Mzinga": "../dist/MzingaEngine"
     }
 else:
     files_to_match = {
-        "Random": "../dist/AntElligenceEngineCppRandom.exe",
-        "Minimax": "../dist/AntElligenceEngineCpp.exe",
-        "Python": "../dist/AntElligenceEnginePy.exe",
-        "PyCpp": "../dist/AntElligenceEnginePyCpp.exe",
+        "Minimax": "./cpp_minimax/main.exe",
         "Mzinga": "../dist/MzingaEngine.exe"
     }
 

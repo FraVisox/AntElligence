@@ -1,6 +1,8 @@
 #include <iostream>
 #include "engine.h"
 #include "minimax.h"
+#include "minimax_tt.h"
+#include "minimax.h"
 
 #include "engine/action.cpp"
 #include "engine/board_bitset.cpp"
@@ -11,6 +13,7 @@
 #include "engine/piece.cpp"
 #include "engine/position.cpp"
 #include "minimax.cpp"
+#include "minimax_tt.cpp"
 #include "engine.cpp"
 
 int main(){

@@ -12,44 +12,44 @@ string actionToString(actionT a, Board &board){
     pieceT bug=a&31;
     positionT pos=a>>5;
     string s=PiecetoString(bug);
-    cout<<" read to "<<bug<<" in pos "<<pos<<" -> ";
+    //cout<<" read to "<<bug<<" in pos "<<pos<<" -> ";
     gameboard& g=board.G;
     if(!g.isFree(pos)){
         cout<<"FP";
         pieceT resPiece=board.G.topPiece(pos);   
         s+=" "+nameDirToString(PiecetoString(resPiece),opposite(6));  
-        cout<<" OK  with place over"<<endl;
+        //cout<<" OK  with place over"<<endl;
         return s;
     }else{
-        cout<<" LN ";
+        //cout<<" LN ";
         for(int dir=0;dir<6;dir++){
             positionT next=applayMove(pos,dir);
-            cout<<" ( "<<next<<"->";
+            //cout<<" ( "<<next<<"->";
             int h=g.getHight(next);
             if(h>0){
-                cout<<" O ";
+                //cout<<" O ";
                 if(g.topPiece(next)==bug){
-                    cout<<"ME ";
+                    //cout<<"ME ";
                     if(h==1){
-                        cout<<"X)";
+                       // cout<<"X)";
                     }else{
                         pieceT resPiece=g.gb[h-2][next];
                         s+=" "+nameDirToString(PiecetoString(resPiece),opposite(dir));  
-                        cout<<"go down)"<<endl;
+                     //   cout<<"go down)"<<endl;
                         return s;
                     }
                 }else{
                     pieceT resPiece=g.topPiece(next);
                     s+=" "+nameDirToString(PiecetoString(resPiece),opposite(dir));  
-                    cout<<"Ok)"<<endl;
+                  //  cout<<"Ok)"<<endl;
                     return s; 
                 }
 
             }
-            cout<<"X) ,";
+         //   cout<<"X) ,";
         }
     }
-    cout<<" No -> place free";
+ //   cout<<" No -> place free";
     return s;
 //    return s;
 }

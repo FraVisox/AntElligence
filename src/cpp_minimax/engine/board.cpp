@@ -1018,6 +1018,12 @@ bitset<285> Board::simple_hash(PlayerColor color) {
     return G.toHash();
 }
 
+uint64_t Board::getHash() {
+    // TODO: use color
+    bitset<285> bs = G.toHash();
+    return bs.to_ullong();
+}
+
 actionT Board::suggestInitialMove() {
     /*
     if (currentTurn == 3) {
