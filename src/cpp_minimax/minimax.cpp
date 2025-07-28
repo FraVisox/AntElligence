@@ -31,6 +31,7 @@ int MinimaxAgent::utility(GameState state, Board board) {
     return 0;
 }
 
+/*
 //ITERATIVE DEEPENING:
 actionT MinimaxAgent::initiate_minimax(Board board) {
     actionT best_move = pass();
@@ -99,6 +100,7 @@ actionT MinimaxAgent::initiate_minimax(Board board) {
 
     return best_move;
 }
+*/
 
 /*
 // TRANSPOSITION TABLE
@@ -157,7 +159,6 @@ int MinimaxAgent::minmax(GameState state, Board board, int depth_remaining, int 
 
 
 //FIXED DEPTH:
-/*
 actionT MinimaxAgent::initiate_minimax(Board board) {
     int max_eval = MIN_EVAL;
     int alpha = MIN_EVAL;
@@ -195,7 +196,6 @@ actionT MinimaxAgent::initiate_minimax(Board board) {
     
     return todo_action;
 }
-    */
 
 int MinimaxAgent::minmax(GameState state, Board board, int depth_remaining, int alpha, int beta) {
 

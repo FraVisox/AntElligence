@@ -99,6 +99,7 @@ actionT stringToAction(Board &b, string str){
 
 void Engine::newgame(string s){
     board = Board(Base_MLP);
+    actions.clear();
     printBoard();
 }
    
