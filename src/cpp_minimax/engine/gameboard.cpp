@@ -257,6 +257,7 @@ void gameboard::computeValidPositionPlaceNew(PlayerColor color){  // there is a 
         }
     }
     //cout<<numValidPosition<<endl;
+    */
 }
 
 

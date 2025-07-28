@@ -58,7 +58,7 @@ actionT MinimaxAgent::initiate_minimax(Board board) {
             if (is_time_up()) break;
             Board temp = board;
             temp.applayAction(action);
-            int eval = minmax(temp.getGameState(), temp, 1, alpha, beta); // depth=1 eval
+            int eval = -minmax(temp.getGameState(), temp, 1, alpha, beta); // depth=1 eval
             scored_actions.emplace_back(eval, action);
         }
 
@@ -114,7 +114,7 @@ int MinimaxAgent::minmax(GameState state, Board board, int depth_remaining, int 
         return utility(state, board);
     }
 
-    bitset<308> hash = board.simple_hash(color);
+    bitset<285> hash = board.simple_hash(color);
 
     // Transposition Table Lookup
     auto it = transposition_table.find(hash);

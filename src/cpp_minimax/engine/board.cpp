@@ -1013,7 +1013,7 @@ string Board::toString() {
     return "Base+MLP;"+GameStateToString(getGameState())+";"+ColorToCompleteString(currentColor())+"["+to_string(currentPlayerTurn())+"]";
 }
 
-bitset<308> Board::simple_hash(PlayerColor color) {
+bitset<285> Board::simple_hash(PlayerColor color) {
     // TODO: use color
     return G.toHash();
 }
