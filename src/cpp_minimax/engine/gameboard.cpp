@@ -78,9 +78,8 @@ void gameboard::copy(gameboard& g){
         this->occupied.bv[i]=g.occupied.bv[i];
     }
     
-    for(int i=0;i<16;i++){
-        this->isPlaced.bv[i]=g.isPlaced.bv[i];
-    }
+    this->isPlaced=g.isPlaced;
+    
 }
 /**
  * \brief Checks if the given bug is at the top of the stack.

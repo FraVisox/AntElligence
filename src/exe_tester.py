@@ -5,7 +5,7 @@ import time
 
 # To set
 file_results = "../results/game_results.csv"
-number_of_matches = 21
+number_of_matches = 15
 number_of_turns_per_match = 200
 number_moves_log = 1
 
@@ -106,6 +106,9 @@ def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = No
         player1 = Popen(pl1_path, stdin=PIPE, stdout=PIPE, stderr=PIPE, encoding="UTF8", bufsize=1)
         player2 = Popen(pl2_path, stdin=PIPE, stdout=PIPE, stderr=PIPE, encoding="UTF8", bufsize=1)
 
+        str1 = pl1_path
+        str2 = pl2_path
+
         # Make players present
         for player, label in [(player1, name1), (player2, name2)]:
             print(f"{label} presenting:")
@@ -193,21 +196,22 @@ def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = No
                     if match & 2 == 1: # White is player 1
                         stats["pl1_wins_white" if match % 2 == 1 else "pl1_wins_black"] += 1
                         stats["pl1_turns_white" if match % 2 == 1 else "pl1_turns_black"] += turn
-                        print("Player 1 wins")
+                        print("Player 1 wins:", str1)
+
                     else:
                         stats["pl2_wins_white" if match % 2 == 1 else "pl2_wins_black"] += 1
                         stats["pl2_turns_white" if match % 2 == 1 else "pl2_turns_black"] += turn
-                        print("Player 2 wins")
+                        print("Player 2 wins:", str2)
                     break
                 elif "BlackWins" in response:
                     if match & 2 == 0: #Black is player 1
                         stats["pl1_wins_black" if match % 2 == 0 else "pl1_wins_white"] += 1
                         stats["pl1_turns_black" if match % 2 == 0 else "pl1_turns_white"] += turn
-                        print("Player 1 wins")
+                        print("Player 1 wins:", str1)
                     else:
                         stats["pl2_wins_black" if match % 2 == 0 else "pl2_wins_white"] += 1
                         stats["pl2_turns_black" if match % 2 == 0 else "pl2_turns_white"] += turn
-                        print("Player 2 wins")
+                        print("Player 2 wins:", str2)
                     break
                 elif "Draw" in response:
                     stats["draws"] += 1

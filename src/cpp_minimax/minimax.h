@@ -19,7 +19,7 @@ private:
 
     actionT _cache = pass();
     int cached_turn = 1;
-    bool DISABLE_CACHE = true;
+    bool DISABLE_CACHE = false;
 
     int timeLimit = 5;
     int depthLimit = 4;
