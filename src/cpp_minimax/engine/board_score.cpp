@@ -229,7 +229,7 @@ int Board::mobility_score() {
 }
 
 /**
- * Score based on pieces positioned near the opponent's queen (tempo advantage)
+ * Score based on pieces positioned near the opponent's queen (tempo advantage). TODO: ha senso?
  */
 int Board::tempo_score() {
     if (!bothQueensPlaced()) {
@@ -315,7 +315,7 @@ int Board::pin_score() {
     PlayerColor myColor = currentColor();
     
     for (pieceT p = 1; p <= 28; p++) {
-        if (G.isPlaced[p] && isPinned(p)) {
+        if (G.isPlaced[p] && isPinned(p)) { //TODO: se pinni la ant è meglio, fai weights
             BugType pieceType = kind(p);
             
             // Only count valuable pieces as significant when pinned
@@ -375,10 +375,10 @@ int Board::bug_utility_score() {
                 
             case PILLBUG:
                 // Pillbug is valuable near both queens
-                if (getHexDistance(piecePos, myQueenPos) <= 2) {
+                if (isAdjacent(piecePos, myQueenPos)) {
                     score += 6;  // Defensive value
                 }
-                if (getHexDistance(piecePos, oppQueenPos) <= 2) {
+                if (isAdjacent(piecePos, oppQueenPos)) {
                     score += 8;  // Offensive value
                 }
                 break;
@@ -392,39 +392,10 @@ int Board::bug_utility_score() {
 }
 
 /**
- * Individual piece scoring based on position and mobility
- */
-int Board::getScoreBug(pieceT p) {
-    if (!G.isPlaced[p]) return 0;
-    
-    // Base values for different piece types
-    const int kindValue[] = {100, 10, 70, 40, 90, 35, 60, 45};
-    
-    int baseValue = kindValue[kind(p)];
-    
-    if (isPinned(p) || isCovered(p)) {
-        return -baseValue;  // Immobilized pieces are liabilities
-    }
-    
-    // Factor in positioning: friendly neighbors good, enemy neighbors bad
-    int positionModifier = friendlyNeighbour(p) - enemyNeighbour(p);
-    
-    return baseValue * positionModifier;
-}
-
-/**
  * Overall board evaluation from the perspective of the given color
  */
 int Board::getScore(PlayerColor color) {
-    /*
     // Temporarily switch perspective if needed
-    PlayerColor originalColor = currentColor();
-    bool needSwitch = (color != originalColor);
-    
-    if (needSwitch) {
-        // This is a conceptual switch - in practice you might need to adjust
-        // the current turn to evaluate from the other player's perspective
-    }
     
     int score = 0;
     
@@ -437,21 +408,6 @@ int Board::getScore(PlayerColor color) {
     score += 50 * near_moves_score();
     score += 50 * bug_utility_score();
     
-    // Individual piece contributions
-    if (bothQueensPlaced()) {
-        for (pieceT p = 1; p <= 28; p++) {
-            if (G.isPlaced[p]) {
-                int pieceScore = getScoreBug(p);
-                if (col(p) == color) {
-                    score += pieceScore;
-                } else {
-                    score -= pieceScore;
-                }
-            }
-        }
-    }
-    
     return score;
-    */
-    return evaluateAdvanced(color);
+    //return evaluateAdvanced(color);
 }

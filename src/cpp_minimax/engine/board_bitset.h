@@ -5,6 +5,7 @@ using namespace std;
 #include <iostream>
 #include <cstring>
 #include <bitset>
+#include <cstdint>
 
 class BoardBitSet {
 
