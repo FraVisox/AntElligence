@@ -100,7 +100,7 @@ class Board {
     GameState getGameState();
     
     int currentTurn;
-    
+
     // describe the status
     gameboard G;
     bitset<32> inHandPiece;
@@ -137,7 +137,7 @@ class Board {
     int bug_utility_score();
 
     // Advanced evaluation helpers
-    MetricWeights initializeDefaultWeights();
+    MetricWeights initializeWeightsFromXML(const std::string& filename);
     std::string pieceToString(pieceT piece);
     BugMetrics calculatePieceMetrics(pieceT piece);
     BoardMetrics calculateBoardMetrics();

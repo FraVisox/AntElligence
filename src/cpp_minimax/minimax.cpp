@@ -42,7 +42,7 @@ actionT MinimaxAgent::initiate_minimax_iterative(Board board) {
 
     std::vector<actionT> actions(board.resAction, board.resAction + board.numAction);
 
-    int current_depth = 5;
+    int current_depth = 3;
 
     while (!is_time_up()) {
         actionT move_this_depth = best_move;

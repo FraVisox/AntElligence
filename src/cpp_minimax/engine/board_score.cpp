@@ -396,6 +396,8 @@ int Board::bug_utility_score() {
  */
 int Board::getScore(PlayerColor color) {
     // Temporarily switch perspective if needed
+
+    /*
     
     int score = 0;
     
@@ -407,7 +409,8 @@ int Board::getScore(PlayerColor color) {
     score += 60 * pin_score();
     score += 50 * near_moves_score();
     score += 50 * bug_utility_score();
+    */
     
-    return score;
-    //return evaluateAdvanced(color);
+    //return score;
+    return evaluateAdvanced(color);
 }

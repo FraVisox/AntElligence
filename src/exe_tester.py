@@ -121,15 +121,15 @@ def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = No
         if options1:
             player1.stdin.write(options1)
             output = player1.stdout.readline()
-            print(output)
+            print(output.strip())
             while not output.startswith(ending_sequence):
-                print(output)
+                print(output.strip())
                 output = player1.stdout.readline()
         if options2:
             player2.stdin.write(options2)
             output = player2.stdout.readline()
             while not output.startswith(ending_sequence):
-                print(output)
+                print(output.strip())
                 output = player2.stdout.readline()
 
 
@@ -174,7 +174,7 @@ def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = No
                 move = output = moving_player.stdout.readline()
                 end = time.time()
                 while not output.startswith(ending_sequence):
-                    print(output)
+                    print(output.strip())
                     output = moving_player.stdout.readline()
                 
                 if match % 2 == 1 and turn % 2 == 1:
@@ -188,12 +188,12 @@ def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = No
 
                 output = moving_player.stdout.readline()
                 while not output.startswith(ending_sequence):
-                    print(output)
+                    print(output.strip())
                     output = moving_player.stdout.readline()
 
                 response = output = opponent.stdout.readline()
                 while not output.startswith(ending_sequence):
-                    print(output)
+                    print(output.strip())
                     output = opponent.stdout.readline()
 
 

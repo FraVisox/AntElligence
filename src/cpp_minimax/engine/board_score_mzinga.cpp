@@ -1,96 +1,7 @@
 #include "board.h"
-
-/*
-    MZINGA WEIGHTS:
-
-    <StartMetricWeights GameType="Base+MLP">
-      <QueenBee.InPlayWeight>63558.424116300164</QueenBee.InPlayWeight>
-      <QueenBee.IsPinnedWeight>-16068.975008474492</QueenBee.IsPinnedWeight>
-      <QueenBee.IsCoveredWeight>-10847.56765389993</QueenBee.IsCoveredWeight>
-      <QueenBee.NoisyMoveWeight>-27548.36384306823</QueenBee.NoisyMoveWeight>
-      <QueenBee.QuietMoveWeight>-58684.53995399401</QueenBee.QuietMoveWeight>
-      <QueenBee.FriendlyNeighborWeight>6083.816305341258</QueenBee.FriendlyNeighborWeight>
-      <QueenBee.EnemyNeighborWeight>-16777.90671222724</QueenBee.EnemyNeighborWeight>
-      <Spider.InPlayWeight>-78668.57111290144</Spider.InPlayWeight>
-      <Spider.IsPinnedWeight>-40182.83585644461</Spider.IsPinnedWeight>
-      <Spider.IsCoveredWeight>3522.4688484300345</Spider.IsCoveredWeight>
-      <Spider.NoisyMoveWeight>96533.76080639324</Spider.NoisyMoveWeight>
-      <Spider.QuietMoveWeight>24696.29074524807</Spider.QuietMoveWeight>
-      <Spider.FriendlyNeighborWeight>-38936.63081162773</Spider.FriendlyNeighborWeight>
-      <Spider.EnemyNeighborWeight>-23840.635072629706</Spider.EnemyNeighborWeight>
-      <Beetle.InPlayWeight>-292118.4826934236</Beetle.InPlayWeight>
-      <Beetle.IsPinnedWeight>42682.09004360313</Beetle.IsPinnedWeight>
-      <Beetle.IsCoveredWeight>4481.178845826221</Beetle.IsCoveredWeight>
-      <Beetle.NoisyMoveWeight>17665.014704305027</Beetle.NoisyMoveWeight>
-      <Beetle.QuietMoveWeight>-30118.546365364382</Beetle.QuietMoveWeight>
-      <Beetle.FriendlyNeighborWeight>-330519.2236168998</Beetle.FriendlyNeighborWeight>
-      <Beetle.EnemyNeighborWeight>-15571.384868146333</Beetle.EnemyNeighborWeight>
-      <Grasshopper.InPlayWeight>-62143.66709528388</Grasshopper.InPlayWeight>
-      <Grasshopper.IsPinnedWeight>-37382.75816433833</Grasshopper.IsPinnedWeight>
-      <Grasshopper.IsCoveredWeight>7376.7071386644275</Grasshopper.IsCoveredWeight>
-      <Grasshopper.NoisyMoveWeight>81774.27711240177</Grasshopper.NoisyMoveWeight>
-      <Grasshopper.QuietMoveWeight>4185.887177023414</Grasshopper.QuietMoveWeight>
-      <Grasshopper.FriendlyNeighborWeight>-46514.16457826511</Grasshopper.FriendlyNeighborWeight>
-      <Grasshopper.EnemyNeighborWeight>-29599.124484381024</Grasshopper.EnemyNeighborWeight>
-      <SoldierAnt.InPlayWeight>150335.73123164993</SoldierAnt.InPlayWeight>
-      <SoldierAnt.IsPinnedWeight>-54347.58400587852</SoldierAnt.IsPinnedWeight>
-      <SoldierAnt.IsCoveredWeight>2181.3845855769014</SoldierAnt.IsCoveredWeight>
-      <SoldierAnt.NoisyMoveWeight>-12190.782082844375</SoldierAnt.NoisyMoveWeight>
-      <SoldierAnt.QuietMoveWeight>-2768.31388448452</SoldierAnt.QuietMoveWeight>
-      <SoldierAnt.FriendlyNeighborWeight>-24781.768062011586</SoldierAnt.FriendlyNeighborWeight>
-      <SoldierAnt.EnemyNeighborWeight>-124949.7080146349</SoldierAnt.EnemyNeighborWeight>
-      <Ladybug.InPlayWeight>2403.5193930400983</Ladybug.InPlayWeight>
-      <Ladybug.IsPinnedWeight>2403.5193930400983</Ladybug.IsPinnedWeight>
-      <Ladybug.QuietMoveWeight>-11221.051806351792</Ladybug.QuietMoveWeight>
-      <Ladybug.FriendlyNeighborWeight>2385.4588234124367</Ladybug.FriendlyNeighborWeight>
-      <Ladybug.EnemyNeighborWeight>1410.332157926724</Ladybug.EnemyNeighborWeight>
-    </StartMetricWeights>
-    <EndMetricWeights GameType="Base+MLP">
-      <QueenBee.InPlayWeight>13432.951885680533</QueenBee.InPlayWeight>
-      <QueenBee.IsPinnedWeight>-129954.41883899852</QueenBee.IsPinnedWeight>
-      <QueenBee.IsCoveredWeight>-20359.393475776742</QueenBee.IsCoveredWeight>
-      <QueenBee.NoisyMoveWeight>72291.27947098055</QueenBee.NoisyMoveWeight>
-      <QueenBee.QuietMoveWeight>95774.84135111222</QueenBee.QuietMoveWeight>
-      <QueenBee.FriendlyNeighborWeight>-317466.59939896787</QueenBee.FriendlyNeighborWeight>
-      <QueenBee.EnemyNeighborWeight>-538148.8342704792</QueenBee.EnemyNeighborWeight>
-      <Spider.InPlayWeight>25435.882238354585</Spider.InPlayWeight>
-      <Spider.IsPinnedWeight>-46539.05096879799</Spider.IsPinnedWeight>
-      <Spider.IsCoveredWeight>7318.062445533153</Spider.IsCoveredWeight>
-      <Spider.NoisyMoveWeight>139756.22020687832</Spider.NoisyMoveWeight>
-      <Spider.QuietMoveWeight>-20695.847798165196</Spider.QuietMoveWeight>
-      <Spider.FriendlyNeighborWeight>21040.37841289118</Spider.FriendlyNeighborWeight>
-      <Spider.EnemyNeighborWeight>47143.13584635398</Spider.EnemyNeighborWeight>
-      <Beetle.InPlayWeight>-47942.30787762037</Beetle.InPlayWeight>
-      <Beetle.IsPinnedWeight>-48021.26522496219</Beetle.IsPinnedWeight>
-      <Beetle.IsCoveredWeight>9325.20680229596</Beetle.IsCoveredWeight>
-      <Beetle.NoisyMoveWeight>142117.44307757894</Beetle.NoisyMoveWeight>
-      <Beetle.QuietMoveWeight>11689.30208954932</Beetle.QuietMoveWeight>
-      <Beetle.FriendlyNeighborWeight>36462.79568546643</Beetle.FriendlyNeighborWeight>
-      <Beetle.EnemyNeighborWeight>63931.69017718444</Beetle.EnemyNeighborWeight>
-      <Grasshopper.InPlayWeight>62698.37281422093</Grasshopper.InPlayWeight>
-      <Grasshopper.IsPinnedWeight>-82598.03083886552</Grasshopper.IsPinnedWeight>
-      <Grasshopper.IsCoveredWeight>24024.225201639405</Grasshopper.IsCoveredWeight>
-      <Grasshopper.NoisyMoveWeight>105510.87832342245</Grasshopper.NoisyMoveWeight>
-      <Grasshopper.QuietMoveWeight>-12497.189426607008</Grasshopper.QuietMoveWeight>
-      <Grasshopper.FriendlyNeighborWeight>13656.02929100097</Grasshopper.FriendlyNeighborWeight>
-      <Grasshopper.EnemyNeighborWeight>24316.040387962978</Grasshopper.EnemyNeighborWeight>
-      <SoldierAnt.InPlayWeight>132380.04004659085</SoldierAnt.InPlayWeight>
-      <SoldierAnt.IsPinnedWeight>-51035.8531595224</SoldierAnt.IsPinnedWeight>
-      <SoldierAnt.IsCoveredWeight>-1515.3280863367781</SoldierAnt.IsCoveredWeight>
-      <SoldierAnt.NoisyMoveWeight>53866.8750489757</SoldierAnt.NoisyMoveWeight>
-      <SoldierAnt.QuietMoveWeight>4129.437215966653</SoldierAnt.QuietMoveWeight>
-      <SoldierAnt.FriendlyNeighborWeight>14307.12578295306</SoldierAnt.FriendlyNeighborWeight>
-      <SoldierAnt.EnemyNeighborWeight>21240.12696300159</SoldierAnt.EnemyNeighborWeight>
-      <Ladybug.InPlayWeight>428.1203911929252</Ladybug.InPlayWeight>
-      <Ladybug.IsPinnedWeight>428.1203911929252</Ladybug.IsPinnedWeight>
-      <Ladybug.QuietMoveWeight>-2037.2972162731394</Ladybug.QuietMoveWeight>
-      <Ladybug.FriendlyNeighborWeight>426.07017642756523</Ladybug.FriendlyNeighborWeight>
-      <Ladybug.EnemyNeighborWeight>250.7808349726646</Ladybug.EnemyNeighborWeight>
-    </EndMetricWeights>
-
-
-*/
-
+#include "tinyxml2.h"
+#include "tinyxml2.cpp"
+using namespace tinyxml2;
 
 // =============================================================================
 // ADVANCED EVALUATION IMPLEMENTATION
@@ -99,51 +10,50 @@
 /**
  * Initialize default weights for different piece types and metrics
  */
-MetricWeights Board::initializeDefaultWeights() {
+MetricWeights Board::initializeWeightsFromXML(const std::string& filename) {
     MetricWeights weights;
-    
-    // Weight format: BugType_MetricName
-    BugType types[] = {QUEEN, SPIDER, BEETLE, GRASSHOPPER, SOLDIER_ANT, MOSQUITO, LADYBUG, PILLBUG};
-    
-    for (BugType type : types) {
-        // Base weights - adjust these based on piece importance
-        double baseWeight = 1.0;
-        switch (type) {
-            case QUEEN:      baseWeight = 5.0; break;
-            case SOLDIER_ANT: baseWeight = 3.0; break;
-            case BEETLE:     baseWeight = 2.5; break;
-            case GRASSHOPPER: baseWeight = 2.0; break;
-            case MOSQUITO:   baseWeight = 2.5; break;
-            case LADYBUG:    baseWeight = 2.0; break;
-            case SPIDER:     baseWeight = 1.5; break;
-            case PILLBUG:    baseWeight = 2.0; break;
-        }
-        
-        weights.Set(type, "InPlayWeight", baseWeight * 10.0);
-        weights.Set(type, "IsPinnedWeight", -baseWeight * 20.0);
-        weights.Set(type, "IsCoveredWeight", -baseWeight * 15.0);
-        weights.Set(type, "IsOnTopWeight", baseWeight * 5.0);
-        
-        weights.Set(type, "NoisyMoveWeight", baseWeight * 3.0);
-        weights.Set(type, "QuietMoveWeight", baseWeight * 1.0);
-        
-        weights.Set(type, "FriendlyNeighborWeight", baseWeight * 2.0);
-        weights.Set(type, "EnemyNeighborWeight", -baseWeight * 1.5);
-        
-        // Special bonuses
-        if (type == MOSQUITO) {
-            weights.Set(type, "MosquitoPowerBonus", 25.0);
-        }
-        if (type == PILLBUG) {
-            weights.Set(type, "DefensivePillbugBonus", 20.0);
-        }
-        if (type == LADYBUG) {
-            weights.Set(type, "QueenDiveBonus", 30.0);
-        }
+
+    XMLDocument doc;
+    if (doc.LoadFile(filename.c_str()) != XML_SUCCESS) {
+        std::cerr << "Error loading weights XML file: " << filename << std::endl;
+        return weights;  // fall back to empty/default weights
     }
-    
+
+    XMLElement* root = doc.FirstChildElement("StartMetricWeights");
+    if (!root) {
+        std::cerr << "Invalid XML: No <StartMetricWeights> root." << std::endl;
+        return weights;
+    }
+
+    for (XMLElement* elem = root->FirstChildElement(); elem != nullptr; elem = elem->NextSiblingElement()) {
+        std::string tag = elem->Name();  // e.g. "QueenBee.InPlayWeight"
+        double value = std::stod(elem->GetText());
+
+        // Parse tag into BugType and metric name
+        size_t dotPos = tag.find('.');
+        if (dotPos == std::string::npos) continue;
+
+        std::string typeStr = tag.substr(0, dotPos);
+        std::string metricName = tag.substr(dotPos + 1);
+
+        // Convert to BugType enum
+        BugType type;
+        if      (typeStr == "QueenBee")     type = QUEEN;
+        else if (typeStr == "Spider")       type = SPIDER;
+        else if (typeStr == "Beetle")       type = BEETLE;
+        else if (typeStr == "Grasshopper")  type = GRASSHOPPER;
+        else if (typeStr == "SoldierAnt")   type = SOLDIER_ANT;
+        else if (typeStr == "Mosquito")     type = MOSQUITO;
+        else if (typeStr == "Ladybug")      type = LADYBUG;
+        else if (typeStr == "Pillbug")      type = PILLBUG;
+        else continue;
+
+        weights.Set(type, metricName, value);
+    }
+
     return weights;
 }
+
 
 /**
  * Convert piece ID to string identifier
@@ -423,8 +333,13 @@ double Board::calculateLateGameThreatScore() {
  */
 double Board::evaluateAdvanced(PlayerColor playerColor) {
     BoardMetrics boardMetrics = calculateBoardMetrics();
-    MetricWeights weights = initializeDefaultWeights();
-    
+    static MetricWeights weights;
+    static bool init_w = false;
+    if (!init_w) {
+        weights = initializeWeightsFromXML("engine/weights.xml");
+        init_w = true;
+    }
+
     double score = 0.0;
     
     // Evaluate each piece
