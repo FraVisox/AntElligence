@@ -161,6 +161,9 @@ def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = No
 
             # White is player 1 if match % 2 == 1
 
+            # Determine colors based on match number
+            player1_is_white = (match % 2 == 1)
+
             # Simulate the game
             for turn in range(1, turns + 1 if turns > 0 else float('inf')):
                 if turn % number_moves_log == 0:
@@ -171,6 +174,7 @@ def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = No
                 move = output = moving_player.stdout.readline()
                 end = time.time()
                 while not output.startswith(ending_sequence):
+                    print(output)
                     output = moving_player.stdout.readline()
                 
                 if match % 2 == 1 and turn % 2 == 1:
@@ -184,16 +188,18 @@ def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = No
 
                 output = moving_player.stdout.readline()
                 while not output.startswith(ending_sequence):
+                    print(output)
                     output = moving_player.stdout.readline()
 
                 response = output = opponent.stdout.readline()
                 while not output.startswith(ending_sequence):
+                    print(output)
                     output = opponent.stdout.readline()
 
 
                 # Check for game end
                 if "WhiteWins" in response:
-                    if match & 2 == 1: # White is player 1
+                    if player1_is_white: # White is player 1
                         stats["pl1_wins_white" if match % 2 == 1 else "pl1_wins_black"] += 1
                         stats["pl1_turns_white" if match % 2 == 1 else "pl1_turns_black"] += turn
                         print("Player 1 wins:", str1)
@@ -204,7 +210,7 @@ def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = No
                         print("Player 2 wins:", str2)
                     break
                 elif "BlackWins" in response:
-                    if match & 2 == 0: #Black is player 1
+                    if not player1_is_white: #Black is player 1
                         stats["pl1_wins_black" if match % 2 == 0 else "pl1_wins_white"] += 1
                         stats["pl1_turns_black" if match % 2 == 0 else "pl1_turns_white"] += turn
                         print("Player 1 wins:", str1)
