@@ -2,7 +2,7 @@
 #include <set>
 #include <map>
 #include <queue>
-
+#include "weights.h"
 // =============================================================================
 // HELPER METHODS
 // =============================================================================
@@ -54,7 +54,30 @@ int Board::getHexDistance(positionT pos1, positionT pos2) {
     if (pos1 == pos2) {
         return 0;
     }
+    int x1=pos1&31;
+    int y1=pos1>>5;
+    int x2=pos2&31;
+    int y2=pos2>>5;
+
+    if(x1-x2<-10)x2-=32;
+    if(x1-x2>10 )x2+=32;
+    if(y1-y2<-10)y2-=32;
+    if(y1-y2>10 )y2+=32;
     
+    x2-=x1;
+    y2-=x1;
+
+    if(x2<=-3 || x2>=3 ) return 3;
+    if(y2<=-3 || y2>=3 ) return 3;
+    const int M[5][5]={
+    {3,3,2,2,2},
+    {3,2,1,1,2},
+    {2,1,0,1,2},
+    {2,1,1,2,3},
+    {3,2,2,3,3}
+};
+    return M[x2+2][y2+2];
+
     std::queue<positionT> queue;
     std::set<positionT> visited;
     std::map<positionT, int> distance;
@@ -395,22 +418,28 @@ int Board::bug_utility_score() {
  * Overall board evaluation from the perspective of the given color
  */
 int Board::getScore(PlayerColor color) {
-    // Temporarily switch perspective if needed
+    const double MIN_EVAL=-1e-7;
+    const double MAX_EVAL=-1e-7;
 
-    /*
-    
-    int score = 0;
-    
-    // Core strategic elements
-    score += 300 * surround_score();
-    score += 100 * mobility_score();
-    score += 100 * tempo_score();
-    score += 80 * control_score();
-    score += 60 * pin_score();
-    score += 50 * near_moves_score();
-    score += 50 * bug_utility_score();
-    */
-    
-    //return score;
+    GameState state=getGameState();
+    if (state == GameState::DRAW) {
+        return 0;
+    }
+
+    if (color == PlayerColor::WHITE) {
+        if (state == GameState::WHITE_WIN) {
+            return MAX_EVAL;
+        }
+        if (state == GameState::BLACK_WIN) {
+            return MIN_EVAL;
+        }
+    } else {
+        if (state == GameState::BLACK_WIN) {
+            return MAX_EVAL;
+        }
+        if (state == GameState::WHITE_WIN) {
+            return MIN_EVAL;
+        }
+    }
     return evaluateAdvanced(color);
 }

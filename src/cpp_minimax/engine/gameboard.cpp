@@ -9,6 +9,7 @@ gameboard::gameboard(){
 }
 
 
+
 gameboard::gameboard(GameType gt){
     memset(high, 0, sizeof(high));
     isPlaced.reset();
@@ -306,5 +307,5 @@ bool gameboard::canMoveWithoutBreakingHiveRule(const pieceT &b,int turn){
         find_articulation();
     }
 
-    return not_movable_position[getPosition(b) ] == 0;
+    return not_movable_position.get_bit(getPosition(b) ) == 0;
 }

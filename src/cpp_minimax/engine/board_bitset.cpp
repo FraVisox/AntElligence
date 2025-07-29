@@ -2,7 +2,6 @@ using namespace std;
 
 #include <cassert>
 #include <iostream>
-#include <cstring>
 #include <bitset>
 #include "board_bitset.h"
 
@@ -151,4 +150,7 @@ void BoardBitSet::printDBG(){
         cout<<endl;
     }
 }
+
+
+
 

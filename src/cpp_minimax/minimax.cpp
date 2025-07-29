@@ -7,44 +7,27 @@
 #include <chrono>
 #include <bitset>
 
-int MinimaxAgent::utility(GameState state, Board board) {
-    if (state == GameState::DRAW) {
-        return 0;
-    }
 
-    if (color == PlayerColor::WHITE) {
-        if (state == GameState::WHITE_WIN) {
-            return MAX_EVAL;
-        }
-        if (state == GameState::BLACK_WIN) {
-            return MIN_EVAL;
-        }
-    } else {
-        if (state == GameState::BLACK_WIN) {
-            return MAX_EVAL;
-        }
-        if (state == GameState::WHITE_WIN) {
-            return MIN_EVAL;
-        }
-    }
+int MinimaxAgent::utility(GameState state, Board &board) {
+    toale_evaled++;
     return board.getScore(color);
 }
 
 //ITERATIVE DEEPENING:
-actionT MinimaxAgent::initiate_minimax_iterative(Board board) {
-
+actionT MinimaxAgent::initiate_minimax_iterative(Board &board) {
+    toale_evaled=0;
+    clog<<"Stard minimax"<<endl;
     board.ComputePossibleMoves();
-
+    clog<<"Computed "<<board.numAction<<endl;
     if (board.numAction == 0) return pass();
 
     int best_eval = MIN_EVAL;
     actionT best_move = board.resAction[0];
 
-    std::vector<actionT> actions(board.resAction, board.resAction + board.numAction);
-
-    int current_depth = 3;
+    int current_depth = 1;
 
     while (!is_time_up()) {
+        //clog<<"Start while "<<endl;
         actionT move_this_depth = best_move;
         int max_eval = MIN_EVAL;
         int alpha = MIN_EVAL;
@@ -53,49 +36,50 @@ actionT MinimaxAgent::initiate_minimax_iterative(Board board) {
         //cout << "Current depth: " << current_depth << endl;
 
         // STEP 1: Move ordering – shallow eval at depth 1
-        std::vector<std::pair<int, actionT>> scored_actions;
-        for (const auto& action : actions) {
-            if (is_time_up()) break;
-            Board temp = board;
-            temp.applayAction(action);
-            scored_actions.emplace_back(utility(temp.getGameState(), temp), action);
+        //std::vector<std::pair<int, actionT>> scored_actions(board.numAction);
+        std::vector<Board> nextBoards(board.numAction, board);
+
+        for (int i=0;i<board.numAction;i++) {
+            nextBoards[i].applayAction(board.resAction[i]);
         }
+
+        pair<int,int> vals[board.numAction];
+        for(int i=0;i < board.numAction;i++){
+            
+            vals[i]=make_pair(i,utility(nextBoards[i].getGameState(),nextBoards[i]));
+        }
+
+        actionT risAct[board.numAction];
 
         // Sort actions descending by score (most promising first)
-        std::sort(scored_actions.begin(), scored_actions.end(),
-                  [](const auto& a, const auto& b) { return a.first > b.first; });
+        std::sort(vals,vals+board.numAction,
+                  [](const auto& a, const auto& b) { return a.second > b.second; });
 
         // Replace actions list with sorted version
-        actions.clear();
-        for (const auto& pair : scored_actions) {
-            actions.push_back(pair.second);
-        }
+        
 
         // STEP 2: Do actual search at current depth
-        for (const auto& action : actions) {
+        for (int qi=0;qi<board.numAction;qi++) {
+            int i=vals[qi].first;
             if (is_time_up()) break;
 
-            Board b1 = board;
-            b1.applayAction(action);
-
-            int eval = -minmax(b1.getGameState(), b1, current_depth, -beta, -alpha);
+            int eval = -minmax(nextBoards[i].getGameState(), nextBoards[i], current_depth, -beta, -alpha);
             if (eval > max_eval) {
                 max_eval = eval;
-                move_this_depth = action;
+                move_this_depth = board.resAction[i];
             }
-
             alpha = std::max(alpha, max_eval);
         }
 
         // If time was not up, accept this result
-        if (!is_time_up()) {
-            best_move = move_this_depth;
-            best_eval = max_eval;
-        }
-
+        if (!is_time_up() || (max_eval>best_eval)) {
+                best_eval = max_eval;
+                best_move = move_this_depth;
+            }
+        clog<<"Current best: "<<best_move<< "  at depthe"<<current_depth <<endl;;
         current_depth++; // Increase search depth for next round
     }
-
+    cout<<"Total evaled moves: "<<toale_evaled;
     return best_move;
 }
 
@@ -119,7 +103,7 @@ actionT MinimaxAgent::initiate_minimax_fixed(Board board) {
     // For every action available, play it and calculate the utility (recursively)
     for (int i = 0; i < board.numAction; i++) {
         // Play the move on the copy
-        Board b1 = Board(board);
+        Board b1(board);
         b1.applayAction(board.resAction[i]);
 
         int eval = -minmax(b1.getGameState(), b1, depthLimit-1, -beta, -alpha);
@@ -139,7 +123,7 @@ actionT MinimaxAgent::initiate_minimax_fixed(Board board) {
     return todo_action;
 }
 
-int MinimaxAgent::minmax(GameState state, Board board, int depth_remaining, int alpha, int beta) {
+int MinimaxAgent::minmax(GameState state, Board &board, int depth_remaining, int alpha, int beta) {
 
     if (is_time_up()) {
         return 0;  // Return a neutral evaluation when time runs out
@@ -161,7 +145,7 @@ int MinimaxAgent::minmax(GameState state, Board board, int depth_remaining, int 
     
     for (int i = 0; i < board.numAction; i++) {
 
-        Board b1 = Board(board);
+        Board b1(board);
         b1.applayAction(board.resAction[i]);
 
         int eval = -minmax(b1.getGameState(), b1, depth_remaining - 1, -beta, -alpha);
@@ -178,7 +162,7 @@ int MinimaxAgent::minmax(GameState state, Board board, int depth_remaining, int 
     return max_eval;
 }
 
-actionT MinimaxAgent::calculate_best_move(Board board) {
+actionT MinimaxAgent::calculate_best_move(Board &board) {
 
     start_time = std::chrono::high_resolution_clock::now();
 
@@ -188,6 +172,7 @@ actionT MinimaxAgent::calculate_best_move(Board board) {
 
     // Initial moves
     if (board.currentTurn <= 2) {
+        clog<<"Suggested";
         return board.suggestInitialMove();
     }
 

@@ -27,7 +27,7 @@ PlayerColor col(pieceT p){
     if(p>0 && p<=14) return PlayerColor::WHITE;
     if(p>14 && p<=28) return PlayerColor::BLACK;
     if(p==29 && isSimulatingPiece) return col(simulatedPiece);
-    throw "Asking color of a non-piece";
+    throw "Not correct color";
 }
 
 const BugType PIECE_KIND_NUM[]={

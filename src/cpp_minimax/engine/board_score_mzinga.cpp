@@ -1,84 +1,9 @@
 #include "board.h"
-#include "tinyxml2.h"
-#include "tinyxml2.cpp"
-using namespace tinyxml2;
 
 // =============================================================================
 // ADVANCED EVALUATION IMPLEMENTATION
 // =============================================================================
 
-/**
- * Initialize default weights for different piece types and metrics
- */
-MetricWeights Board::initializeWeightsFromXML(const std::string& filename) {
-    MetricWeights weights;
-
-    XMLDocument doc;
-    if (doc.LoadFile(filename.c_str()) != XML_SUCCESS) {
-        std::cerr << "Error loading weights XML file: " << filename << std::endl;
-        return weights;  // fall back to empty/default weights
-    }
-
-    XMLElement* root = doc.FirstChildElement("StartMetricWeights");
-    if (!root) {
-        std::cerr << "Invalid XML: No <StartMetricWeights> root." << std::endl;
-        return weights;
-    }
-
-    for (XMLElement* elem = root->FirstChildElement(); elem != nullptr; elem = elem->NextSiblingElement()) {
-        std::string tag = elem->Name();  // e.g. "QueenBee.InPlayWeight"
-        double value = std::stod(elem->GetText());
-
-        // Parse tag into BugType and metric name
-        size_t dotPos = tag.find('.');
-        if (dotPos == std::string::npos) continue;
-
-        std::string typeStr = tag.substr(0, dotPos);
-        std::string metricName = tag.substr(dotPos + 1);
-
-        // Convert to BugType enum
-        BugType type;
-        if      (typeStr == "QueenBee")     type = QUEEN;
-        else if (typeStr == "Spider")       type = SPIDER;
-        else if (typeStr == "Beetle")       type = BEETLE;
-        else if (typeStr == "Grasshopper")  type = GRASSHOPPER;
-        else if (typeStr == "SoldierAnt")   type = SOLDIER_ANT;
-        else if (typeStr == "Mosquito")     type = MOSQUITO;
-        else if (typeStr == "Ladybug")      type = LADYBUG;
-        else if (typeStr == "Pillbug")      type = PILLBUG;
-        else continue;
-
-        weights.Set(type, metricName, value);
-    }
-
-    return weights;
-}
-
-
-/**
- * Convert piece ID to string identifier
- */
-std::string Board::pieceToString(pieceT piece) {
-    PlayerColor color = col(piece);
-    BugType type = kind(piece);
-    int number = numInc(piece);
-    
-    std::string colorStr = (color == PlayerColor::WHITE) ? "W" : "B";
-    std::string typeStr;
-    
-    switch (type) {
-        case QUEEN: typeStr = "Q"; break;
-        case SPIDER: typeStr = "S"; break;
-        case BEETLE: typeStr = "B"; break;
-        case GRASSHOPPER: typeStr = "G"; break;
-        case SOLDIER_ANT: typeStr = "A"; break;
-        case MOSQUITO: typeStr = "M"; break;
-        case LADYBUG: typeStr = "L"; break;
-        case PILLBUG: typeStr = "P"; break;
-    }
-    
-    return colorStr + typeStr + std::to_string(number);
-}
 
 /**
  * Calculate detailed metrics for a single piece
@@ -145,20 +70,15 @@ BugMetrics Board::calculatePieceMetrics(pieceT piece) {
     
     // Calculate move counts (simplified - you might want to make this more sophisticated)
     if (!metrics.IsPinned && !metrics.IsCovered) {
-        // Temporarily compute moves for this piece to count noisy vs quiet
-        // This is expensive but gives accurate move classification
-        int originalNumAction = numAction;
-        actionT originalActions[MAX_ACTIONS_SIZE];
-        std::copy(resAction, resAction + numAction, originalActions);
-        
-        possibleMovesBug(piece);
         
         // Classify moves as noisy (near enemy queen) or quiet (positional)
         if (bothQueensPlaced()) {
+            ComputePossibleMoves();
+        
             pieceT enemyQueen = (pieceColor == PlayerColor::WHITE) ? 22 : 8;
             positionT enemyQueenPos = G.getPosition(enemyQueen);
             
-            for (int i = originalNumAction; i < numAction; i++) {
+            for (int i = idxStartActions[piece]; i <  idxStartActions[piece+1]; i++) {
                 actionT action = resAction[i];
                 if (action == 0) continue;
                 
@@ -172,8 +92,6 @@ BugMetrics Board::calculatePieceMetrics(pieceT piece) {
         }
         
         // Restore original move list
-        numAction = originalNumAction;
-        std::copy(originalActions, originalActions + numAction, resAction);
     }
     
     return metrics;
@@ -189,8 +107,7 @@ BoardMetrics Board::calculateBoardMetrics() {
     
     // Calculate metrics for all pieces
     for (pieceT p = 1; p <= 28; p++) {
-        std::string pieceName = pieceToString(p);
-        boardMetrics.pieceMetrics[pieceName] = calculatePieceMetrics(p);
+        boardMetrics.pieceMetrics[p] = calculatePieceMetrics(p);
         
         if (G.isPlaced[p]) {
             boardMetrics.PiecesInPlay++;
@@ -331,12 +248,11 @@ double Board::calculateLateGameThreatScore() {
 /**
  * Advanced board evaluation function
  */
-double Board::evaluateAdvanced(PlayerColor playerColor) {
+double Board::evaluateAdvanced(PlayerColor playerColor, int gamePhase) {
     BoardMetrics boardMetrics = calculateBoardMetrics();
     static MetricWeights weights;
     static bool init_w = false;
     if (!init_w) {
-        weights = initializeWeightsFromXML("engine/weights.xml");
         init_w = true;
     }
 
@@ -344,35 +260,23 @@ double Board::evaluateAdvanced(PlayerColor playerColor) {
     
     // Evaluate each piece
     for (pieceT p = 1; p <= 28; p++) {
-        std::string pieceName = pieceToString(p);
-        const BugMetrics& m = boardMetrics.pieceMetrics[pieceName];
+        
+        const BugMetrics& m = boardMetrics.pieceMetrics[p];
         
         int sign = (col(p) == playerColor) ? +1 : -1;
         BugType type = kind(p);
         
-        score += sign * weights.Get(type, "InPlayWeight") * (m.InPlay ? 1 : 0);
-        score += sign * weights.Get(type, "IsPinnedWeight") * (m.IsPinned ? 1 : 0);
-        score += sign * weights.Get(type, "IsCoveredWeight") * (m.IsCovered ? 1 : 0);
-        score += sign * weights.Get(type, "IsOnTopWeight") * (m.IsOnTop ? 1 : 0);
+        score += sign * weights.Get(type, InPlayWeight   ,gamePhase) * (m.InPlay ? 1 : 0);
+        score += sign * weights.Get(type, IsPinnedWeight ,gamePhase) * (m.IsPinned ? 1 : 0);
+        score += sign * weights.Get(type, IsCoveredWeight,gamePhase) * (m.IsCovered ? 1 : 0);
         
-        score += sign * weights.Get(type, "NoisyMoveWeight") * std::log1p(m.NoisyMoves);
-        score += sign * weights.Get(type, "QuietMoveWeight") * std::sqrt(m.QuietMoves);
+        score += sign * weights.Get(type, NoisyMoveWeight,gamePhase) * std::log1p(m.NoisyMoves);
+        score += sign * weights.Get(type, QuietMoveWeight,gamePhase) * std::sqrt(m.QuietMoves);
         
-        score += sign * weights.Get(type, "FriendlyNeighborWeight") * m.FriendlyNeighbors;
-        score += sign * weights.Get(type, "EnemyNeighborWeight") * m.EnemyNeighbors;
+        score += sign * weights.Get(type, FriendlyNeighborWeight,gamePhase)* m.FriendlyNeighbors;
+        score += sign * weights.Get(type, EnemyNeighborWeight,gamePhase) * m.EnemyNeighbors;
         
-        // Special bonuses
-        if (type == MOSQUITO && m.AdjacentToAntOrBeetle) {
-            score += sign * weights.Get(type, "MosquitoPowerBonus");
-        }
         
-        if (type == PILLBUG && m.NearOwnQueen) {
-            score += sign * weights.Get(type, "DefensivePillbugBonus");
-        }
-        
-        if (type == LADYBUG && m.CanReachQueenHole) {
-            score += sign * weights.Get(type, "QueenDiveBonus");
-        }
     }
     
     // Global tactical features

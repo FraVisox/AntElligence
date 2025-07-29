@@ -53,7 +53,7 @@ class gameboard{
 
     
     //And the placing
-    positionT validPositionPlaceBuffer[70];
+    positionT validPositionPlaceBuffer[64];
     int numValidPosition;
     void computeValidPositionPlaceNew(PlayerColor color);
 
@@ -90,9 +90,6 @@ class gameboard{
 
     int timer=0;
     int lastUpdateTurn=-1;
-    bitset<SIZE_BOARD*SIZE_BOARD> not_movable_position;
-    bitset<SIZE_BOARD*SIZE_BOARD> visited_dfs;
-    int disc[SIZE_BOARD*SIZE_BOARD],low[SIZE_BOARD*SIZE_BOARD];
 
 
     /**
@@ -104,7 +101,11 @@ class gameboard{
      * The articulation points are used to check if a
      * bug can be moved without breaking the hive rule.
      */
-    void find_articulation(){
+    void find_articulation(){    
+        BoardBitSet not_movable_position;
+        BoardBitSet visited_dfs;
+        int disc[SIZE_BOARD*SIZE_BOARD],low[SIZE_BOARD*SIZE_BOARD];
+
         if(occupied.none())
             return;
 
@@ -121,9 +122,9 @@ class gameboard{
             }
         }
 
-        dfs(startPos,0);
+        dfs(startPos,0,visited_dfs,disc,low);
     }
-
+    BoardBitSet not_movable_position;
 
     /**
      * \brief Depth-first search to find articulation points.
@@ -134,7 +135,7 @@ class gameboard{
      * \param v The current position.
      * \param p The parent position, defaults to NULL_POSITION.
      */
-    void dfs(positionT &v, const positionT &p, bool flag=false) {
+    void dfs(positionT &v, const positionT &p,BoardBitSet &visited_dfs,int disc[],int low[], bool flag=false) {
 
         //Mark this as visited
         visited_dfs.set(v,1);
@@ -147,11 +148,11 @@ class gameboard{
             positionT to=applayMove(v,dir);
             if(isFree(to))continue;
             //If this is a back edge, update low
-            if (visited_dfs[to]) {
+            if (visited_dfs.get_bit(to)) {
                 low[v] = min(low[v], disc[to]);
             } else {
                 //Make it a children of this node and visit it
-                dfs(to, v,true);
+                dfs(to, v,visited_dfs,disc,low,true);
                 //Check if the subtree rooted at v has a connection to one of the ancestors of u
                 low[v] = min(low[v], low[to]);
                 

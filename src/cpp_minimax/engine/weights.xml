@@ -1,4 +1,8 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+﻿double endGame[][]={
+  {}
+}
+
+<?xml version="1.0" encoding="utf-8" ?>
 <StartMetricWeights GameType="Base+MLP">
   <QueenBee.InPlayWeight>63558.424116300164</QueenBee.InPlayWeight>
   <QueenBee.IsPinnedWeight>-16068.975008474492</QueenBee.IsPinnedWeight>

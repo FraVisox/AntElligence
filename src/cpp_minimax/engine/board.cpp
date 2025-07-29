@@ -19,7 +19,7 @@
  * black nor white queens have been placed on the board yet.
  */
 Board::Board(){ 
-
+    hasUpdate=true;
     currentTurn = 1;
     //We do not change the type of game
     inHandPiece.reset();
@@ -67,13 +67,16 @@ void Board::copy(Board &b){
         this->pillbugMoves[i]=b.pillbugMoves[i];
     this->pillbugTotMoves=b.pillbugTotMoves;
     this->inQueue=b.inQueue;
+    this->hasUpdate=b.hasUpdate;
+}
+
+Board::Board(bool a,bool b){
+    
 }
 
 
-
-
 Board::Board(GameType gt) : G(gt){
-
+    hasUpdate=true;
     currentTurn=1;
     for(int i=1;i<12;i++){
         addPieceHand(i);
@@ -129,6 +132,7 @@ void Board::addPieceHand(pieceT p){
 
 
 void Board::applayAction(actionT act){
+    hasUpdate=true;
     //confHistory[currentTurn]=G.toHash();
     if(act==0){
         currentTurn++;
@@ -176,10 +180,10 @@ GameState Board::getGameState(){
     bitset<285> r=G.toHash();
 
     int ne=0;
-    for(int i=1;i<currentTurn; i++){
+    /*for(int i=1;i<currentTurn; i++){
         if(r==confHistory[i])
             ne++;
-    }  
+    } */ 
     
     if(currentTurn==0) return GameState::NOT_STARTED;
     if(currentTurn>MAX_TURN_SIZE || ne>1)return GameState::DRAW;
@@ -188,6 +192,9 @@ GameState Board::getGameState(){
 
 
 void Board::ComputePossibleMoves(){
+    if(!hasUpdate)return;
+    
+    hasUpdate=false;
     numAction=0;  
 
     pillbugTotMoves=0;
@@ -266,6 +273,7 @@ void Board::ComputePossibleMoves(){
     // 5- moves
     if(placedQueen()){
         for(pieceT b=1;b<=28;b++){
+            idxStartActions[b]=numAction;
             if(!G.isPlaced[b])continue;
             if (b == prevMoved[currentColor()]) continue;
             possibleMovesBug(b);
@@ -274,67 +282,9 @@ void Board::ComputePossibleMoves(){
         for(int i=0;i<pillbugTotMoves;i++){
             resAction[numAction]=pillbugMoves[i];
         }
-        /*
-        if(pillbugTotMoves>0){ 
-
-            bitset<32> seen(0);
-            int startPar=0;
-            int endPart=1;   // excluded
-            int tA=numAction;
-            std::sort(pillbugMoves,pillbugMoves+pillbugTotMoves);
-        
-            while(endPart<=tA){
-                while(endPart<tA && resAction[endPart-1]<resAction[endPart]){
-                    endPart++;
-                }
-                int i=startPar,j=0;
-                while(i<endPart && j<pillbugTotMoves){
-                    if(resAction[i]==pillbugMoves[j]){
-                        seen.set(j,1);
-                        i++;
-                        j++;
-                    }else if(resAction[i]<pillbugMoves[j]){
-                        i++;
-                    }else{
-                        j++;
-                    }
-                }
-                startPar=endPart;
-                endPart=startPar+1;
-            }
-            for(int i=0;i<pillbugTotMoves;i++){
-                if(!seen[i]){
-                    resAction[numAction]=pillbugMoves[i];
-                    numAction++;
-                }
-            }
-
-            
-            //cout<<"PTM: "<<pillbugTotMoves<<"  TOT:"<<numAction<<endl;
-            /*for(int h=0;h<pillbugTotMoves;h++){
-                cout<<((pillbugMoves[h])&((((actionT)1)<<63)-1))<<endl;
-            }
-            for(int k=0;k<numAction;k++){
-                cout<<(resAction[k])<<endl;
-            }
-            bool flag;*/
-            /*
-            for(int i=0;i<pillbugTotMoves;i++){
-                flag=true;
-                for(int j=0;j<numAction;j++){
-                    if(pillbugMoves[i]==resAction[j]){
-                        flag=false;
-                        //G.isValidMoveBitmask[G._isValidMoveBitmask_rel_pos[j]]=0;
-                        break;
-                    }
-                }
-                if(flag){
-                    resAction[numAction]=pillbugMoves[i];
-                    numAction++;
-                }
-            }
-        }  */ 
     }
+    idxStartActions[29]=numAction;
+
     if(numAction==0){
         //G.isValidMoveBitmask[0]=1;
         //G.associatedAction[0]=0;
@@ -342,11 +292,13 @@ void Board::ComputePossibleMoves(){
         resAction[0]=0;
     }
     return;
+    
 }
 
 
 void Board::possibleMovesBug(pieceT b){
     if (b == INVALID_PIECE) return;
+    
     if(col(b)==currentColor()){ // turn is required to make the program efficent
         switch(kind(b)){
             case BEETLE:

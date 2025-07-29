@@ -6,11 +6,9 @@
 #include "gameboard.h"
 #include "action.h"
 #include <queue>
-#include <string.h>
-#include <unordered_map>
-#include <string>
 #include <cmath>
 #include <algorithm>
+#include "weights.h"
 
 // =============================================================================
 // ADVANCED EVALUATION STRUCTURES
@@ -32,22 +30,18 @@ struct BugMetrics {
 };
 
 struct MetricWeights {
-    std::unordered_map<std::string, double> weights;
 
-    double Get(BugType type, const std::string& key) const {
-        std::string composed = std::to_string((int)type) + "_" + key;
-        auto it = weights.find(composed);
-        return (it != weights.end()) ? it->second : 0.0;
+
+    double Get(BugType type, int key,int gamekind) const {
+        if(gamekind==0)
+        return startGame[type][key];
+        return endgame[type][key];
     }
     
-    void Set(BugType type, const std::string& key, double value) {
-        std::string composed = std::to_string((int)type) + "_" + key;
-        weights[composed] = value;
-    }
 };
 
 struct BoardMetrics {
-    std::unordered_map<std::string, BugMetrics> pieceMetrics;
+    BugMetrics pieceMetrics[29];
     int PiecesInPlay = 0;
     int PiecesInHand = 0;
 
@@ -78,10 +72,11 @@ class Board {
 
     Board();
     Board(GameType);
+    Board(bool, bool);
 
     void copy(Board&);
 
-
+    bool hasUpdate;
     //Current status
     PlayerColor currentColor();
     int currentPlayerTurn();
@@ -104,7 +99,7 @@ class Board {
     // describe the status
     gameboard G;
     bitset<32> inHandPiece;
-    pieceT prevMoved[2];
+    uint32_t prevMoved[2];
 
     string toString();
     actionT suggestInitialMove();
@@ -145,18 +140,18 @@ class Board {
     double calculateLateGameThreatScore();
 
     // Advanced evaluation function
-    double evaluateAdvanced(PlayerColor playerColor);
+    double evaluateAdvanced(PlayerColor playerColor,int=0);
 
-
+    short idxStartActions[32];
     // returns the actions
     actionT resAction[MAX_ACTIONS_SIZE];
     int numAction;
-    bitset<285> confHistory[MAX_TURN_SIZE+2];
+    //bitset<285> confHistory[MAX_TURN_SIZE+2];
 
     private:
     
     // auxiliary for pillbug
-    actionT pillbugMoves[20];
+    actionT pillbugMoves[24];
     int pillbugTotMoves;
 
     // auxiliary for Ants moves
