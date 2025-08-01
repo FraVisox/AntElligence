@@ -78,10 +78,10 @@ int Board::getHexDistance(positionT pos1, positionT pos2) {
     {3,2,2,3,3}
 };
 
-    if(x2+2<0 || x2+2>4 || y2+2<0 || y2+2>4){
+    /*if(x2+2<0 || x2+2>4 || y2+2<0 || y2+2>4){
         cerr<<"out of table"<<endl;
         throw "Not in table";
-    }
+    }*/
     return M[x2+2][y2+2];
 
     std::queue<positionT> queue;

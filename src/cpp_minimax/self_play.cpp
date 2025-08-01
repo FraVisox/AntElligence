@@ -26,7 +26,7 @@ int main(){
     MinimaxAgent a(5,10);
 
     Engine e(a);
-    try{
+    //try{
 
     e.board= Board(Base_MLP);
     e.board.applayAction(stringToAction(e.board,"wB1"));
@@ -37,9 +37,9 @@ int main(){
         cout<<actionToString(M,e.board)<<endl;
         e.board.applayAction(M);
     }
-}catch(char* e){
+/*}catch(char* e){
     cout<<"NO"<<endl;
     cout<<e<<endl;
-}
+}*/
     return 0;
 }

@@ -44,8 +44,10 @@ public:
             timeLimit = chrono::seconds(tl);
         depthLimit = dl;
     }
+    int parallel_minmax(Board &board, int depth_remaining, int alpha, int beta);
 
     actionT calculate_best_move(Board &board);
+    actionT initiate_minimax_iterative_parallel(Board &board);
 };
 
 #endif

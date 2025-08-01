@@ -163,11 +163,11 @@ bool gameboard::canSlideToFreeDir(const positionT &from,const positionT &to, dir
  *        is empty.
  */
 pieceT gameboard::topPiece(const positionT &pos){
-    if(!isFree(pos)){
+    //if(!isFree(pos)){
         return gb[getHight(pos)-1][pos &1023];
-    }
-    std::cerr<<"Error in gameboard, in top Piece"<<std::endl;
-    throw "Asked piece for empty pos";
+    //}
+    //std::cerr<<"Error in gameboard, in top Piece"<<std::endl;
+    //throw "Asked piece for empty pos";
 }
 
 pieceT gameboard::basePiece(const positionT &pos){

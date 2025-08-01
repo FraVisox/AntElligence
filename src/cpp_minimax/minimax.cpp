@@ -6,6 +6,105 @@
 #include <iostream>
 #include <chrono>
 #include <bitset>
+#include <future>
+#include <vector>
+#include <atomic>
+#include <mutex>
+
+
+#include <future>
+#include <vector>
+#include <atomic>
+#include <mutex>
+
+std::atomic<bool> time_up_flag(false);
+
+int MinimaxAgent::parallel_minmax(Board &board, int depth_remaining, int alpha, int beta) {
+    if (is_time_up() || time_up_flag.load()) return 0;
+
+    GameState state = board.getGameState();
+
+    if (state == GameState::DRAW || state == GameState::WHITE_WIN ||
+        state == GameState::BLACK_WIN || depth_remaining == 0) {
+        return utility(state, board);
+    }
+
+    board.ComputePossibleMoves();
+
+    int max_eval = MIN_EVAL;
+    actionT validActions[MAX_ACTIONS_SIZE];
+    int numAction=board.numAction;
+    for(int i=0;i<numAction;i++){
+        validActions[i]=board.resAction[i];
+    }
+
+    for (int i = 0; i < numAction; i++) {
+        board.applayAction(validActions[i]);
+        int eval = -parallel_minmax(board, depth_remaining - 1, -beta, -alpha);
+        board.undoAction();
+
+        max_eval = std::max(max_eval, eval);
+        alpha = std::max(alpha, max_eval);
+
+        if (beta <= alpha || is_time_up() || time_up_flag.load()) break;
+    }
+
+    return max_eval;
+}
+
+actionT MinimaxAgent::initiate_minimax_iterative_parallel(Board &board) {
+    toale_evaled = 0;
+    time_up_flag.store(false);
+    //clog << "Start parallel minimax" << endl;
+    board.ComputePossibleMoves();
+    //clog << "Computed " << board.numAction << endl;
+
+    if (board.numAction == 0) return pass();
+
+    int best_eval = MIN_EVAL;
+    actionT best_move = board.resAction[0];
+
+    int current_depth = 1;
+
+    while (!is_time_up()) {
+        int alpha = MIN_EVAL;
+        int beta = MAX_EVAL;
+
+        std::vector<std::future<std::pair<int, actionT>>> futures;
+        vector<Board> nextBoards(board.numAction,board);
+
+        for (int i = 0; i < board.numAction; i++) {
+            
+            nextBoards[i].applayAction(board.resAction[i]);
+        }
+        for (int i = 0; i < board.numAction; i++) {
+            futures.push_back(std::async(std::launch::async, [&, i](){
+                int eval = -parallel_minmax(nextBoards[i], current_depth - 1, -beta, -alpha);
+                return std::make_pair(eval, board.resAction[i]);
+            }));
+        }
+
+        for (auto &f : futures) {
+            if (is_time_up()) {
+                time_up_flag.store(true);
+                break;
+            }
+
+            auto [eval, move] = f.get();
+            if (eval > best_eval) {
+                best_eval = eval;
+                best_move = move;
+            }
+            alpha = std::max(alpha, best_eval);
+        }
+
+        //clog << "Current best: " << best_move << " at depth " << current_depth << endl;
+        current_depth++;
+    }
+
+    //cout << "Total evaluated moves: " << toale_evaled << endl;
+    return best_move;
+}
 
 
 int MinimaxAgent::utility(GameState state, Board &board) {
@@ -27,16 +126,12 @@ actionT MinimaxAgent::initiate_minimax_iterative(Board &board) {
     int current_depth = 1;
 
     while (!is_time_up()) {
-        //clog<<"Start while "<<endl;
         actionT move_this_depth = best_move;
         int max_eval = MIN_EVAL;
         int alpha = MIN_EVAL;
         int beta = MAX_EVAL;
 
-        //cout << "Current depth: " << current_depth << endl;
-
-        // STEP 1: Move ordering – shallow eval at depth 1
-        //std::vector<std::pair<int, actionT>> scored_actions(board.numAction);
+        
         std::vector<Board> nextBoards(board.numAction, board);
 
         for (int i=0;i<board.numAction;i++) {
@@ -126,8 +221,7 @@ actionT MinimaxAgent::initiate_minimax_fixed(Board board) {
 int MinimaxAgent::minmax(GameState state, Board &board, int depth_remaining, int alpha, int beta) {
 
     if (is_time_up()) {
-        return 0;  // Return a neutral evaluation when time runs out
-    }
+        return 0;  }
 
     // Check if we've reached a terminal state or maximum depth
     if (state == GameState::DRAW || 
@@ -148,36 +242,17 @@ int MinimaxAgent::minmax(GameState state, Board &board, int depth_remaining, int
         validActions[i]=board.resAction[i];
     }
     for (int i = 0; i < numAction; i++) {
-        //auto h=board.simple_hash();
-        //Board sb(board);
-        //clog<<"Applay action "<<validActions[i]<<endl;
         board.applayAction(validActions[i]);
-        
-
         int eval = -minmax(board.getGameState(), board, depth_remaining - 1, -beta, -alpha);
+        board.undoAction();
         max_eval = std::max(max_eval, eval);
         alpha = std::max(alpha, max_eval);
 
-        // Alpha-beta pruning
         if (beta <= alpha) {
-            board.undoAction();
             break;
         }
-        //clog<<"Undo action "<<validActions[i]<<endl;
         board.undoAction();
-        /*auto z=board.simple_hash();
-        if(h!=z){
-            cout<<"Hash is not the same, undo failed"<<endl;
-
-            sb.printBoard();
-
-            cout<<"\n\n Applied action "<<validActions[i]<<"\n\n"<<endl;
-            board.printBoard();
-
-            throw "NOT";
-        }*/
     }
-        
     return max_eval;
 }
 
@@ -195,22 +270,14 @@ actionT MinimaxAgent::calculate_best_move(Board &board) {
         return board.suggestInitialMove();
     }
 
-    /*if (DISABLE_CACHE || _cache == pass() || board.currentTurn != cached_turn) {
-        color = board.currentColor();
-        cached_turn = board.currentTurn;
-     */   _cache = initiate_minimax_iterative(board);
-    //}
-
+       _cache = initiate_minimax_iterative_parallel(board);
+    
 
     // Get ending timepoint
     auto stop = std::chrono::high_resolution_clock::now();
 
-    // Get duration. Substart timepoints to 
-    // get duration. To cast it to proper unit
-    // use duration cast method
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
 
-    //cout << "Time taken by function: " << duration.count()/1e6 << " seconds with " <<calledBoard << " evaluation" << endl;
     
     return _cache;
 }

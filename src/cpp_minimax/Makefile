@@ -1,5 +1,7 @@
 # Compiler and flags
-CXX = g++ -Ofast  -O3 -g -cpp=23 #-fsanitize=address
+CXX = g++ -Ofast  -O3 -g -cpp=23 -funroll-loops -fomit-frame-pointer -fno-exceptions -fno-rtti -march=native -flto 
+
+#-fsanitize=address
 OUT_DIR = out
 
 # Sources
@@ -42,5 +44,5 @@ self_play : self_play.cpp $(ALL_OJB)
 
 
 clean:
-	rm -f $(OUT_DIR)/*.o
+	rm -f $(OUT_DIR)/*.o 
  
