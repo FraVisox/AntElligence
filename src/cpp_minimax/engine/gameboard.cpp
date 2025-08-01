@@ -5,6 +5,8 @@
 
 gameboard::gameboard(){
     memset(high, 0, sizeof(high));
+
+    hasUpdatedArticulation=false;
     isPlaced.reset();
 }
 
@@ -12,6 +14,8 @@ gameboard::gameboard(){
 
 gameboard::gameboard(GameType gt){
     memset(high, 0, sizeof(high));
+
+    hasUpdatedArticulation=false;
     isPlaced.reset();
 }
 
@@ -30,6 +34,7 @@ void gameboard::removePiece(const pieceT &b){
     high[pos &1023]--;
     if(isFree(pos))
         occupied.set(pos,0);
+
 }
 
 /**
@@ -158,10 +163,11 @@ bool gameboard::canSlideToFreeDir(const positionT &from,const positionT &to, dir
  *        is empty.
  */
 pieceT gameboard::topPiece(const positionT &pos){
-    //if(!isFree(pos)){
+    if(!isFree(pos)){
         return gb[getHight(pos)-1][pos &1023];
-    //}
-    //throw "Asked piece for empty pos";
+    }
+    std::cerr<<"Error in gameboard, in top Piece"<<std::endl;
+    throw "Asked piece for empty pos";
 }
 
 pieceT gameboard::basePiece(const positionT &pos){
@@ -179,12 +185,14 @@ bitset<285> gameboard::toHash(){
             numPlaced++;
             positionT pos=getPosition(b);
             
-            bs=(bs<<10);
-            bs|=pos;
+            for(int j=0;j<10;j++){
+                bs[i*10+j]=(pos>>j)&1;
+            }
         }
     }
-    bs<<5;
-    bs|=numPlaced;
+    for(int j=0;j<5;j++){
+        bs[280+j]=(numPlaced>>j)&1;
+    }
     return bs;
 }
 
@@ -256,12 +264,25 @@ void gameboard::computeValidPositionPlaceNew(PlayerColor color){  // there is a 
 
     canPlace.updateAnd(hons);
     canPlace.updateAnd(~hono);
+
+    for(uint64_t i=0;i<16;i++){
+            if(canPlace.bv[i]>0){
+                for(uint64_t j=0;j<64;j++){
+                    if(canPlace.bv[i]&(1ull<<(63-j))){
+
+                        validPositionPlaceBuffer[numValidPosition]=(i<<6)|(j);
+                        numValidPosition++;
+                    }
+                }
+            }
+        }
+        /*
     for(unsigned int IPos=0;IPos<1024;IPos++){
         if(canPlace.get_bit(IPos)){
             validPositionPlaceBuffer[numValidPosition]=IPos;
             numValidPosition++;
         }
-    }
+    }*/
     //cout<<numValidPosition<<endl;
 }
 
@@ -302,8 +323,8 @@ bool gameboard::canMoveWithoutBreakingHiveRule(const pieceT &b,int turn){
         return true;
 
     //Update cache
-    if(turn != lastUpdateTurn){
-        lastUpdateTurn = turn;
+    if(!hasUpdatedArticulation){
+        hasUpdatedArticulation =true;
         find_articulation();
     }
 

@@ -86,7 +86,7 @@ class Board {
 
     // update the state
     void applayAction(actionT a);
-
+    void undoAction();
 
     // compute possible moves
     void ComputePossibleMoves();
@@ -95,7 +95,10 @@ class Board {
     GameState getGameState();
     
     int currentTurn;
-
+    positionT prevPos[MAX_TURN_SIZE];
+    pieceT   prevBug[MAX_TURN_SIZE];
+    pieceT hisPM1[MAX_TURN_SIZE];
+    pieceT hisPM2[MAX_TURN_SIZE];
     // describe the status
     gameboard G;
     bitset<32> inHandPiece;
@@ -103,7 +106,7 @@ class Board {
 
     string toString();
     actionT suggestInitialMove();
-    bitset<285> simple_hash(PlayerColor color);
+    bitset<285> simple_hash();
     uint64_t getHash();
 
     int getScore(PlayerColor color);
@@ -147,7 +150,7 @@ class Board {
     actionT resAction[MAX_ACTIONS_SIZE];
     int numAction;
     //bitset<285> confHistory[MAX_TURN_SIZE+2];
-
+    void printBoard();
     private:
     
     // auxiliary for pillbug

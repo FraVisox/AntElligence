@@ -81,7 +81,7 @@ actionT stringToAction(Board &b, string str){
             case '-': dir=0;break;
             case '\\': dir=1;break;
             case 0: dir=6;break;
-            default : throw "WTF??";
+            default : cerr<<"Error in engine, in string to action"<<endl;throw "WTF??";
         }
     }else{
         if(str[q]>'0' && str[q]<'4')q++;
@@ -89,7 +89,7 @@ actionT stringToAction(Board &b, string str){
             case '/': dir=2;break;
             case '-': dir=3;break;
             case '\\': dir=4;break;
-            default: throw "NOT A VALID STRING";
+            default: cerr<<"Error in engine, in string to action2"<<endl;throw "NOT A VALID STRING";
         }
     }
     //cout<<"Conver"<< str<<" to :"<<0+startP<<","<<0+destP<<" "<<dir<<endl;

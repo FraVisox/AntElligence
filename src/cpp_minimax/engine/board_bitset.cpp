@@ -30,8 +30,7 @@ void BoardBitSet::set(uint64_t i,uint64_t v){
 }
 
 bool BoardBitSet::get_bit(uint64_t i) const {
-    uint64_t word_idx = i >>6;
-    return (this->bv[word_idx]>>(63-(i % 64)))&1;
+    return (this->bv[i/64]>>(63-(i % 64)))&1;
 }
 
 void BoardBitSet::updateOr(const BoardBitSet& b){

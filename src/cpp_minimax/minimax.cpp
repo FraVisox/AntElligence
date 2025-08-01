@@ -142,21 +142,40 @@ int MinimaxAgent::minmax(GameState state, Board &board, int depth_remaining, int
     board.ComputePossibleMoves();
     
     int max_eval = MIN_EVAL;
-    
-    for (int i = 0; i < board.numAction; i++) {
+    actionT validActions[MAX_ACTIONS_SIZE];
+    int numAction=board.numAction;
+    for(int i=0;i<numAction;i++){
+        validActions[i]=board.resAction[i];
+    }
+    for (int i = 0; i < numAction; i++) {
+        //auto h=board.simple_hash();
+        //Board sb(board);
+        //clog<<"Applay action "<<validActions[i]<<endl;
+        board.applayAction(validActions[i]);
+        
 
-        Board b1(board);
-        b1.applayAction(board.resAction[i]);
-
-        int eval = -minmax(b1.getGameState(), b1, depth_remaining - 1, -beta, -alpha);
+        int eval = -minmax(board.getGameState(), board, depth_remaining - 1, -beta, -alpha);
         max_eval = std::max(max_eval, eval);
         alpha = std::max(alpha, max_eval);
 
         // Alpha-beta pruning
         if (beta <= alpha) {
+            board.undoAction();
             break;
         }
+        //clog<<"Undo action "<<validActions[i]<<endl;
+        board.undoAction();
+        /*auto z=board.simple_hash();
+        if(h!=z){
+            cout<<"Hash is not the same, undo failed"<<endl;
 
+            sb.printBoard();
+
+            cout<<"\n\n Applied action "<<validActions[i]<<"\n\n"<<endl;
+            board.printBoard();
+
+            throw "NOT";
+        }*/
     }
         
     return max_eval;
@@ -176,11 +195,11 @@ actionT MinimaxAgent::calculate_best_move(Board &board) {
         return board.suggestInitialMove();
     }
 
-    if (DISABLE_CACHE || _cache == pass() || board.currentTurn != cached_turn) {
+    /*if (DISABLE_CACHE || _cache == pass() || board.currentTurn != cached_turn) {
         color = board.currentColor();
         cached_turn = board.currentTurn;
-        _cache = initiate_minimax_iterative(board);
-    }
+     */   _cache = initiate_minimax_iterative(board);
+    //}
 
 
     // Get ending timepoint

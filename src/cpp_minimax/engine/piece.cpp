@@ -1,8 +1,7 @@
 #include <string>
 #include "piece.h"
 using namespace std;
-
-
+#include <iostream>
 const pieceT INVALID_PIECE=0;
 
 pieceT extractPiece(string s){
@@ -27,6 +26,7 @@ PlayerColor col(pieceT p){
     if(p>0 && p<=14) return PlayerColor::WHITE;
     if(p>14 && p<=28) return PlayerColor::BLACK;
     if(p==29 && isSimulatingPiece) return col(simulatedPiece);
+    std::cerr<<"Error in ,piece in col"<<std::endl;
     throw "Not correct color";
 }
 
@@ -50,6 +50,7 @@ const BugType PIECE_KIND_NUM[]={
 BugType kind(pieceT p){
     if(p>0 && p<=28)
         return PIECE_KIND_NUM[(p-1)%14];
+    std::cerr<<"Error in piece, in kind: asking for kind of "<<p<<std::endl;
     throw "Asking kind of a non-piece";
 }
 
@@ -81,7 +82,8 @@ pieceT getCandidateForKind(BugType t,PlayerColor col){
     case BugType::MOSQUITO:    return inc+12; break;  // 12
     case BugType::LADYBUG:     return inc+13; break;  // 13
     case BugType::PILLBUG:     return inc+14; break;  // 14
-    default: throw "NOT VALID BUG TYPE";
+    default:std::cerr<<"Error in piece, in getCandidate"<<std::endl;
+     throw "NOT VALID BUG TYPE";
     }
 }
 
@@ -100,7 +102,8 @@ pieceT buildPiece(enum BugType k,PlayerColor c,int numIncr){
     case BugType::MOSQUITO:     r+=11;        break;  // 12
     case BugType::LADYBUG:      r+=12;        break;  // 13
     case BugType::PILLBUG:      r+=13;        break;  // 14
-    default: throw "NOT A KIND";
+    default: std::cerr<<"Error in piece, in buildPiece"<<std::endl;
+    throw "NOT A KIND";
     }
     return r;
 } 
@@ -156,7 +159,8 @@ pieceT decodeBug(char* s){
     case 'm': numInc=0; bt=BugType::MOSQUITO; break;
     case 'l': numInc=0; bt=BugType::LADYBUG; break;
     case 'p': numInc=0; bt=BugType::PILLBUG; break;
-    default: throw "Not a valid bug";
+    default: std::cerr<<"Error in piece, in decodeBug"<<std::endl;
+    throw "Not a valid bug";
     }
     return buildPiece(bt,col,numInc);
 }

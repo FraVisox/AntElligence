@@ -25,7 +25,10 @@ Board::Board(){
     inHandPiece.reset();
     prevMoved[0]=0;
     prevMoved[1]=0;
+    
+    G.hasUpdatedArticulation=false;
 };    
+
 
 
 /**
@@ -72,6 +75,7 @@ void Board::copy(Board &b){
 
 Board::Board(bool a,bool b){
     
+    G.hasUpdatedArticulation=false;
 }
 
 
@@ -100,6 +104,8 @@ Board::Board(GameType gt) : G(gt){
                                 addPieceHand(13);addPieceHand(27);
                                 addPieceHand(14);addPieceHand(28);break;
     }
+        G.hasUpdatedArticulation=false;
+
 }
 
 /**
@@ -130,11 +136,38 @@ void Board::addPieceHand(pieceT p){
 }
 
 
-
-void Board::applayAction(actionT act){
+void Board::undoAction(){
     hasUpdate=true;
+    pieceT b=     prevBug[currentTurn-1];
+    positionT pos=prevPos[currentTurn-1];
+    prevMoved[0]=hisPM1[currentTurn-1];
+    prevMoved[1]=hisPM2[currentTurn-1];
+    if(b!=0){
+        //clog<<"\n\n-----------------------------------\nUpdating : b!= 0"<<endl;
+        G.removePiece(b);
+        //clog<<"Removed piece  "<<b<<endl;
+        if(pos==1025){
+        //    clog<<"Added to hand"<<endl;
+            inHandPiece.set(b,1);
+        } else{
+        //    clog<<"Added to position "<<pos<<endl;
+            G.addPiece(pos,b);
+        }
+    }
+    currentTurn--;    
+    G.hasUpdatedArticulation=false;
+    //clog<<"Ended undo"<<endl;
+
+}
+
+void Board::applayAction(actionT act){    G.hasUpdatedArticulation=false;
+
+    hasUpdate=true;
+    hisPM1[currentTurn]=prevMoved[0];
+    hisPM2[currentTurn]=prevMoved[1];
     //confHistory[currentTurn]=G.toHash();
     if(act==0){
+        prevBug[currentTurn]=0;
         currentTurn++;
         prevMoved[currentColor()]=0;
         return;
@@ -142,13 +175,14 @@ void Board::applayAction(actionT act){
 
     pieceT p=(act%32);
     positionT dest=act/32;
-
+    prevBug[currentTurn]=p;
     if(!G.isPlaced[p]){
+        prevPos[currentTurn]=1025;
         currentTurn++;
         prevMoved[currentColor()]=0;
         inHandPiece.set(p,0);
-        
     }else{
+        prevPos[currentTurn]=G.getPosition(p);
         computePillbugMovinPieces();
         prevMoved[1-currentColor()]=p;
         for(int i=0;i<pillbugTotMoves;i++){
@@ -164,9 +198,12 @@ void Board::applayAction(actionT act){
 
 
 GameState Board::getGameState(){
+    if(currentTurn==0) return GameState::NOT_STARTED;
     int bugWQ=0,bugBQ=0;
 
-
+    if(!G.isPlaced[8])return GameState::STARTED;
+    if(!G.isPlaced[22])return GameState::STARTED;
+    
     positionT WQPos=G.getPosition(8);
     positionT BQPos=G.getPosition(22); 
     for(int i=0;i<6;i++){
@@ -185,7 +222,6 @@ GameState Board::getGameState(){
             ne++;
     } */ 
     
-    if(currentTurn==0) return GameState::NOT_STARTED;
     if(currentTurn>MAX_TURN_SIZE || ne>1)return GameState::DRAW;
     return GameState::STARTED;
 }
@@ -883,7 +919,7 @@ string Board::toString() {
     return "Base+MLP;"+GameStateToString(getGameState())+";"+ColorToCompleteString(currentColor())+"["+to_string(currentPlayerTurn())+"]";
 }
 
-bitset<285> Board::simple_hash(PlayerColor color) {
+bitset<285> Board::simple_hash() {
     // TODO: use color
     return G.toHash();
 }
@@ -918,5 +954,81 @@ actionT Board::suggestInitialMove() {
    cout << "Suggesting initial" << endl;
    return 0;
 }
+
+void Board::printBoard(){
+    cout<<"BOARD:"<<endl;
+    for(int i=16;i<48;i++){
+        printf("%4d",(32*i+16)&1023);
+        if(i<10)cout<<" ";
+        for(int j=16;j<i;j++)std::cout<<"  ";
+        for(int j=16;j<48;j++){
+            gameboard &g=G;
+            if(g.high[(j+32*i)&1023]==0){
+                //printf("%3d", ((j+32*i)&1023)%1000);
+                cout<<"   ";
+            }
+            if(g.high[(j+32*i)&1023]>1){
+                cout<<"XXX";
+            }
+            if(g.high[(j+32*i)&1023]==1){
+                pieceT p=g.topPiece((j+32*i)&1023);
+                string s=PiecetoString(p);
+                cout<<s;
+                if(s.size()==2)cout<<" ";
+            }            
+            cout<<"|";
+        }
+        cout<<endl;
+    }
+
+    cout<<"HIGHT:"<<endl;
+    for(int i=16;i<48;i++){
+        printf("%4d",(32*i+16)&1023);
+        if(i<10)cout<<" ";
+        for(int j=16;j<i;j++)std::cout<<"  ";
+        for(int j=16;j<48;j++){
+            if(G.high[(j+32*i)&1023]>0)
+                printf("%3d",G.high[(j+32*i)&1023]);
+            else
+                cout<<"   ";
+            cout<<"|";
+        }
+        cout<<endl;
+    }
+    
+    cout<<"OCCUPIED: "<<G.occupied.bv<<endl;
+    for(int i=16;i<48;i++){
+        printf("%4d",(32*i+16)&1023);
+        if(i<10)cout<<" ";
+        for(int j=16;j<i;j++)std::cout<<"  ";
+        for(int j=16;j<48;j++){
+            if(G.occupied.get_bit((j+32*i)&1023))
+                printf(" 1 ");
+            else
+                cout<<"   ";
+            cout<<"|";
+        }
+        cout<<endl;
+    }
+
+    cout<<" \n\n";
+    for(int i=1;i<=28;i++){
+        string s=PiecetoString(i);
+        cout<<s;
+        if(s.size()==2)cout<<" ";
+        cout<<"|";
+    }
+    cout<<endl;
+    for(int i=1;i<=28;i++){
+        printf("%3d|",G.bugPosition[i]%1000);
+    }
+    cout<<endl;
+    for(int i=1;i<=28;i++){
+        printf("%3d|",G.isPlaced[i]?1:0);
+    }
+    cout<<endl;
+}
+
+
 
 #endif

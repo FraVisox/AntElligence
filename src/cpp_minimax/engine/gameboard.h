@@ -86,10 +86,10 @@ class gameboard{
   
     //PRIVATE FUNCTIONS TO FIND ARTICULATION POINTS (HIVE RULE) AND CALCULATE POSITION
 
-    private:
+    public :
 
     int timer=0;
-    int lastUpdateTurn=-1;
+    bool hasUpdatedArticulation=false;;
 
 
     /**

@@ -1,5 +1,5 @@
 # Compiler and flags
-CXX = g++ -Ofast  -O3 -g #-fsanitize=address
+CXX = g++ -Ofast  -O3 -g -cpp=23 #-fsanitize=address
 OUT_DIR = out
 
 # Sources
