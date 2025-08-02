@@ -102,18 +102,16 @@ class gameboard{
      * bug can be moved without breaking the hive rule.
      */
     void find_articulation(){    
-        BoardBitSet not_movable_position;
         BoardBitSet visited_dfs;
         int disc[SIZE_BOARD*SIZE_BOARD],low[SIZE_BOARD*SIZE_BOARD];
 
+        not_movable_position.reset();
         if(occupied.none())
             return;
 
-        not_movable_position.reset();
-        visited_dfs.reset();
 
         positionT startPos;
-        for(pieceT p=0;p<32;p++){
+        for(pieceT p=1;p<=28;p++){
             if(isPlaced[p]){
                 positionT e=bugPosition[p];
                 startPos=e;
@@ -146,7 +144,7 @@ class gameboard{
         int children=0;
         for (int dir=0;dir<6;dir++){
             positionT to=applayMove(v,dir);
-            if(isFree(to))continue;
+            if(!occupied.get_bit(to))continue;
             //If this is a back edge, update low
             if (visited_dfs.get_bit(to)) {
                 low[v] = min(low[v], disc[to]);

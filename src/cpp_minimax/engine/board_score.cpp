@@ -423,9 +423,9 @@ int Board::bug_utility_score() {
 /**
  * Overall board evaluation from the perspective of the given color
  */
-int Board::getScore(PlayerColor color) {
+double Board::getScore(PlayerColor color) {
     const double MIN_EVAL=-1e-7;
-    const double MAX_EVAL=-1e-7;
+    const double MAX_EVAL=1e-7;
 
     GameState state=getGameState();
     if (state == GameState::DRAW) {
@@ -447,5 +447,7 @@ int Board::getScore(PlayerColor color) {
             return MIN_EVAL;
         }
     }
+    if(state == GameState::DRAW)
+        return 0;
     return evaluateAdvanced(color);
 }

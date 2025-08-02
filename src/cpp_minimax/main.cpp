@@ -3,8 +3,7 @@
 
 #include "engine.h"
 #include "minimax.h"
-#include "minimax_tt.h"
-#include "minimax.h"
+#include <fstream>
 /*
 #include "engine/action.cpp"
 #include "engine/board_bitset.cpp"
@@ -22,7 +21,9 @@
 */
 
 int main(){
-
+   std::ofstream out("test.txt");
+    std::clog.rdbuf(out.rdbuf());
+    std::cerr.rdbuf(out.rdbuf());
     MinimaxAgent a;
 
     Engine e(a);

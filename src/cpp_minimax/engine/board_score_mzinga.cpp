@@ -250,11 +250,7 @@ double Board::calculateLateGameThreatScore() {
  */
 double Board::evaluateAdvanced(PlayerColor playerColor, int gamePhase) {
     BoardMetrics boardMetrics = calculateBoardMetrics();
-    static MetricWeights weights;
-    static bool init_w = false;
-    if (!init_w) {
-        init_w = true;
-    }
+    
 
     double score = 0.0;
     
@@ -266,18 +262,19 @@ double Board::evaluateAdvanced(PlayerColor playerColor, int gamePhase) {
         int sign = (col(p) == playerColor) ? +1 : -1;
         BugType type = kind(p);
         
-        score += sign * weights.Get(type, InPlayWeight   ,gamePhase) * (m.InPlay ? 1 : 0);
-        score += sign * weights.Get(type, IsPinnedWeight ,gamePhase) * (m.IsPinned ? 1 : 0);
-        score += sign * weights.Get(type, IsCoveredWeight,gamePhase) * (m.IsCovered ? 1 : 0);
+        score += sign * getWeight(type, InPlayWeight   ,gamePhase) * (m.InPlay ? 1 : 0);
+        score += sign * getWeight(type, IsPinnedWeight ,gamePhase) * (m.IsPinned ? 1 : 0);
+        score += sign * getWeight(type, IsCoveredWeight,gamePhase) * (m.IsCovered ? 1 : 0);
         
-        score += sign * weights.Get(type, NoisyMoveWeight,gamePhase) * std::log1p(m.NoisyMoves);
-        score += sign * weights.Get(type, QuietMoveWeight,gamePhase) * std::sqrt(m.QuietMoves);
+        score += sign * getWeight(type, NoisyMoveWeight,gamePhase) * std::log1p(m.NoisyMoves);
+        score += sign * getWeight(type, QuietMoveWeight,gamePhase) * std::sqrt(m.QuietMoves);
         
-        score += sign * weights.Get(type, FriendlyNeighborWeight,gamePhase)* m.FriendlyNeighbors;
-        score += sign * weights.Get(type, EnemyNeighborWeight,gamePhase) * m.EnemyNeighbors;
+        score += sign * getWeight(type, FriendlyNeighborWeight,gamePhase)* m.FriendlyNeighbors;
+        score += sign * getWeight(type, EnemyNeighborWeight,gamePhase) * m.EnemyNeighbors;
         
         
     }
+    return score;
     
     // Global tactical features
     int queenSurroundDiff, queenEscapeDiff, pinDiff;

@@ -137,7 +137,6 @@ void Board::addPieceHand(pieceT p){
 
 
 void Board::undoAction(){
-    hasUpdate=true;
     pieceT b=     prevBug[currentTurn-1];
     positionT pos=prevPos[currentTurn-1];
     prevMoved[0]=hisPM1[currentTurn-1];
@@ -155,14 +154,15 @@ void Board::undoAction(){
         }
     }
     currentTurn--;    
+    hasUpdate=true;
+
     G.hasUpdatedArticulation=false;
     //clog<<"Ended undo"<<endl;
 
 }
 
-void Board::applayAction(actionT act){    G.hasUpdatedArticulation=false;
-
-    hasUpdate=true;
+void Board::applayAction(actionT act){    
+    
     hisPM1[currentTurn]=prevMoved[0];
     hisPM2[currentTurn]=prevMoved[1];
     //confHistory[currentTurn]=G.toHash();
@@ -170,6 +170,8 @@ void Board::applayAction(actionT act){    G.hasUpdatedArticulation=false;
         prevBug[currentTurn]=0;
         currentTurn++;
         prevMoved[currentColor()]=0;
+        hasUpdate=true;
+        G.hasUpdatedArticulation=false;
         return;
     }
 
@@ -193,6 +195,9 @@ void Board::applayAction(actionT act){    G.hasUpdatedArticulation=false;
         currentTurn++;
         G.removePiece(p);
     }
+
+    G.hasUpdatedArticulation=false;
+    hasUpdate=true;
     G.addPiece(dest,p);
 }
 
@@ -228,8 +233,9 @@ GameState Board::getGameState(){
 
 
 void Board::ComputePossibleMoves(){
-    if(!hasUpdate)return;
-    
+    if(!hasUpdate){
+        return;
+    }
     hasUpdate=false;
     numAction=0;  
 
@@ -305,7 +311,6 @@ void Board::ComputePossibleMoves(){
         }
     }
     //cout<<"Move place:"<<numAction<<endl;
-
     // 5- moves
     if(placedQueen()){
         for(pieceT b=1;b<=28;b++){
@@ -314,12 +319,15 @@ void Board::ComputePossibleMoves(){
             if (b == prevMoved[currentColor()]) continue;
             possibleMovesBug(b);
         }
+        
+        idxStartActions[29]=numAction;
         computePillbugMovinPieces();
+        
         for(int i=0;i<pillbugTotMoves;i++){
             resAction[numAction]=pillbugMoves[i];
+            numAction++;
         }
     }
-    idxStartActions[29]=numAction;
 
     if(numAction==0){
         //G.isValidMoveBitmask[0]=1;
@@ -431,31 +439,30 @@ void Board::possibleMoves_Grasshopper(pieceT bug){
 
 void Board::possibleMoves_SoldierAnt(pieceT bug){
     if (G.canPieceMove(bug,currentTurn)) {
-        inQueue.reset();
-        inQueue.updateOr(G.occupied);
-
+        
+        
         const positionT startPos=G.getPosition(bug);
 
-        inQueue.set(startPos ,1);
         G.removePiece(bug);
         BoardBitSet isOccupiedNear[6];
         
 
         for(int i=0;i<6;i++){
-            isOccupiedNear[i]=G.occupied;
-            isOccupiedNear[i].getRot(i);
+            isOccupiedNear[i]=G.occupied.getRot(i);
         }
         
         BoardBitSet canGoTo[6];
         for(int i=0;i<6;i++){
-            canGoTo[i]=(isOccupiedNear[(i+5)%6] ^ isOccupiedNear[(i+1)%6]) & (~isOccupiedNear[i]);
+            canGoTo[i].reset();
+            canGoTo[i]=((isOccupiedNear[(i+5)%6] ^ isOccupiedNear[(i+1)%6]) & (~isOccupiedNear[i]));
         }
 
         BoardBitSet reachable;
         reachable.set(startPos,1);
+        
         BoardBitSet pr;
         for(int i=0;i<64;i++){
-            pr=reachable;
+            pr.updateOr(reachable);
             for(int j=0;j<6;j++){
                 reachable.updateOr((canGoTo[j] & reachable).getRot((j+3)%6));     
             }
@@ -465,7 +472,7 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
         reachable.set(startPos,0);
 
         for(uint64_t i=0;i<16;i++){
-            if(reachable.bv[i]>0){
+            if(reachable.bv[i]>0ull){
                 for(uint64_t j=0;j<64;j++){
                     if(reachable.bv[i]&(1ull<<(63-j))){
                         resAction[numAction++]=(actionT)(bug|(i<<11)|(j<<5));
@@ -502,7 +509,7 @@ void Board::possibleMoves_Spider(pieceT bug){
                             positionT next3=applayMove(next2,dr3);
                             positionT p1=applayMove(next2,(dr3+1)%6);
                             positionT p2=applayMove(next2,(dr3+5)%6);
-                            if( !G.occupied.get_bit(next3) && (dr3!=(dr2+3)%6) && (G.occupied.get_bit(p1)^G.occupied.get_bit(p2))){
+                            if( next3!=startPos && !G.occupied.get_bit(next3) && (dr3!=(dr2+3)%6) && (G.occupied.get_bit(p1)^G.occupied.get_bit(p2))){
                                     reached.set(next3,1);
                             }
                          }
@@ -511,6 +518,8 @@ void Board::possibleMoves_Spider(pieceT bug){
                 }
             }
         }
+        reached.set(startPos,0);
+
         positionT n1,n2,n3,n4,n5,n6;
         for(int dir1=0;dir1<6;dir1++){
             int dir2=(dir1+1)%6;
@@ -800,8 +809,7 @@ void Board::possibleMoves_Mosquito(pieceT bug){  // TODO
         
 
         for(int i=0;i<6;i++){
-            isOccupiedNear[i]=G.occupied;
-            isOccupiedNear[i].getRot(i);
+            isOccupiedNear[i]=G.occupied.getRot(i);
         }
         
         BoardBitSet canGoTo[6];

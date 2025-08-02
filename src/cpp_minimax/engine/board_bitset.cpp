@@ -137,7 +137,6 @@ BoardBitSet operator~(const BoardBitSet& a){
 
 
 void BoardBitSet::printDBG(){
-    return;
     for(int i=16;i<48;i++){
         printf("%4d",(32*i+16)&1023);
         if(i<10)cout<<" ";

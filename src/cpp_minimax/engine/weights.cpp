@@ -1,3 +1,6 @@
+#include "weights.h"
+
+/*
 double startGame[8][7]={
     {//QueenBee
     63558.424116300164,    //InPlayWeight
@@ -136,5 +139,46 @@ double endgame[8][7]={
       24.950130621306656,  //Pillbug.EnemyNeighborWeight>
 }};
 
+*/
 
 
+
+double startGame[8][7]={
+    {0,0,0,0,0,-1},
+    {0,0,0,0,0,0},
+    {0,0,0,0,0,0},
+    {0,0,0,0,0,0},
+    {0,0,0,0,0,0},
+    {0,0,0,0,0,0},
+    {0,0,0,0,0,0},
+    {0,0,0,0,0,0}
+      
+};
+
+double endgame[8][7]={
+
+    {//QueenBee
+    0,    //InPlayWeight
+    0,   //IsPinnedWeight
+    0,    //IsCoveredWeight
+    0,    //NoisyMoveWeight
+    0,    //QuietMoveWeight
+    0,     //FriendlyNeighborWeight
+    -1,    //EnemyNeighborWeight
+    },
+    {0,0,0,0,0,0},
+    {0,0,0,0,0,0},
+    {0,0,0,0,0,0},
+    {0,0,0,0,0,0},
+    {0,0,0,0,0,0},
+    {0,0,0,0,0,0},
+    {0,0,0,0,0,0}
+};
+
+
+double getWeight(BugType type, int key,int gamekind) {
+    if(gamekind==0)
+      return startGame[type][key];
+    return endgame[type][key];
+}
+    

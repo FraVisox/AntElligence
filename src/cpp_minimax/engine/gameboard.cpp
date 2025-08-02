@@ -252,38 +252,22 @@ void gameboard::computeValidPositionPlaceNew(PlayerColor color){  // there is a 
         hons.updateOr(xbbs.getRot(d));
         hono.updateOr(ybbs.getRot(d));
     }
-    /*
-    for(int d=0;d<6;d++){
-        hons|=sameCN[d];
-    }
-    for(int d=0;d<6;d++){
-        hono|=diffCN[d];
-    }
-        */
 
 
     canPlace.updateAnd(hons);
     canPlace.updateAnd(~hono);
 
     for(uint64_t i=0;i<16;i++){
-            if(canPlace.bv[i]>0){
-                for(uint64_t j=0;j<64;j++){
-                    if(canPlace.bv[i]&(1ull<<(63-j))){
+        if(canPlace.bv[i]>0){
+            for(uint64_t j=0;j<64;j++){
+                if(canPlace.bv[i]&(1ull<<(63-j))){
 
-                        validPositionPlaceBuffer[numValidPosition]=(i<<6)|(j);
-                        numValidPosition++;
-                    }
+                    validPositionPlaceBuffer[numValidPosition]=(i<<6)|(j);
+                    numValidPosition++;
                 }
             }
         }
-        /*
-    for(unsigned int IPos=0;IPos<1024;IPos++){
-        if(canPlace.get_bit(IPos)){
-            validPositionPlaceBuffer[numValidPosition]=IPos;
-            numValidPosition++;
-        }
-    }*/
-    //cout<<numValidPosition<<endl;
+    }
 }
 
 
@@ -328,5 +312,5 @@ bool gameboard::canMoveWithoutBreakingHiveRule(const pieceT &b,int turn){
         find_articulation();
     }
 
-    return not_movable_position.get_bit(getPosition(b) ) == 0;
+    return not_movable_position.get_bit(p) == 0;
 }

@@ -23,7 +23,7 @@
 
 int main(){
 
-    MinimaxAgent a(5,10);
+    MinimaxAgent a(5);
 
     Engine e(a);
     //try{

@@ -29,16 +29,7 @@ struct BugMetrics {
     int EnemyNeighbors = 0;
 };
 
-struct MetricWeights {
 
-
-    double Get(BugType type, int key,int gamekind) const {
-        if(gamekind==0)
-        return startGame[type][key];
-        return endgame[type][key];
-    }
-    
-};
 
 struct BoardMetrics {
     BugMetrics pieceMetrics[29];
@@ -109,8 +100,8 @@ class Board {
     bitset<285> simple_hash();
     uint64_t getHash();
 
-    int getScore(PlayerColor color);
-    int getScoreBug(pieceT p);
+    double getScore(PlayerColor color);
+    double getScoreBug(pieceT p);
     int surround_score();
     int mobility_score();
     int isPinned(pieceT bug);
@@ -135,7 +126,6 @@ class Board {
     int bug_utility_score();
 
     // Advanced evaluation helpers
-    MetricWeights initializeWeightsFromXML(const std::string& filename);
     std::string pieceToString(pieceT piece);
     BugMetrics calculatePieceMetrics(pieceT piece);
     BoardMetrics calculateBoardMetrics();
