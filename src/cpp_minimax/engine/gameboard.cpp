@@ -19,7 +19,7 @@ gameboard::gameboard(GameType gt){
     isPlaced.reset();
 }
 
-positionT gameboard::getPosition(const pieceT &p){
+positionT gameboard::getPosition(const pieceT &p) const {
     return  bugPosition[p];
 }
 
@@ -97,7 +97,7 @@ void gameboard::copy(gameboard& g){
  * \param bug The bug to check.
  * \return True if the bug is at the top of the stack, false otherwise.
  */
-bool gameboard::isTop(const pieceT &bug){
+bool gameboard::isTop(const pieceT &bug) const {
     positionT pos=getPosition(bug);
     return (topPiece(pos)==bug);
 }
@@ -118,7 +118,7 @@ bool gameboard::canPieceMove(const pieceT &b,int turn){
 }
 
 
-int gameboard::getHight(const positionT &pos){
+int gameboard::getHight(const positionT &pos) const {
     return high[pos &1023];
 }
 /**
@@ -162,7 +162,7 @@ bool gameboard::canSlideToFreeDir(const positionT &from,const positionT &to, dir
  * \throw A string with the message "Asked piece for empty pos" if the position
  *        is empty.
  */
-pieceT gameboard::topPiece(const positionT &pos){
+pieceT gameboard::topPiece(const positionT &pos) const {
     //if(!isFree(pos)){
         return gb[getHight(pos)-1][pos &1023];
     //}

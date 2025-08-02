@@ -1,5 +1,46 @@
 #include "weights.h"
+#include <iostream>
+using namespace std;
 
+WeightsHelper::WeightsHelper(){
+  double hv[42]={
+    0,                // QueenMoveWeight
+    0,                // numActionWeight
+//  S   B   G   Q   A   M   L   P 
+    0,  0,  0,  0,  0,  0,  0,  0,  // noisyWeight
+    0,  0,  0,  0,  0,  0,  0,  0,  // converedWeight
+    0,  0,  0,  0,  0,  0,  0,  0,  // numEnemyCloseWeight
+    0,  0,  0,-10,  0,  0,  0,  0,  // totalNumCloseWeight
+    1,  1,  1,  1,  1,  1,  1,  1   // placedWeight
+  };
+  for(int i=0;i<42;i++){
+    weightVector[i]=hv[i];
+  }
+}
+
+
+const double WeightsHelper::QueenMoveWeight() const {
+  return weightVector[0];
+}
+const double WeightsHelper::numActionWeight() const{
+  return weightVector[1];
+}
+const double WeightsHelper::noisyWeight(BugType bt) const {
+  return weightVector[2+bt];
+}
+const double WeightsHelper::converedWeight(BugType bt ) const{
+  return weightVector[10+bt];
+}
+const double WeightsHelper::numEnemyCloseWeight(BugType bt)const{
+  return weightVector[18+bt];
+}
+const double WeightsHelper::totalNumCloseWeight(BugType bt)const{
+  return weightVector[26+bt];
+}
+const double WeightsHelper::placedWeight(BugType bt) const{
+  return weightVector[34+bt];
+}
+  
 /*
 double startGame[8][7]={
     {//QueenBee
@@ -142,43 +183,54 @@ double endgame[8][7]={
 */
 
 
-
+    
 double startGame[8][7]={
-    {0,0,0,0,0,-1},
-    {0,0,0,0,0,0},
-    {0,0,0,0,0,0},
-    {0,0,0,0,0,0},
-    {0,0,0,0,0,0},
-    {0,0,0,0,0,0},
-    {0,0,0,0,0,0},
-    {0,0,0,0,0,0}
-      
+    {1,0,0,0, 0, 0   ,0 },    // SPIDER=0,
+    {1,0,0,0, 0, 0   ,0 },    //  BEETLE=1,
+    {1,0,0,0, 0, 0   ,0 },    //  GRASSHOPPER=2,
+    {1,0,0,0, 0, -10 ,-10},    //  QUEEN=3,
+    {1,0,0,0, 0, 0   ,0 },    //  SOLDIER_ANT=4,
+    {1,0,0,0, 0, 0   ,0 },    //  MOSQUITO=5,
+    {1,0,0,0, 0, 0   ,0 },    //  LADYBUG=6,
+    {1,0,0,0, 0, 0   ,0 }     // PILLBUG=7
+  // 0 1 2 3  4  5    6
 };
 
 double endgame[8][7]={
 
-    {//QueenBee
+    {
     0,    //InPlayWeight
     0,   //IsPinnedWeight
     0,    //IsCoveredWeight
     0,    //NoisyMoveWeight
     0,    //QuietMoveWeight
-    0,     //FriendlyNeighborWeight
+    -0.8,     //FriendlyNeighborWeight
     -1,    //EnemyNeighborWeight
     },
-    {0,0,0,0,0,0},
-    {0,0,0,0,0,0},
-    {0,0,0,0,0,0},
-    {0,0,0,0,0,0},
-    {0,0,0,0,0,0},
-    {0,0,0,0,0,0},
-    {0,0,0,0,0,0}
+    {1,0,0,0, 0, 0   ,0 },
+    {1,0,0,0, 0, 0   ,0 },
+    {1,0,0,0, 0, -8   ,-10},
+    {1,0,0,0, 0, 0   ,0 },
+    {1,0,0,0, 0, 0   ,0 },
+    {1,0,0,0, 0, 0   ,0 },
+    {1,0,0,0, 0, 0   ,0 }
 };
+
+// InPlayWeight 0
+// IsPinnedWeight 1 
+// IsCoveredWeight 2
+// NoisyMoveWeight 3
+// QuietMoveWeight 4
+// FriendlyNeighborWeight 5
+// EnemyNeighborWeight 6
 
 
 double getWeight(BugType type, int key,int gamekind) {
-    if(gamekind==0)
-      return startGame[type][key];
-    return endgame[type][key];
+    double v=0;
+      v=startGame[type][key];
+    return v;
+      v=endgame[type][key];
+    return v;
 }
-    
+
+

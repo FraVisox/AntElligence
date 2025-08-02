@@ -7,13 +7,14 @@
 #include <algorithm>
 #include <memory>
 #include <chrono>
-
-
+#include  "engine/dynamic_eval.h"
+#include <unordered_map>
 class MinimaxAgent {
-private:
+    DynEval ev;
+public:
     int calledBoard;
     PlayerColor color;
-    int toale_evaled;
+    int toale_evaled=0;
     std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
     const std::chrono::seconds TIME_LIMIT = std::chrono::seconds(5);
     
@@ -32,7 +33,6 @@ private:
 
     bool is_time_up() const;
 
-public:
     MinimaxAgent(int tl = -1) : color(PlayerColor::WHITE) {
         if(tl==-1)
             timeLimit=TIME_LIMIT;
@@ -45,6 +45,17 @@ public:
 
     actionT calculate_best_move(Board &board);
     actionT initiate_minimax_parallel(Board &board,int depth);
+};
+
+
+
+
+class TranspositionTable{
+    queue<unordered_map<size_t,double>> QM;
+    
+    double get(int move, size_t hash);
+    void put(size_t hash, double value);
+    
 };
 
 #endif

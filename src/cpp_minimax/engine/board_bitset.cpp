@@ -7,7 +7,7 @@ using namespace std;
 
 BoardBitSet::BoardBitSet() {
     for(int i=0;i<16;i++){
-        bv[i]=0;
+        bv[i]=0ull;
     }
 }
 

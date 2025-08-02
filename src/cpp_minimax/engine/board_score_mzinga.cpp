@@ -30,9 +30,9 @@ BugMetrics Board::calculatePieceMetrics(pieceT piece) {
         if (!G.isFree(adjPos)) {
             pieceT adjPiece = G.topPiece(adjPos);
             if (col(adjPiece) == pieceColor) {
-                metrics.FriendlyNeighbors++;
+                metrics.FriendlyNeighbors+=1;
             } else {
-                metrics.EnemyNeighbors++;
+                metrics.EnemyNeighbors+=1;
             }
             
             // Check for ant or beetle adjacency (for mosquito bonus)
@@ -100,6 +100,7 @@ BugMetrics Board::calculatePieceMetrics(pieceT piece) {
 /**
  * Calculate comprehensive board metrics
  */
+
 BoardMetrics Board::calculateBoardMetrics() {
     BoardMetrics boardMetrics;
     
@@ -248,10 +249,10 @@ double Board::calculateLateGameThreatScore() {
 /**
  * Advanced board evaluation function
  */
-double Board::evaluateAdvanced(PlayerColor playerColor, int gamePhase) {
+double Board::evaluateAdvanced() {
     BoardMetrics boardMetrics = calculateBoardMetrics();
     
-
+    PlayerColor color=currentColor();
     double score = 0.0;
     
     // Evaluate each piece
@@ -259,19 +260,18 @@ double Board::evaluateAdvanced(PlayerColor playerColor, int gamePhase) {
         
         const BugMetrics& m = boardMetrics.pieceMetrics[p];
         
-        int sign = (col(p) == playerColor) ? +1 : -1;
+        double sign = (col(p) == color) ? +1.0 : -1.0;
         BugType type = kind(p);
         
-        score += sign * getWeight(type, InPlayWeight   ,gamePhase) * (m.InPlay ? 1 : 0);
-        score += sign * getWeight(type, IsPinnedWeight ,gamePhase) * (m.IsPinned ? 1 : 0);
-        score += sign * getWeight(type, IsCoveredWeight,gamePhase) * (m.IsCovered ? 1 : 0);
+        score += sign * getWeight(type, InPlayWeight   ) * (m.InPlay ? 1 : 0);
+        score += sign * getWeight(type, IsPinnedWeight ) * (m.IsPinned ? 1 : 0);
+        score += sign * getWeight(type, IsCoveredWeight) * (m.IsCovered ? 1 : 0);
         
-        score += sign * getWeight(type, NoisyMoveWeight,gamePhase) * std::log1p(m.NoisyMoves);
-        score += sign * getWeight(type, QuietMoveWeight,gamePhase) * std::sqrt(m.QuietMoves);
+        score += sign * getWeight(type, NoisyMoveWeight) * std::log1p(m.NoisyMoves);
+        score += sign * getWeight(type, QuietMoveWeight) * std::sqrt(m.QuietMoves);
         
-        score += sign * getWeight(type, FriendlyNeighborWeight,gamePhase)* m.FriendlyNeighbors;
-        score += sign * getWeight(type, EnemyNeighborWeight,gamePhase) * m.EnemyNeighbors;
-        
+        score += sign * getWeight(type, FriendlyNeighborWeight)* m.FriendlyNeighbors;
+        score += sign * getWeight(type, EnemyNeighborWeight) * m.EnemyNeighbors;
         
     }
     return score;
@@ -279,7 +279,7 @@ double Board::evaluateAdvanced(PlayerColor playerColor, int gamePhase) {
     // Global tactical features
     int queenSurroundDiff, queenEscapeDiff, pinDiff;
     
-    if (playerColor == currentColor()) {
+    if (color == currentColor()) {
         queenSurroundDiff = boardMetrics.TheirQueenSurround - boardMetrics.MyQueenSurround;
         queenEscapeDiff = boardMetrics.TheirQueenEscape - boardMetrics.MyQueenEscape;
         pinDiff = boardMetrics.TheirPinCount - boardMetrics.MyPinCount;
@@ -294,27 +294,27 @@ double Board::evaluateAdvanced(PlayerColor playerColor, int gamePhase) {
     score += 10.0 * pinDiff;
     
     // Win/loss conditions
-    bool canWin = (playerColor == currentColor()) ? 
+    bool canWin = (color == currentColor()) ? 
         boardMetrics.CanWinThisTurn : boardMetrics.OpponentCanWinNextTurn;
-    bool opponentCanWin = (playerColor == currentColor()) ? 
+    bool opponentCanWin = (color == currentColor()) ? 
         boardMetrics.OpponentCanWinNextTurn : boardMetrics.CanWinThisTurn;
         
     if (canWin) return 1e6;
     if (opponentCanWin) return -1e6;
     
     // Queen pinning bonuses
-    bool enemyQueenPinned = (playerColor == currentColor()) ? 
+    bool enemyQueenPinned = (color == currentColor()) ? 
         boardMetrics.EnemyQueenPinned : boardMetrics.MyQueenPinned;
-    bool myQueenPinned = (playerColor == currentColor()) ? 
+    bool myQueenPinned = (color == currentColor()) ? 
         boardMetrics.MyQueenPinned : boardMetrics.EnemyQueenPinned;
         
     if (enemyQueenPinned) score += 150.0;
     if (myQueenPinned) score -= 150.0;
     
     // Placement win opportunities
-    bool canPlaceToWin = (playerColor == currentColor()) ? 
+    bool canPlaceToWin = (color == currentColor()) ? 
         boardMetrics.CanPlaceToWin : boardMetrics.OpponentCanPlaceToWin;
-    bool opponentCanPlaceToWin = (playerColor == currentColor()) ? 
+    bool opponentCanPlaceToWin = (color == currentColor()) ? 
         boardMetrics.OpponentCanPlaceToWin : boardMetrics.CanPlaceToWin;
         
     if (canPlaceToWin) score += 500.0;

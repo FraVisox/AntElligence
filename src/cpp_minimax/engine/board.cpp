@@ -932,10 +932,22 @@ bitset<285> Board::simple_hash() {
     return G.toHash();
 }
 
-uint64_t Board::getHash() {
-    // TODO: use color
-    bitset<285> bs = G.toHash();
-    return bs.to_ullong();
+
+
+#include <string_view>
+#include <array>
+struct MurmurStyleHasher {
+    std::size_t operator()(const std::array<uint16_t, 30>& arr) const {
+        uint16_t v[32];
+        auto ptr = reinterpret_cast<const char*>(v);
+        return std::hash<std::string_view>{}(std::string_view(ptr, sizeof(arr)));
+    }
+};
+
+std::size_t Board::getHash()const  {
+    return std::hash<std::string_view>{}(
+        std::string_view(reinterpret_cast<const char*>(G.bugPosition+1), 28 * sizeof(int16_t))
+    );
 }
 
 actionT Board::suggestInitialMove() {
@@ -989,6 +1001,8 @@ void Board::printBoard(){
         cout<<endl;
     }
 
+    //cout<<"\n\n\nScore:\n  Black:"<<getScore(PlayerColor::BLACK)<<"\n  White:"<<getScore(PlayerColor::WHITE)<<endl;
+return;
     cout<<"HIGHT:"<<endl;
     for(int i=16;i<48;i++){
         printf("%4d",(32*i+16)&1023);

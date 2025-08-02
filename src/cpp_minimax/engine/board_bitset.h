@@ -14,7 +14,6 @@ class BoardBitSet {
         void printDBG();
 
         BoardBitSet() ;
-        BoardBitSet(BoardBitSet* b1);
 
         bool none();
 

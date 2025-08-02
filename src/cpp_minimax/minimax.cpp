@@ -17,6 +17,10 @@
 #include <atomic>
 #include <mutex>
 
+
+
+int total_sorted;
+int pruned_sorted;
 std::atomic<bool> time_up_flag(false);
 
 bool MinimaxAgent::is_time_up() const{
@@ -104,7 +108,10 @@ actionT MinimaxAgent::initiate_minimax_parallel(Board &board,int depth) {
 
 double MinimaxAgent::utility(Board &board) {
     toale_evaled++;
-    return board.getScore(color);
+    //double v1=ev.evalBoardCurrentPlayer(board);
+    //double v2=board.getScore();
+    
+    return board.getScore();
 }
 
 //FIXED DEPTH:
@@ -147,7 +154,7 @@ actionT MinimaxAgent::initiate_minimax_fixed(Board &board,int depth) {
     int f=0;
     for(int i=0;i<board.numAction;i++){
         if(todo_action==saved[i])f++;
-    }
+    }  
     if(f==0){
         cout<<"Impossible: move not found real"<<endl;
 
@@ -157,6 +164,7 @@ actionT MinimaxAgent::initiate_minimax_fixed(Board &board,int depth) {
     
     return todo_action;
 }
+
 
 double MinimaxAgent::minmax(GameState state, Board &board, int depth_remaining, double alpha, double beta) {
 
@@ -174,36 +182,73 @@ double MinimaxAgent::minmax(GameState state, Board &board, int depth_remaining, 
         return utility(board);
     }
     
+    
+
     board.ComputePossibleMoves();
     
+
     double max_eval = MIN_EVAL;
-    actionT validActions[MAX_ACTIONS_SIZE];
+
     int numAction=board.numAction;
-    for(int i=0;i<numAction;i++){
-        validActions[i]=board.resAction[i];
-    }
     
-    for (int i = 0; i < numAction; i++) {
+    if(depth_remaining>1){
 
-        board.applayAction(validActions[i]);
-        double eval = -minmax(board.getGameState(), board, depth_remaining - 1, -beta, -alpha);
-        board.undoAction();
-        
-        max_eval = std::max(max_eval, eval);
-        alpha = std::max(alpha, max_eval);
+        vector<pair<int,double>> actPair;
+        vector<Board> nextBoards;
+        for(int i=0;i<numAction;i++){
+            Board nextBoard(board);
+            nextBoard.applayAction(board.resAction[i]);
+            actPair.push_back(make_pair(utility(nextBoard),i));
+            nextBoards.push_back(nextBoard);
+        }    
 
-        if (beta <= alpha) {
-            break;
+        sort(actPair.begin(),actPair.end());
+        total_sorted+=numAction;
+        for (int i = numAction-1; i >=0 ; i--) {
+            int j=actPair[i].second;
+
+            double eval = -minmax(nextBoards[j].getGameState(), nextBoards[j], depth_remaining - 1, -beta, -alpha);
+           
+            max_eval = std::max(max_eval, eval);
+            alpha = std::max(alpha, max_eval);
+
+            if (beta <= alpha) {
+                pruned_sorted+=i;
+                break;
+            }
         }
-    }
+    }else{
+        actionT validActions[MAX_ACTIONS_SIZE];
+        for(int i=0;i<MAX_ACTIONS_SIZE;i++){
+            validActions[i]=board.resAction[i];
+        }
 
+        for (int i = 0; i < numAction; i++) {
+
+            board.applayAction(validActions[i]);
+            double eval = -minmax(board.getGameState(), board, depth_remaining - 1, -beta, -alpha);
+            board.undoAction();
+            
+            max_eval = std::max(max_eval, eval);
+            alpha = std::max(alpha, max_eval);
+
+            if (beta <= alpha) {
+                break;
+            }
+        }
+
+    }
     return max_eval;
 }
+
+
+
 
 actionT MinimaxAgent::calculate_best_move(Board &board) {
     toale_evaled = 0;
     time_up_flag.store(false);
-    
+    total_sorted=0;
+    pruned_sorted=0;
     start_time = std::chrono::high_resolution_clock::now();
 
 
@@ -211,10 +256,11 @@ actionT MinimaxAgent::calculate_best_move(Board &board) {
         clog<<"Suggested";
         return board.suggestInitialMove();
     }
+
     board.ComputePossibleMoves();
     actionT next_move=board.resAction[0];
 
-    int depth=2;
+    int depth=3;
     while(!is_time_up()){
         actionT ris = initiate_minimax_fixed(board,depth);
         if(!is_time_up()){
@@ -222,6 +268,8 @@ actionT MinimaxAgent::calculate_best_move(Board &board) {
             depth++;
         }
     }
+
+    cout<<"Improvement "<<pruned_sorted<<" over "<<total_sorted<<endl;
     
     return next_move;
 }

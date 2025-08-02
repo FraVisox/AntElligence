@@ -23,23 +23,25 @@
 
 int main(){
 
-    MinimaxAgent a(5);
+    MinimaxAgent a(20);
 
-    Engine e(a);
     //try{
+    srand(time(0));
 
-    e.board= Board(Base_MLP);
-    e.board.applayAction(stringToAction(e.board,"wB1"));
-    e.board.applayAction(stringToAction(e.board,"bS1 -wB1"));
-
-    while(e.board.currentTurn<10){
-        actionT M=a.calculate_best_move(e.board);
-        cout<<actionToString(M,e.board)<<endl;
-        e.board.applayAction(M);
+    Board board(GameType::Base_MLP);
+    board.applayAction(stringToAction(board,"wB1"));
+    board.applayAction(stringToAction(board,"bS1 -wB1"));
+int i=0;
+    while(board.currentTurn<100 && board.getGameState()<2){
+        i++;
+        actionT M;
+        if(board.currentTurn&1){
+            board.ComputePossibleMoves();
+            M=board.resAction[rand()%board.numAction];
+        }else
+            M=a.calculate_best_move(board);
+        cout<<i<<actionToString(M,board)<<endl;
+        board.applayAction(M);
     }
-/*}catch(char* e){
-    cout<<"NO"<<endl;
-    cout<<e<<endl;
-}*/
     return 0;
 }

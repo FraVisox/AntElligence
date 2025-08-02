@@ -23,10 +23,10 @@ struct BugMetrics {
     bool NearOwnQueen = false;
     bool CanReachQueenHole = false;
 
-    int NoisyMoves = 0;      // Moves that threaten or capture
-    int QuietMoves = 0;      // Positional moves
-    int FriendlyNeighbors = 0;
-    int EnemyNeighbors = 0;
+    double NoisyMoves = 0;      // Moves that threaten or capture
+    double QuietMoves = 0;      // Positional moves
+    double FriendlyNeighbors = 0;
+    double EnemyNeighbors = 0;
 };
 
 
@@ -98,9 +98,9 @@ class Board {
     string toString();
     actionT suggestInitialMove();
     bitset<285> simple_hash();
-    uint64_t getHash();
+    size_t getHash() const;
 
-    double getScore(PlayerColor color);
+    double getScore();
     double getScoreBug(pieceT p);
     int surround_score();
     int mobility_score();
@@ -133,15 +133,14 @@ class Board {
     double calculateLateGameThreatScore();
 
     // Advanced evaluation function
-    double evaluateAdvanced(PlayerColor playerColor,int=0);
+    double evaluateAdvanced();
 
     short idxStartActions[32];
     // returns the actions
     actionT resAction[MAX_ACTIONS_SIZE];
-    int numAction;
+    int numAction=0;
     //bitset<285> confHistory[MAX_TURN_SIZE+2];
     void printBoard();
-    private:
     
     // auxiliary for pillbug
     actionT pillbugMoves[24];

@@ -82,40 +82,8 @@ int Board::getHexDistance(positionT pos1, positionT pos2) {
         cerr<<"out of table"<<endl;
         throw "Not in table";
     }*/
-    return M[x2+2][y2+2];
+   return M[x2+2][y2+2];
 
-    std::queue<positionT> queue;
-    std::set<positionT> visited;
-    std::map<positionT, int> distance;
-    
-    queue.push(pos1);
-    visited.insert(pos1);
-    distance[pos1] = 0;
-    
-    while (!queue.empty()) {
-        positionT current = queue.front();
-        queue.pop();
-        
-        for (int dir = 0; dir < 6; dir++) {
-            positionT neighbor = applayMove(current, dir);
-            
-            if (neighbor == pos2) {
-                return distance[current] + 1;
-            }
-            
-            if (visited.find(neighbor) == visited.end()) {
-                visited.insert(neighbor);
-                distance[neighbor] = distance[current] + 1;
-                
-                // Prevent infinite search
-                if (distance[neighbor] < 10) {
-                    queue.push(neighbor);
-                }
-            }
-        }
-    }
-    
-    return -1; // Should not happen in connected board
 }
 
 // =============================================================================
@@ -423,31 +391,19 @@ int Board::bug_utility_score() {
 /**
  * Overall board evaluation from the perspective of the given color
  */
-double Board::getScore(PlayerColor color) {
-    const double MIN_EVAL=-1e-7;
-    const double MAX_EVAL=1e-7;
+double Board::getScore() {
+
+    const double MIN_EVAL=-1e7;
+    const double MAX_EVAL=1e7;
 
     GameState state=getGameState();
     if (state == GameState::DRAW) {
         return 0;
     }
-
-    if (color == PlayerColor::WHITE) {
-        if (state == GameState::WHITE_WIN) {
-            return MAX_EVAL;
-        }
-        if (state == GameState::BLACK_WIN) {
-            return MIN_EVAL;
-        }
-    } else {
-        if (state == GameState::BLACK_WIN) {
-            return MAX_EVAL;
-        }
-        if (state == GameState::WHITE_WIN) {
-            return MIN_EVAL;
-        }
+    if(state>1){
+        return MIN_EVAL;
     }
-    if(state == GameState::DRAW)
-        return 0;
-    return evaluateAdvanced(color);
+
+    double val=evaluateAdvanced();
+    return val;
 }

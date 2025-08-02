@@ -21,6 +21,8 @@ class gameboard{
     pieceT gb[8][1024];  // Vector of stacks that contain bugs. One stack at each position. The board is thus 100*100
     positionT bugPosition[32];
     BoardBitSet occupied;
+
+    BoardBitSet not_movable_position;
     uint8_t high[1024];
     
     bitset<32> isPlaced;
@@ -69,15 +71,15 @@ class gameboard{
     bitset<285> toHash();
     //Manage pieces
     
-    positionT getPosition(const pieceT &p);
+    positionT getPosition(const pieceT &p) const ;
     void updatePos(const pieceT &bug,const positionT &pos);
     void removePiece(const pieceT &b);    
     void addPiece(const positionT &pos, const pieceT &b);
-    bool isTop(const pieceT &bug);
+    bool isTop(const pieceT &bug) const ;
     bool canPieceMove(const pieceT &b,int turn);
-    pieceT topPiece(const positionT &pos);
+    pieceT topPiece(const positionT &pos) const ;
     pieceT basePiece(const positionT &pos);
-    int getHight(const positionT &pos);
+    int getHight(const positionT &pos) const;
 
     //Main function to understand the movements
     bool canMoveWithoutBreakingHiveRule(const pieceT &b,int turn);
@@ -122,7 +124,6 @@ class gameboard{
 
         dfs(startPos,0,visited_dfs,disc,low);
     }
-    BoardBitSet not_movable_position;
 
     /**
      * \brief Depth-first search to find articulation points.

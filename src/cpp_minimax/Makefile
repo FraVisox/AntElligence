@@ -1,11 +1,11 @@
 # Compiler and flags
-CXX = g++ -Ofast  -O3 -g -cpp=23 -funroll-loops -fomit-frame-pointer -fno-exceptions -fno-rtti -march=native -flto 
+CXX = g++ -Ofast  -O3 -g -cpp=23 -funroll-loops -fomit-frame-pointer -fno-exceptions -fno-rtti# -march=native -flto 
 
 #-fsanitize=address
 OUT_DIR = out
 
 # Sources
-SRC_ENGINE = action board direction enums gameboard piece position board_bitset weights
+SRC_ENGINE = action board direction enums gameboard piece position board_bitset weights dynamic_eval
 
 # Extensions
 ENGINE_OBJS = $(addprefix $(OUT_DIR)/, $(addsuffix .o, $(SRC_ENGINE))) 
@@ -21,6 +21,9 @@ out/minimax.o : minimax.cpp $(ENGINE_H)
 	$(CXX)  $(CXXFLAGS) -c $< -o $@
 
 out/engine.o : engine.cpp $(ENGINE_H) out/board_score.o  out/board_score_mzinga.o
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(OUT_DIR)/board.o: engine/board.cpp $(ENGINE_H) out/board_score.o  out/board_score_mzinga.o
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 
