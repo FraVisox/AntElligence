@@ -5,7 +5,7 @@
 
 
 double DynEval::actionsScore(const Board & b)const {
-    return 0;
+    
     double scoreNoisyMoves=0;
     double numQueenMove=0;
     for(int i=0;i<b.numAction;i++){
@@ -70,7 +70,7 @@ double DynEval::evalBoardCurrentPlayer(Board & b){
     if(b.getGameState()>1){
         return -1e7;
     }
-
+    //b.ComputePossibleMoves();
 
     currentColor=b.currentColor();
     oppositeColor=currentColor==PlayerColor::BLACK?PlayerColor::WHITE:PlayerColor::BLACK;
@@ -82,8 +82,9 @@ double DynEval::evalBoardCurrentPlayer(Board & b){
     if(b.G.isPlaced[oppositeQueen])
         oppositeQueenPosition=b.G.getPosition(oppositeQueen);
 
+
     double score=0;
-    score += actionsScore(b);  // for each action, compute the utility of the action
+    score += //actionsScore(b);  // for each action, compute the utility of the action
     score += positionalScore(b);  // for each piece, compute the utility based on neighbor
     score += 0;//strategicScore(b);   // for some piece, if they are close to the queen can be helpful
     score += 0;//topologyScore(b);   // find if there are rings or other 

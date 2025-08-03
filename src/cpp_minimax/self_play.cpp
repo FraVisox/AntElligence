@@ -3,7 +3,7 @@
 
 #include "engine.h"
 #include "minimax.h"
-#include "minimax_tt.h"
+//#include "minimax_tt.h"
 #include "minimax.h"
 /*
 #include "engine/action.cpp"
@@ -23,16 +23,16 @@
 
 int main(){
 
-    MinimaxAgent a(20);
+    MinimaxAgent a(5);
 
     //try{
-    srand(time(0));
+    srand(51);
 
     Board board(GameType::Base_MLP);
     board.applayAction(stringToAction(board,"wB1"));
     board.applayAction(stringToAction(board,"bS1 -wB1"));
 int i=0;
-    while(board.currentTurn<100 && board.getGameState()<2){
+    while(board.currentTurn<15 && board.getGameState()<2){
         i++;
         actionT M;
         if(board.currentTurn&1){

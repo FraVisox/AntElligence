@@ -15,6 +15,7 @@ public:
     int calledBoard;
     PlayerColor color;
     int toale_evaled=0;
+    int toale_evaled2=0;
     std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
     const std::chrono::seconds TIME_LIMIT = std::chrono::seconds(5);
     
@@ -28,8 +29,9 @@ public:
     const double MAX_EVAL = 1e10;
 
     double utility(Board &board);
+    double utility2(Board &board);
     actionT initiate_minimax_fixed(Board &board,int depth);
-    double minmax(GameState state, Board& board, int depth, double alpha, double beta);
+    double minmax(Board& board, int depth, double alpha, double beta);
 
     bool is_time_up() const;
 
@@ -50,12 +52,5 @@ public:
 
 
 
-class TranspositionTable{
-    queue<unordered_map<size_t,double>> QM;
-    
-    double get(int move, size_t hash);
-    void put(size_t hash, double value);
-    
-};
 
 #endif

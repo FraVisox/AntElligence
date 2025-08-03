@@ -4,14 +4,14 @@ using namespace std;
 
 WeightsHelper::WeightsHelper(){
   double hv[42]={
-    0,                // QueenMoveWeight
-    0,                // numActionWeight
-//  S   B   G   Q   A   M   L   P 
-    0,  0,  0,  0,  0,  0,  0,  0,  // noisyWeight
-    0,  0,  0,  0,  0,  0,  0,  0,  // converedWeight
-    0,  0,  0,  0,  0,  0,  0,  0,  // numEnemyCloseWeight
-    0,  0,  0,-10,  0,  0,  0,  0,  // totalNumCloseWeight
-    1,  1,  1,  1,  1,  1,  1,  1   // placedWeight
+    130,                // QueenMoveWeight
+    80,                // numActionWeight
+//  S     B   G    Q    A    M    L    P 
+    4,  20,  15,   5,  30,  10,   5,   5,  // noisyWeight
+   -5, -10,  -5,-120, -30, -15,  -7, -10,  // converedWeight
+   -1,   1,  -4, -80,  -5,  -7,  -2,   0,  // numEnemyCloseWeight
+    0,   0,   4, -60,   0,  20,   4,   5,  // totalNumCloseWeight
+    5,  10,   8,  60,  10,   5,  20,   4   // placedWeight
   };
   for(int i=0;i<42;i++){
     weightVector[i]=hv[i];
@@ -41,7 +41,7 @@ const double WeightsHelper::placedWeight(BugType bt) const{
   return weightVector[34+bt];
 }
   
-/*
+
 double startGame[8][7]={
     {//QueenBee
     63558.424116300164,    //InPlayWeight
@@ -180,7 +180,7 @@ double endgame[8][7]={
       24.950130621306656,  //Pillbug.EnemyNeighborWeight>
 }};
 
-*/
+/*
 
 
     
@@ -215,7 +215,7 @@ double endgame[8][7]={
     {1,0,0,0, 0, 0   ,0 },
     {1,0,0,0, 0, 0   ,0 }
 };
-
+*/
 // InPlayWeight 0
 // IsPinnedWeight 1 
 // IsCoveredWeight 2

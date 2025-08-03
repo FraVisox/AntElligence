@@ -219,8 +219,7 @@ GameState Board::getGameState(){
     if(bugBQ==6)return GameState::WHITE_WIN;
     if(bugWQ==6)return GameState::BLACK_WIN;
     
-    bitset<285> r=G.toHash();
-
+    
     int ne=0;
     /*for(int i=1;i<currentTurn; i++){
         if(r==confHistory[i])

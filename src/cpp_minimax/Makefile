@@ -13,14 +13,17 @@ ENGINE_CPPS = $(addprefix engine/, $(addsuffix .cpp, $(SRC_ENGINE)))
 ENGINE_H = $(addprefix engine/, $(addsuffix .h, $(SRC_ENGINE)))
 
 
-ALL_OJB = $(ENGINE_OBJS) out/engine.o out/minimax.o out/board_score.o out/board_score_mzinga.o
+ALL_OJB = $(ENGINE_OBJS) out/engine.o out/minimax.o out/board_score.o out/board_score_mzinga.o  out/TT.o
 # Default target
 all: $(ENGINE_OBJS)
 
 out/minimax.o : minimax.cpp $(ENGINE_H)
 	$(CXX)  $(CXXFLAGS) -c $< -o $@
-
+ 
 out/engine.o : engine.cpp $(ENGINE_H) out/board_score.o  out/board_score_mzinga.o
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+out/TT.o : TT.cpp $(ENGINE_H) TT.h 
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(OUT_DIR)/board.o: engine/board.cpp $(ENGINE_H) out/board_score.o  out/board_score_mzinga.o

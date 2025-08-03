@@ -109,7 +109,7 @@ BoardMetrics Board::calculateBoardMetrics() {
     // Calculate metrics for all pieces
     for (pieceT p = 1; p <= 28; p++) {
         boardMetrics.pieceMetrics[p] = calculatePieceMetrics(p);
-        
+        continue;
         if (G.isPlaced[p]) {
             boardMetrics.PiecesInPlay++;
         } else if (inHandPiece[p]) {
@@ -125,7 +125,7 @@ BoardMetrics Board::calculateBoardMetrics() {
             }
         }
     }
-    
+    return boardMetrics;
     // Queen-specific metrics
     if (bothQueensPlaced()) {
         pieceT myQueen = getMyQueen();
@@ -275,7 +275,6 @@ double Board::evaluateAdvanced() {
         
     }
     return score;
-    
     // Global tactical features
     int queenSurroundDiff, queenEscapeDiff, pinDiff;
     
@@ -294,19 +293,10 @@ double Board::evaluateAdvanced() {
     score += 10.0 * pinDiff;
     
     // Win/loss conditions
-    bool canWin = (color == currentColor()) ? 
-        boardMetrics.CanWinThisTurn : boardMetrics.OpponentCanWinNextTurn;
-    bool opponentCanWin = (color == currentColor()) ? 
-        boardMetrics.OpponentCanWinNextTurn : boardMetrics.CanWinThisTurn;
-        
-    if (canWin) return 1e6;
-    if (opponentCanWin) return -1e6;
     
     // Queen pinning bonuses
-    bool enemyQueenPinned = (color == currentColor()) ? 
-        boardMetrics.EnemyQueenPinned : boardMetrics.MyQueenPinned;
-    bool myQueenPinned = (color == currentColor()) ? 
-        boardMetrics.MyQueenPinned : boardMetrics.EnemyQueenPinned;
+    bool enemyQueenPinned = boardMetrics.EnemyQueenPinned;
+    bool myQueenPinned =   boardMetrics.MyQueenPinned ;
         
     if (enemyQueenPinned) score += 150.0;
     if (myQueenPinned) score -= 150.0;
