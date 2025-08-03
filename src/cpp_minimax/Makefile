@@ -1,5 +1,5 @@
 # Compiler and flags
-CXX = g++ -Ofast  -O3 -g -cpp=23 -funroll-loops -fomit-frame-pointer -fno-exceptions -fno-rtti# -march=native -flto 
+CXX = g++ -Ofast  -O3 -g -cpp=23 -funroll-loops -fomit-frame-pointer -fno-exceptions -fopenmp -fno-rtti# -march=native -flto 
 
 #-fsanitize=address
 OUT_DIR = out

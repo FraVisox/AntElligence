@@ -69,7 +69,7 @@ class Board {
 
     bool hasUpdate;
     //Current status
-    PlayerColor currentColor();
+    PlayerColor currentColor() const;
     int currentPlayerTurn();
     bool placedQueen();
     

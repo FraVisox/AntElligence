@@ -36,7 +36,7 @@ Board::Board(){
  *
  * \return The color of the current player (WHITE or BLACK).
  */
-PlayerColor Board::currentColor(){
+PlayerColor Board::currentColor() const{
     if(currentTurn%2==1) return PlayerColor::WHITE;
     return PlayerColor::BLACK;
 }

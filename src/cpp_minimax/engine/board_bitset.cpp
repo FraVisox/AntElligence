@@ -20,7 +20,7 @@ bool BoardBitSet::none(){
     return r==0;
 }
 
-void BoardBitSet::set(uint64_t i,uint64_t v){
+void BoardBitSet::set(const  uint64_t i,const  uint64_t v){
     uint64_t x=(1ull) << (63-(i % 64));
     if(v==0){
         this->bv[i/64] &= ~x;
@@ -29,7 +29,7 @@ void BoardBitSet::set(uint64_t i,uint64_t v){
     }
 }
 
-bool BoardBitSet::get_bit(uint64_t i) const {
+bool BoardBitSet::get_bit(const uint64_t i) const {
     return (this->bv[i/64]>>(63-(i % 64)))&1;
 }
 

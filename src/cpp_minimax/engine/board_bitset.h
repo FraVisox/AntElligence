@@ -17,9 +17,9 @@ class BoardBitSet {
 
         bool none();
 
-        void set(uint64_t i,uint64_t v);
+        void set(const uint64_t i,const  uint64_t v);
 
-        bool get_bit(uint64_t i) const;
+        bool get_bit(const uint64_t i) const;
 
         void updateOr(const BoardBitSet& b);
 

@@ -10,7 +10,7 @@
 
 typedef uint16_t positionT;
 
-positionT applayMove(positionT pos,direction d);
+const positionT applayMove(const positionT pos,const direction d);
 
 
 

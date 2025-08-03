@@ -5,7 +5,8 @@
 
 
 double DynEval::actionsScore(const Board & b)const {
-    
+    pieceT myQueen=(b.currentColor()==PlayerColor::WHITE)?8:22;
+    positionT oppositeQueenPosition=b.G.getPosition(30-myQueen);
     double scoreNoisyMoves=0;
     double numQueenMove=0;
     for(int i=0;i<b.numAction;i++){
@@ -28,9 +29,39 @@ double DynEval::actionsScore(const Board & b)const {
 
 double DynEval::positionalScore(const Board &b)const {
     double score=0;
+
+    PlayerColor currentColor=b.currentColor();
+    PlayerColor oppositeColor=(currentColor==PlayerColor::WHITE?PlayerColor::BLACK:PlayerColor::WHITE);
+
+    uint8_t nS[1024];
+    for(int i=0;i<1024;i++)
+    {
+        nS[i]=0;
+    }
+
+    int baseMy=(currentColor==PlayerColor::WHITE?1:15);
+    int baseOpp=16-baseMy;
+    for(int i=baseMy;i<=baseMy+13;i++){
+        if(b.G.isPlaced[i]){
+            positionT myPos=b.G.bugPosition[i];
+            for(int d=0;d<6;d++){
+                nS[(myPos+dirDif[d])&1023]+=1;
+            }
+        }
+    }
+    for(int i=baseOpp;i<=baseOpp+13;i++){
+        if(b.G.isPlaced[i]){
+            positionT myPos=b.G.bugPosition[i];
+            for(int d=0;d<6;d++){
+                nS[(myPos+dirDif[d])&1023]+=8;
+            }
+        }
+    }
+    
     for(int p=1;p<=28;p++){
         double bugScore=0;
         if(b.G.isPlaced[p]){
+            
             bugScore+=W.placedWeight(kind(p));
             if(!b.G.isTop(p)){
                 bugScore+=W.converedWeight(kind(p));
@@ -38,16 +69,9 @@ double DynEval::positionalScore(const Board &b)const {
             positionT currPos=b.G.getPosition(p);
             int numEnemy=0;
             int numTot=0;
-            for(int i=0;i<6;i++){
-                positionT nearPos=applayMove(currPos,i);
-                if(b.G.occupied.get_bit(nearPos)){
-                    numTot++;
-                    if(col(b.G.topPiece(nearPos))==oppositeColor)
-                        numEnemy++;
-                }
-            }
-            bugScore+=((double)numEnemy)*W.numEnemyCloseWeight(kind(p))+
-                    ((double)numTot)*W.totalNumCloseWeight(kind(p));
+            
+            bugScore+=((double)(nS[currPos]>>3))*W.numEnemyCloseWeight(kind(p))+
+                    ((double)((nS[currPos]>>3)+(nS[currPos]&7)))*W.totalNumCloseWeight(kind(p));
         }
         if(col(p)==currentColor){
             score+=bugScore;
@@ -66,22 +90,13 @@ double DynEval::topologyScore(const Board &b)const {
 }
 
 
-double DynEval::evalBoardCurrentPlayer(Board & b){
+double DynEval::evalBoardCurrentPlayer(Board & b) const{
     if(b.getGameState()>1){
         return -1e7;
     }
     //b.ComputePossibleMoves();
 
-    currentColor=b.currentColor();
-    oppositeColor=currentColor==PlayerColor::BLACK?PlayerColor::WHITE:PlayerColor::BLACK;
-    myQueen=(currentColor==PlayerColor::WHITE)?8:22;
-    oppositeQueen=(currentColor==PlayerColor::WHITE)?22:8;
-    myQueenPosition=oppositeQueenPosition=-1;
-    if(b.G.isPlaced[myQueen])
-        myQueenPosition=b.G.getPosition(myQueen);
-    if(b.G.isPlaced[oppositeQueen])
-        oppositeQueenPosition=b.G.getPosition(oppositeQueen);
-
+    
 
     double score=0;
     score += //actionsScore(b);  // for each action, compute the utility of the action

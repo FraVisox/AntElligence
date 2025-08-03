@@ -40,7 +40,7 @@ USING THIS GRID:
  * \param d The direction of the movement.
  * \return The resulting position of the movement.
  */
-positionT applayMove(positionT pos,direction d) {
+const positionT applayMove(const positionT pos,const direction d)  {
     return ((pos+dirDif[d])&1023);
 }
 

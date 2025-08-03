@@ -12,6 +12,7 @@
 #include <mutex>
 #include "TT.h"
 
+#include <omp.h>
 
 #include <future>
 #include <vector>
@@ -20,15 +21,16 @@
 
 
 
-int total_sorted;
-int pruned_sorted;
 std::atomic<bool> time_up_flag(false);
 
 bool MinimaxAgent::is_time_up() const{
     return (std::chrono::high_resolution_clock::now() - start_time )>= timeLimit;
 }
 
-double MinimaxAgent::parallel_minimax_first(Board board, int depth_remaining, double alpha, double beta) {
+
+std::atomic<long> toale_evaled{0};
+
+double MinimaxAgent::parallel_minimax_first(Board board, int depth_remaining, double alpha, double beta) const {
     return minmax(board,depth_remaining,alpha,beta);
 }
 
@@ -44,43 +46,54 @@ actionT MinimaxAgent::initiate_minimax_parallel(Board &board,int depth) {
     actionT best_move = board.resAction[0];
     time_up_flag.store(false);
 
+    int numAction=board.numAction;
+    vector<actionT> nextAct(numAction);
+    for(int i=0;i<numAction;i++)
+        nextAct[i]=board.resAction[i];
 
+    vector<pair<double,int>> vectSort(numAction);
 
-    std::vector<std::future<std::pair<double, actionT>>> futures;
-    
-    for (int i = 0; i < board.numAction; i++) {
-        actionT move = board.resAction[i];
-        Board child(board);
-        child.applayAction(move);
-        futures.push_back(std::async(std::launch::async,
-        [child, move, depth, alpha, beta, this](){
-            // If you need to refer to members (like time_up_flag) use 'this' and thus capture it.
-            double eval = -parallel_minimax_first(child, depth - 1, -beta, -alpha);
-            return std::make_pair(eval, move);
-        }));
+    for(int i=0;i<numAction;i++){
+        board.applayAction(nextAct[i]);
+        vectSort[i].first=utility(board);
+        board.undoAction();
+        vectSort[i].second=i;
     }
 
-    for (auto &f : futures) {
-        if (is_time_up()) {
-            time_up_flag.store(true);
-            break;
+    sort(vectSort.begin(),vectSort.end());
+    reverse(vectSort.begin(),vectSort.end());
+
+    int NP=omp_get_num_procs();
+    vector<double> results(NP);
+    for(int j=0;j<numAction;j+=NP){
+        int numPar=min(NP,numAction-j);
+        
+        #pragma omp parallel for
+        for (int i = 0; i < numPar; i++) {
+            int Q=vectSort[i+j].second;
+            actionT move = nextAct[Q];
+            Board child(board); // Copy constructor
+            child.applayAction(move);
+            results[i] = -minmax(child, depth - 1, -beta, -alpha);
         }
 
-        auto [eval, move] = f.get();
-        if (eval > best_eval) {
-            best_eval = eval;
-            best_move = move;
+        for (int i=0;i<numPar;i++) {
+
+            if (results[i] > best_eval) {
+                best_eval = results[i];
+                best_move = nextAct[vectSort[i+j].second];;
+            }
+            alpha = std::max(alpha, best_eval);
         }
-        alpha = std::max(alpha, best_eval);
+
     }
-
     clog<<"Evalueted "<<toale_evaled<<" board, found solution "<<best_move<<" with value "<<best_eval<<" and depth "<<depth<<endl;
     return best_move;
 }
 
 
-double MinimaxAgent::utility(Board &board) {
-    toale_evaled++;
+double MinimaxAgent::utility(Board &board) const {
+    toale_evaled.fetch_add(1, std::memory_order_relaxed);
     double v1=ev.evalBoardCurrentPlayer(board);
     return v1;
     //double v2=board.getScore();
@@ -117,14 +130,14 @@ actionT MinimaxAgent::initiate_minimax_fixed(Board &board,int depth) {
         
         alpha = std::max(alpha, max_eval);
     }
-    clog<<"Evalueted "<<toale_evaled<<" board, found solution "<<todo_action<<" with value "<<max_eval<<" and depth "<<depth<<endl;
+    clog<<"Evalueted "<<toale_evaled.load()<<" board, found solution "<<todo_action<<" with value "<<max_eval<<" and depth "<<depth<<endl;
 
     
     return todo_action;
 }
 
 
-double MinimaxAgent::minmax( Board &board, int depth_remaining, double alpha, double beta) {
+double MinimaxAgent::minmax( Board &board, int depth_remaining, double alpha, double beta) const {
     if (time_up_flag.load() || is_time_up()  ) return 0;
 
     GameState state=board.getGameState();
@@ -165,7 +178,6 @@ double MinimaxAgent::minmax( Board &board, int depth_remaining, double alpha, do
         }    
 
         sort(actPair.begin(),actPair.end());
-        total_sorted+=numAction;
 
         for (int i = numAction-1; i >=0 ; i--) {
             int j=actPair[i].second;
@@ -204,10 +216,8 @@ double MinimaxAgent::minmax( Board &board, int depth_remaining, double alpha, do
 
 
 actionT MinimaxAgent::calculate_best_move(Board &board) {
-    toale_evaled=toale_evaled2 = 0;
+    toale_evaled.store(0);
     time_up_flag.store(false);
-    total_sorted=0;
-    pruned_sorted=0;
     start_time = std::chrono::high_resolution_clock::now();
 
 
@@ -219,7 +229,7 @@ actionT MinimaxAgent::calculate_best_move(Board &board) {
     board.ComputePossibleMoves();
     actionT next_move=board.resAction[0];
 
-    int depth=1;
+    int depth=3;
     while(!is_time_up()){
         actionT ris = initiate_minimax_parallel(board,depth);
         if(!is_time_up()){
@@ -228,7 +238,6 @@ actionT MinimaxAgent::calculate_best_move(Board &board) {
         }
     }
 
-    clog<<"Improvement "<<pruned_sorted<<" over "<<total_sorted<<endl;
     
     return next_move;
 }

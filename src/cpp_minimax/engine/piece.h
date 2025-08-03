@@ -9,7 +9,7 @@ typedef uint16_t pieceT;
 
 extern const pieceT INVALID_PIECE;
 pieceT extractPiece(string s);
-PlayerColor col(pieceT);
+const PlayerColor col(const pieceT);
 BugType kind(pieceT);
 int numInc(pieceT);
 pieceT buildPiece(enum BugType k,PlayerColor c,int numIncr=0);
