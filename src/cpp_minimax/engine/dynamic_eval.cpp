@@ -33,7 +33,7 @@ double DynEval::positionalScore(const Board &b)const {
     PlayerColor currentColor=b.currentColor();
     PlayerColor oppositeColor=(currentColor==PlayerColor::WHITE?PlayerColor::BLACK:PlayerColor::WHITE);
 
-    uint8_t nS[1024];
+    alignas(64) uint8_t nS[1024];
     for(int i=0;i<1024;i++)
     {
         nS[i]=0;
@@ -57,27 +57,27 @@ double DynEval::positionalScore(const Board &b)const {
             }
         }
     }
-    
+    double bugScore[32];
+
+
     for(int p=1;p<=28;p++){
-        double bugScore=0;
+        bugScore[p]=0;
         if(b.G.isPlaced[p]){
-            
-            bugScore+=W.placedWeight(kind(p));
-            if(!b.G.isTop(p)){
-                bugScore+=W.converedWeight(kind(p));
-            }
+            bugScore[p]=W.placedWeight(kind(p));
             positionT currPos=b.G.getPosition(p);
-            int numEnemy=0;
-            int numTot=0;
+
+            if(b.G.topPiece(currPos)!=p){
+                bugScore[p]+=W.converedWeight(kind(p));
+            }
             
-            bugScore+=((double)(nS[currPos]>>3))*W.numEnemyCloseWeight(kind(p))+
+            bugScore[p]+=((double)(nS[currPos]>>3))*W.numEnemyCloseWeight(kind(p))+
                     ((double)((nS[currPos]>>3)+(nS[currPos]&7)))*W.totalNumCloseWeight(kind(p));
         }
-        if(col(p)==currentColor){
-            score+=bugScore;
-        }else
-            score-=bugScore;
     }
+    
+    for(int i=baseMy;i<=baseMy+13;i++)score+=bugScore[i];
+    for(int i=baseOpp;i<=baseOpp+13;i++)score-=bugScore[i];
+    
     return score;
 }
 

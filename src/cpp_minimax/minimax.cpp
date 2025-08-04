@@ -30,9 +30,9 @@ bool MinimaxAgent::is_time_up() const{
 
 std::atomic<long> toale_evaled{0};
 
-double MinimaxAgent::parallel_minimax_first(Board board, int depth_remaining, double alpha, double beta) const {
+/*double MinimaxAgent::parallel_minimax_first(Board board, int depth_remaining, double alpha, double beta) const {
     return minmax(board,depth_remaining,alpha,beta);
-}
+}*/
 
 actionT MinimaxAgent::initiate_minimax_parallel(Board &board,int depth) {
     

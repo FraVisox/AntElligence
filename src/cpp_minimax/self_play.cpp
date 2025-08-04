@@ -32,7 +32,7 @@ int main(){
     board.applayAction(stringToAction(board,"wB1"));
     board.applayAction(stringToAction(board,"bS1 -wB1"));
 int i=0;
-    while(board.currentTurn<15 && board.getGameState()<2){
+    while(board.currentTurn<30 && board.getGameState()<2){
         i++;
         actionT M;
         if(board.currentTurn&1){
