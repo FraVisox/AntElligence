@@ -35,8 +35,13 @@ std::atomic<long> toale_evaled{0};
 }*/
 
 actionT MinimaxAgent::initiate_minimax_parallel(Board &board,int depth) {
-    
-    double best_eval = MIN_EVAL;
+    GameState state = board.getGameState();
+    if (state == GameState::DRAW    ||
+        state == GameState::WHITE_WIN||
+        state == GameState::BLACK_WIN) {
+        return pass();
+    }
+    double best_value = MIN_EVAL;
     double alpha = MIN_EVAL;
     double beta = MAX_EVAL;
 
@@ -51,43 +56,35 @@ actionT MinimaxAgent::initiate_minimax_parallel(Board &board,int depth) {
     for(int i=0;i<numAction;i++)
         nextAct[i]=board.resAction[i];
 
-    vector<pair<double,int>> vectSort(numAction);
+    vector<pair<double,actionT>> vectSort(numAction);
 
     for(int i=0;i<numAction;i++){
         board.applayAction(nextAct[i]);
-        vectSort[i].first=utility(board);
+        vectSort[i]=make_pair(utility(board),nextAct[i]);
         board.undoAction();
-        vectSort[i].second=i;
     }
 
     sort(vectSort.begin(),vectSort.end());
-    reverse(vectSort.begin(),vectSort.end());
+    //reverse(vectSort.begin(),vectSort.end());
 
-    int NP=omp_get_num_procs();
-    vector<double> results(NP);
-    for(int j=0;j<numAction;j+=NP){
-        int numPar=min(NP,numAction-j);
+    double eval=0;
+    for(int j=0;j<numAction;j++){
         
-        #pragma omp parallel for
-        for (int i = 0; i < numPar; i++) {
-            int Q=vectSort[i+j].second;
-            actionT move = nextAct[Q];
-            Board child(board); // Copy constructor
-            child.applayAction(move);
-            results[i] = -minmax(child, depth - 1, -beta, -alpha);
+        actionT move = vectSort[j].second;
+        board.applayAction(move);
+        eval= -minmax2(board, depth - 1, -beta, -alpha);
+        board.undoAction();
+
+        if (eval > best_value) {
+            best_value = eval;
+            best_move =move;;
         }
-
-        for (int i=0;i<numPar;i++) {
-
-            if (results[i] > best_eval) {
-                best_eval = results[i];
-                best_move = nextAct[vectSort[i+j].second];;
-            }
-            alpha = std::max(alpha, best_eval);
-        }
-
+        alpha = std::max(alpha, eval);
+        if (alpha >= beta) {
+            break;
+        }   
     }
-    clog<<"Evalueted "<<toale_evaled<<" board, found solution "<<best_move<<" with value "<<best_eval<<" and depth "<<depth<<endl;
+    clog<<"Evalueted "<<toale_evaled<<" board, found solution "<<best_move<<" with value "<<best_value<<" and depth "<<depth<<endl;
     return best_move;
 }
 
@@ -96,123 +93,158 @@ double MinimaxAgent::utility(Board &board) const {
     toale_evaled.fetch_add(1, std::memory_order_relaxed);
     double v1=ev.evalBoardCurrentPlayer(board);
     return v1;
-    //double v2=board.getScore();
-    
-    //return board.getScore();
 }
 
 
-//FIXED DEPTH:
-actionT MinimaxAgent::initiate_minimax_fixed(Board &board,int depth) {
-    double max_eval = MIN_EVAL;
-    double alpha = MIN_EVAL;
-    double beta = MAX_EVAL;
-    actionT todo_action = pass();
 
-    // Get all valid moves
-    board.ComputePossibleMoves();
 
-    todo_action = board.resAction[0];    
-    time_up_flag.store(false);
-
-    
-    // For every action available, play it and calculate the utility (recursively)
-    for (int i = 0; i < board.numAction; i++) {
-        Board b1(board);
-        b1.applayAction(board.resAction[i]);
-
-        int eval = -minmax(b1, depth-1, -beta, -alpha);
-
-        if (eval > max_eval) {
-            max_eval = eval;
-            todo_action = board.resAction[i];
-        }
+double MinimaxAgent::minmax2( Board &board, int depth_remaining, double alpha, double beta) const {
+    if(is_time_up()){return MAX_EVAL;}
         
-        alpha = std::max(alpha, max_eval);
-    }
-    clog<<"Evalueted "<<toale_evaled.load()<<" board, found solution "<<todo_action<<" with value "<<max_eval<<" and depth "<<depth<<endl;
-
-    
-    return todo_action;
-}
-
-
-double MinimaxAgent::minmax( Board &board, int depth_remaining, double alpha, double beta) const {
-    if (time_up_flag.load() || is_time_up()  ) return 0;
-
-    GameState state=board.getGameState();
-
-    // Check if we've reached a terminal state or maximum depth
-    if (state == GameState::DRAW || 
-        state == GameState::WHITE_WIN || 
-        state == GameState::BLACK_WIN || 
+    //======================
+    //      BASE CASE
+    //======================
+    GameState state = board.getGameState();
+    if (state == GameState::DRAW    ||
+        state == GameState::WHITE_WIN||
+        state == GameState::BLACK_WIN||
         depth_remaining == 0) {
-
-        // Return an evaluation of the board
         return utility(board);
     }
-    
-    
+
+
+    //========================================================
+    //     non base case: define best and next acts
+    //========================================================
 
     board.ComputePossibleMoves();
-    
 
-    double max_eval = MIN_EVAL;
+    double best_value=MIN_EVAL;
+    int n=board.numAction;    
+    vector<actionT> nextActs(n);
 
-    int numAction=board.numAction;
-    
-    actionT validActions[MAX_ACTIONS_SIZE];
-    for(int i=0;i<MAX_ACTIONS_SIZE;i++){
-        validActions[i]=board.resAction[i];
+    for(int i=0;i<n;i++) nextActs[i]=board.resAction[i];
+
+    //======================================================
+    //  Trivial case: not sorted, evaluate directly
+    //======================================================
+    if(depth_remaining==1){            
+        int NP=omp_get_num_procs();
+
+        for (int i = 0; i < n; i+=NP) {
+
+
+            int nl=min(NP,n-i);
+            vector<double> ut(nl);
+
+            #pragma opm parallel for
+            for(int j=0;j<nl;j++){
+                Board b1(board,nextActs[i+j]);
+                ut[j] = -utility(b1);
+            }
+
+            for(int j=0;j<nl;j++){
+                best_value = std::max(best_value, ut[j]);
+                alpha = std::max(alpha, ut[j]);
+                if (alpha>=beta) {
+                    return best_value;  //THIS LINE
+                }
+            }
+            
+            
+        } 
+        return best_value;
     }
-    if(depth_remaining>1){
 
-        vector<pair<int,double>> actPair;
-        //vector<Board> nextBoards;
+    //========================================================
+    //      Sort the variables based on utils
+    //========================================================
+    vector<pair<double,actionT>> sorted_pair;
+    sorted_pair.reserve(n);
+    for(int i=0;i<n;i++){
+        board.applayAction(nextActs[i]);
+        sorted_pair.push_back(make_pair(utility(board),nextActs[i]));
+        board.undoAction();
+    }
+    sort(sorted_pair.begin(),sorted_pair.end());
+    //reverse(sorted_pair.begin(),sorted_pair.end());
 
-        for(int i=0;i<numAction;i++){
-
-            board.applayAction(validActions[i]);
-            actPair.push_back(make_pair(utility(board),i));
+    
+    
+    //========================================================
+    //      Non parallel case: execute all
+    //========================================================
+    if(depth_remaining>0){
+        for(int i=0;i<n;i++){
+            board.applayAction(sorted_pair[i].second);
+            double score=-minmax2(board,depth_remaining-1,-beta,-alpha);
             board.undoAction();
-        }    
+            best_value=max(best_value,score);
+            alpha=max(alpha,score);
 
-        sort(actPair.begin(),actPair.end());
+            if(alpha>=beta){
+                return beta;
+            }
+        }
+        return best_value;
+    }
 
-        for (int i = numAction-1; i >=0 ; i--) {
-            int j=actPair[i].second;
-            board.applayAction(validActions[j]);
-            double eval = -minmax( board, depth_remaining - 1, -beta, -alpha);
-            board.undoAction();
-            max_eval = std::max(max_eval, eval);
-            alpha = std::max(alpha, max_eval);
+    //clog<<"NO"<<endl;throw 2;
+    //========================================================
+    //      Parallel case: execute in parallel for level 2
+    //========================================================
 
-            if (beta <= alpha) {
-                break;
+    int NP=omp_get_num_procs();
+    vector<double> res(NP);
+    for(int k=0;k<n;k+=NP){
+        int up=min(n-k,NP);
+        //#pragma omp parallel for 
+        for (int i = 0; i <up ; i++) {
+            actionT move=sorted_pair[k+i].second;
+            Board b1(board);
+            b1.applayAction(move);
+            res[i] = -minmax2( b1, depth_remaining - 1, -beta, -alpha);
+        }
+
+        for (int i = 0; i <up;i++) {
+            best_value = std::max(best_value, res[i]);
+            alpha = std::max(alpha, res[i]);
+            if(alpha>=beta){
+                return best_value;
+            }
+        }
+    }
+    return best_value;
+
+}
+
+
+pair<actionT,double> MinimaxAgent::minimaxComplete(Board board,int d){
+    pair<actionT,double> ris=make_pair(0,MIN_EVAL);
+    if(d==1){
+        board.ComputePossibleMoves();
+        for(int i=0;i<board.numAction;i++){
+            Board b1(board);
+            b1.applayAction(board.resAction[i]);
+            double currV=-utility(b1);
+            if(currV>ris.second){
+                ris=make_pair(board.resAction[i],currV);
             }
         }
     }else{
-        
-
-        for (int i = 0; i < numAction; i++) {
-
-            board.applayAction(validActions[i]);
-            double eval = -utility(board);
-            board.undoAction();
-            
-            max_eval = std::max(max_eval, eval);
-            alpha = std::max(alpha, max_eval);
-
-            if (beta <= alpha) {
-                break;
+        board.ComputePossibleMoves();
+        for(int i=0;i<board.numAction;i++){
+            Board b1(board);
+            b1.applayAction(board.resAction[i]);
+            double val=-minimaxComplete(b1,d-1).second;
+            if(val>ris.second){
+                ris=make_pair(board.resAction[i],val);
             }
         }
-
     }
-    return max_eval;
+
+    return ris;
 }
-
-
 
 
 actionT MinimaxAgent::calculate_best_move(Board &board) {
@@ -229,7 +261,14 @@ actionT MinimaxAgent::calculate_best_move(Board &board) {
     board.ComputePossibleMoves();
     actionT next_move=board.resAction[0];
 
-    int depth=3;
+    int depth=2;
+    /*auto ris=minimaxComplete(board,2);
+    cout<<"Value act "<<ris.first<<" with  util "<<ris.second<<endl;
+    ris=minimaxComplete(board,3);
+    cout<<"Value act "<<ris.first<<" with  util "<<ris.second<<endl;
+    ris=minimaxComplete(board,4);
+    cout<<"Value act "<<ris.first<<" with  util "<<ris.second<<endl;
+    */
     while(!is_time_up()){
         actionT ris = initiate_minimax_parallel(board,depth);
         if(!is_time_up()){

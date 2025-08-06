@@ -92,7 +92,7 @@ const BugType PIECE_KIND_NUM[]={
     BugType::PILLBUG
 };
 
-BugType kind(pieceT p){
+const  BugType kind(const pieceT& p){
     //if(p>0 && p<=28)
         return PIECE_KIND_NUM[p];
     //std::cerr<<"Error in piece, in kind: asking for kind of "<<p<<std::endl;

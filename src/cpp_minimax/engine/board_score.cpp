@@ -394,7 +394,6 @@ int Board::bug_utility_score() {
 double Board::getScore() {
 
     const double MIN_EVAL=-1e7;
-    const double MAX_EVAL=1e7;
 
     GameState state=getGameState();
     if (state == GameState::DRAW) {

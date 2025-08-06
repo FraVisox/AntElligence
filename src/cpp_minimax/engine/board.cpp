@@ -73,6 +73,21 @@ void Board::copy(Board &b){
     this->hasUpdate=b.hasUpdate;
 }
 
+Board::Board(const Board& b,const actionT a ): G(b.G,a){
+    this->currentTurn=b.currentTurn;
+    this->inHandPiece=b.inHandPiece;
+    this->numAction=b.numAction;
+    this->prevMoved[0]=b.prevMoved[0];
+    this->prevMoved[1]=b.prevMoved[1];
+
+    this->inQueue=b.inQueue;
+    this->hasUpdate=b.hasUpdate;
+    
+    applayAction(a);
+    G.hasUpdatedArticulation=false;
+}
+
+
 Board::Board(bool a,bool b){
     
     G.hasUpdatedArticulation=false;
@@ -646,7 +661,7 @@ void Board::possibleMoves_Ladybug(pieceT bug){
 void Board::possibleMoves_Mosquito(pieceT bug){  // TODO
     if (!G.canPieceMove(bug, currentTurn)) 
         return;
-     positionT pos=G.getPosition(bug);
+    positionT pos=G.getPosition(bug);
 
     if(G.topPiece(pos)!=bug)return;
 
@@ -944,6 +959,8 @@ struct MurmurStyleHasher {
 };
 
 std::size_t Board::getHash()const  {
+    
+
     return std::hash<std::string_view>{}(
         std::string_view(reinterpret_cast<const char*>(G.bugPosition+1), 28 * sizeof(int16_t))
     );
@@ -1001,7 +1018,7 @@ void Board::printBoard(){
     }
 
     //cout<<"\n\n\nScore:\n  Black:"<<getScore(PlayerColor::BLACK)<<"\n  White:"<<getScore(PlayerColor::WHITE)<<endl;
-return;
+
     cout<<"HIGHT:"<<endl;
     for(int i=16;i<48;i++){
         printf("%4d",(32*i+16)&1023);

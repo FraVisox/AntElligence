@@ -10,7 +10,33 @@ gameboard::gameboard(){
     isPlaced.reset();
 }
 
+gameboard::gameboard(const gameboard& g,actionT a){
+    isPlaced=g.isPlaced;
+    for(int i=0;i<32;i++)
+        this->bugPosition[i]=g.bugPosition[i];
 
+
+    for(int i=1;i<28;i++){
+        if(isPlaced[i]){
+            positionT pos=g.getPosition(i);
+            for(int h=0;h<8;h++){
+                gb[h][pos]=g.gb[h][pos];
+            }
+        }
+    }
+
+    for(int i=0;i<1024;i++)
+            high[i]=g.high[i];
+    for(int i=0;i<16;i++){
+        this->occupied.bv[i]=g.occupied.bv[i];
+    }
+    
+    this->isPlaced=g.isPlaced;
+    
+    
+    hasUpdatedArticulation=false;
+    
+}
 
 gameboard::gameboard(GameType gt){
     memset(high, 0, sizeof(high));

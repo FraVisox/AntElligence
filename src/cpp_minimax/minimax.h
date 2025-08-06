@@ -28,7 +28,8 @@ public:
     double utility(Board &board) const;
     actionT initiate_minimax_fixed(Board &board,int depth)  ;
     double minmax(Board& board, int depth, double alpha, double beta) const ;
-
+    double minmax2(Board& board, int depth,double alpha, double beta) const ;
+    pair<actionT,double> minimaxComplete(Board board, int );
     bool is_time_up() const;
 
     MinimaxAgent(int tl = -1) : color(PlayerColor::WHITE) {

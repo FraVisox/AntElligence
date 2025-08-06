@@ -64,6 +64,7 @@ class Board {
     Board();
     Board(GameType);
     Board(bool, bool);
+    Board(const Board&,const actionT );
 
     void copy(Board&);
 

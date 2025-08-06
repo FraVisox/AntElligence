@@ -1,5 +1,5 @@
 # Compiler and flags
-CXX = g++ -Ofast  -O3 -g -cpp=23 -funroll-loops -fomit-frame-pointer -fno-exceptions -fopenmp -fno-rtti# -march=native -flto 
+CXX = g++ -Ofast  -O3 -g -cpp=23 -fopenmp -funroll-loops -fomit-frame-pointer -fno-exceptions  -fno-rtti -march=native -flto 
 
 #-fsanitize=address
 OUT_DIR = out
@@ -14,7 +14,7 @@ ENGINE_H = $(addprefix engine/, $(addsuffix .h, $(SRC_ENGINE)))
 
 
 ALL_OJB = $(ENGINE_OBJS) out/engine.o out/minimax.o out/board_score.o out/board_score_mzinga.o  out/TT.o
-# Default target
+# Default targetvva
 all: $(ENGINE_OBJS)
 
 out/minimax.o : minimax.cpp $(ENGINE_H)
