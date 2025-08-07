@@ -34,6 +34,7 @@ bool BoardBitSet::get_bit(const uint64_t i) const {
 }
 
 void BoardBitSet::updateOr(const BoardBitSet& b){
+    
     for(int i=0;i<16;i++){
         bv[i]|=b.bv[i];
     }

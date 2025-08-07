@@ -17,13 +17,14 @@ class gameboard{
     public:
     gameboard();
     gameboard(GameType);
+    gameboard(const gameboard&, actionT a);
 
-    pieceT gb[8][1024];  // Vector of stacks that contain bugs. One stack at each position. The board is thus 100*100
-    positionT bugPosition[32];
+    alignas(64) pieceT gb[8][1024];  // Vector of stacks that contain bugs. One stack at each position. The board is thus 100*100
+    alignas(64) positionT bugPosition[32];
     BoardBitSet occupied;
 
     BoardBitSet not_movable_position;
-    uint8_t high[1024];
+    alignas(64) uint8_t high[1024];
     
     bitset<32> isPlaced;
     

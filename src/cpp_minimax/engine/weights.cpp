@@ -1,13 +1,14 @@
 #include "weights.h"
+#include "piece.h"
 #include <iostream>
 #include <fstream>
 using namespace std;
 
-WeightsHelper::WeightsHelper(){
+WeightsHelper::WeightsHelper():numActOffset(0),noisyOffset(1),converedOffset(2),numEnemyCloseOffset(3),totalNumCloseOffset(4),placedOffset(5){
 
   std::ifstream file("./cpp_minimax/weights.txt");
   if (file) {
-      for(int i = 0; i < 42; i++) {
+      for(int i = 0; i < 48; i++) {
           file >> weightVector[i];
       }
   } else {
@@ -20,55 +21,48 @@ const void WeightsHelper::initDefaultWeights() {
 
   cout << "Default\n";
 
-  /*
-  double hv[42]={
-    130,                // QueenMoveWeight
-    80,                // numActionWeight
+  double hv[48]={
 //  S     B   G    Q    A    M    L    P 
-    4,  20,  15,   5,  30,  10,   5,   5,  // noisyWeight
+    4,  20,   4,  50,   4,   6,   4,   11, // numActionWeight
+    4,  20,  15,  10,  30,  10,   5,   5,  // noisyWeight
    -5, -10,  -5,-120, -30, -15,  -7, -10,  // converedWeight
    -1,   1,  -4, -80,  -5,  -7,  -2,   0,  // numEnemyCloseWeight
     0,   0,   4, -60,   0,  20,   4,   5,  // totalNumCloseWeight
     5,  10,   8,  60,  10,   5,  20,   4   // placedWeight
   };
-  */
-
-  double hv[42]={
-    200,                // QueenMoveWeight
-    80,                // numActionWeight
-//   S     B     G    Q    A    M    L    P 
-    140,  140,  105, 95,   53,  34,   140,   100,  // noisyWeight
-    -45,  -48,  -82, -130, -51, -47,  -45, -70,  // converedWeight
-    -47,   -63,   -24, -538,  -21,  -20,  -9,   -30,  // numEnemyCloseWeight
-    21,   36,   13, -317,   14,  9,   4,   40,  // totalNumCloseWeight
-    25,   48,   63,  13,   132,   35,  20,   50   // placedWeight
-  };
-  for(int i=0;i<42;i++){
+  for(int i=0;i<48;i++){
     weightVector[i]=hv[i];
   }
+
+  for(int e=0;e<6;e++){
+    for(int i=0;i<28;i++){
+      BugType k=kind(i+1);
+      explicitWeight[e*28+i]=weightVector[e*8+k];
+    }
+  }
+  
+  
 }
 
 
-const double WeightsHelper::QueenMoveWeight() const {
-  return weightVector[0];
+
+const  double WeightsHelper::numActionWeight(BugType bt) const{
+  return weightVector[0+bt];
 }
-const double WeightsHelper::numActionWeight() const{
-  return weightVector[1];
+const  double WeightsHelper::noisyWeight(BugType bt) const {
+  return weightVector[8+bt];
 }
-const double WeightsHelper::noisyWeight(BugType bt) const {
-  return weightVector[2+bt];
+const  double WeightsHelper::converedWeight(BugType bt ) const{
+  return weightVector[16+bt];
 }
-const double WeightsHelper::converedWeight(BugType bt ) const{
-  return weightVector[10+bt];
+const  double WeightsHelper::numEnemyCloseWeight(BugType bt)const{
+  return weightVector[24+bt];
 }
-const double WeightsHelper::numEnemyCloseWeight(BugType bt)const{
-  return weightVector[18+bt];
+const  double WeightsHelper::totalNumCloseWeight(BugType bt)const{
+  return weightVector[32+bt];
 }
-const double WeightsHelper::totalNumCloseWeight(BugType bt)const{
-  return weightVector[26+bt];
-}
-const double WeightsHelper::placedWeight(BugType bt) const{
-  return weightVector[34+bt];
+const  double WeightsHelper::placedWeight(BugType bt) const{
+  return weightVector[40+bt];
 }
   
 

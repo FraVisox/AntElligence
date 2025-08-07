@@ -10,7 +10,7 @@ class BoardBitSet {
 
     public:
 
-        uint64_t bv[16];
+        alignas(64) uint64_t bv[16];
         void printDBG();
 
         BoardBitSet() ;
