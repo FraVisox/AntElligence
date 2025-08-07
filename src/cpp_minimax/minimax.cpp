@@ -246,6 +246,81 @@ pair<actionT,double> MinimaxAgent::minimaxComplete(Board board,int d){
     return ris;
 }
 
+actionT MinimaxAgent::initiate_minimax_learning(Board &board,int depth, double learning_fact) {
+
+    GameState state = board.getGameState();
+    if (state == GameState::DRAW    ||
+        state == GameState::WHITE_WIN||
+        state == GameState::BLACK_WIN) {
+        return pass();
+    }
+    double best_value = MIN_EVAL;
+    double alpha = MIN_EVAL;
+    double beta = MAX_EVAL;
+
+    board.ComputePossibleMoves();
+    
+
+    actionT best_move = board.resAction[0];
+    time_up_flag.store(false);
+
+    int numAction=board.numAction;
+    vector<actionT> nextAct(numAction);
+    for(int i=0;i<numAction;i++)
+        nextAct[i]=board.resAction[i];
+
+    vector<pair<double,actionT>> vectSort(numAction);
+    
+    for(int i=0;i<numAction;i++){
+        board.applayAction(nextAct[i]);
+        vectSort[i]=make_pair(utility(board),nextAct[i]);
+        board.undoAction();
+    }
+
+    sort(vectSort.begin(),vectSort.end());
+
+    double eval=0;
+    vector<double> ris(numAction);
+    for(int j=0;j<numAction;j++){
+        
+        actionT move = vectSort[j].second;
+        board.applayAction(move);
+        ris[j]= -minmax2(board, depth - 1, -beta, -alpha);
+        board.undoAction();    
+    }
+
+    for(int j=0;j<numAction;j++){
+        ris[j]=pow(learning_fact,ris[j]/1000);
+    }
+    double s=0;
+    for(int j=0;j<numAction;j++){
+        s+=ris[j];
+    }
+    for(int i=0;i<numAction;i++){
+        ris[i]/=s;
+    }
+
+    double val=((double)(rand()%100000))/100000.0;
+    double cs=0;
+    int i=0;
+    while(cs<val){
+        cs+=ris[i];
+        i++;
+    }
+    if(i==0)i++;
+    if(i>numAction){
+        cout<<"NO"<<endl;
+        //throw "Not valid";
+    }
+    return nextAct[i-1];
+
+    
+
+
+    clog<<"Evalueted "<<toale_evaled<<" board, found solution "<<best_move<<" with value "<<best_value<<" and depth "<<depth<<endl;
+    return best_move;
+}
+
 
 actionT MinimaxAgent::calculate_best_move(Board &board) {
     toale_evaled.store(0);
@@ -262,15 +337,9 @@ actionT MinimaxAgent::calculate_best_move(Board &board) {
     actionT next_move=board.resAction[0];
 
     int depth=2;
-    /*auto ris=minimaxComplete(board,2);
-    cout<<"Value act "<<ris.first<<" with  util "<<ris.second<<endl;
-    ris=minimaxComplete(board,3);
-    cout<<"Value act "<<ris.first<<" with  util "<<ris.second<<endl;
-    ris=minimaxComplete(board,4);
-    cout<<"Value act "<<ris.first<<" with  util "<<ris.second<<endl;
-    */
+    
     while(!is_time_up()){
-        actionT ris = initiate_minimax_parallel(board,depth);
+        actionT ris =  initiate_minimax_learning(board,depth,2); //initiate_minimax_parallel(board,depth);
         if(!is_time_up()){
             next_move=ris;
             depth++;

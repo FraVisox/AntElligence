@@ -27,6 +27,8 @@ public:
 
     double utility(Board &board) const;
     actionT initiate_minimax_fixed(Board &board,int depth)  ;
+    actionT initiate_minimax_learning(Board &board,int depth, double learning_fact);
+
     double minmax(Board& board, int depth, double alpha, double beta) const ;
     double minmax2(Board& board, int depth,double alpha, double beta) const ;
     pair<actionT,double> minimaxComplete(Board board, int );
