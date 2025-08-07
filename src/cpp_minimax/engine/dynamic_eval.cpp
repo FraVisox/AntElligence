@@ -94,12 +94,12 @@ double DynEval::evalBoardCurrentPlayer(Board & b) const{
     if(b.getGameState()>1){
         return -1e7;
     }
-    //b.ComputePossibleMoves();
+    b.ComputePossibleMoves();
 
     
 
     double score=0;
-    score += //actionsScore(b);  // for each action, compute the utility of the action
+    score += actionsScore(b);  // for each action, compute the utility of the action
     score += positionalScore(b);  // for each piece, compute the utility based on neighbor
     score += 0;//strategicScore(b);   // for some piece, if they are close to the queen can be helpful
     score += 0;//topologyScore(b);   // find if there are rings or other 

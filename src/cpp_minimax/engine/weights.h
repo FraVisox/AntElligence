@@ -6,6 +6,8 @@ class WeightsHelper{
         double weightVector[42];
     public: 
     WeightsHelper();
+    const void initDefaultWeights();
+
     const double QueenMoveWeight() const ;
     const double numActionWeight() const;
     const double noisyWeight(BugType) const ;
