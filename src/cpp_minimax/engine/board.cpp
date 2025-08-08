@@ -52,46 +52,19 @@ int Board::currentPlayerTurn(){
     return (currentTurn-1)/2+1;
 }
 
-void Board::copy(Board &b){
-    this->G.copy(b.G);
-    this->currentTurn=b.currentTurn;
-    this->inHandPiece=b.inHandPiece;
-    this->numAction=b.numAction;
-    this->prevMoved[0]=b.prevMoved[0];
-    this->prevMoved[1]=b.prevMoved[1];
-    for(int i=0;i<256;i++)
-        this->resAction[i]=b.resAction[i];
-
-    for(int i=0;i<MAX_ACTIONS_SIZE;i++)
-        this->resAction[i]=b.resAction[i];
-    //for(int i=0;i<MAX_TURN_SIZE;i++)
-    //    this->confHistory[i]=b.confHistory[i];
-    for(int i=0;i<20;i++)
-        this->pillbugMoves[i]=b.pillbugMoves[i];
-    this->pillbugTotMoves=b.pillbugTotMoves;
-    this->inQueue=b.inQueue;
-    this->hasUpdate=b.hasUpdate;
-}
-
 Board::Board(const Board& b,const actionT a ): G(b.G,a){
     this->currentTurn=b.currentTurn;
     this->inHandPiece=b.inHandPiece;
     this->numAction=b.numAction;
     this->prevMoved[0]=b.prevMoved[0];
-    this->prevMoved[1]=b.prevMoved[1];
-
-    this->inQueue=b.inQueue;
-    this->hasUpdate=b.hasUpdate;
-    
+    this->prevMoved[1]=b.prevMoved[1];    
     applayAction(a);
+    this->hasUpdate=true;
     G.hasUpdatedArticulation=false;
 }
 
 
-Board::Board(bool a,bool b){
-    
-    G.hasUpdatedArticulation=false;
-}
+
 
 
 Board::Board(GameType gt) : G(gt){

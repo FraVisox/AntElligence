@@ -48,20 +48,18 @@ class DynEval{
         return count;
     }
 
-    static bool detectRingFormation(const Board &b) {
-        for (int i = 0; i < 1024; i++) {
-            if (!b.G.occupied.get_bit(i)) {
-                bool full = true;
-                for (int d = 0; d < 6; d++) {
-                    if (!b.G.occupied.get_bit((i + dirDif[d]) & 1023)) {
-                        full = false;
-                        break;
-                    }
-                }
-                if (full) return true;
-            }
+    static bool detectRingFormation(const Board &b) {      // if all the position are free next to it
+
+        BoardBitSet isValid;
+        isValid=(~b.G.occupied);
+
+        for(int d=0;d<6;d++){
+            isValid.updateAnd(b.G.occupied.getRot(d));
         }
-        return false;
+        return (!isValid.none());
+
+
+
     }
 
 public:
