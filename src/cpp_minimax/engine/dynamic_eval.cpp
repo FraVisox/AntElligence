@@ -1,8 +1,7 @@
 #include "board.h"
 #include "weights.h"
 #include "dynamic_eval.h"
-
-
+#include "enums.h"
 
 double DynEval::actionsScore(const Board & b)const {
     // Per ogni bug, valutiamo le azioni che può fare
@@ -10,7 +9,7 @@ double DynEval::actionsScore(const Board & b)const {
     positionT oppositeQueenPosition=b.G.getPosition(30-myQueen);
     double score=0;
     double numQueenMove=0;
-    double actBug[32];
+    double actBug[32] = {0.0};
     for(int i=0;i<32;i++){
         actBug[i]=0;
     }
@@ -20,16 +19,20 @@ double DynEval::actionsScore(const Board & b)const {
         positionT destPos=action>>5;
         actBug[bug]++;
 
-        if(b.G.occupied.get_bit(destPos)){
-            //...
+        if (isAdjacent(destPos, oppositeQueenPosition)) {
+            score += W.noisyWeight(kind(bug));
+        } else {
+            score += W.quietWeight(kind(bug));
         }
-        // if destPost == any(near queen)
+    }
 
+    for(int i=0;i<32;i++){
+        if(actBug[i] == 0){
+            score+=W.isPinnedWeight(kind(i));
+        }
     }
-    
-    for(int i=1;i<=28;i++){
-        score+=(double)actBug[i]*W.numActionWeight(kind(i));
-    }
+
+    //clog << "actionsScore: " << score << endl;
     return score;
 }
 #include <immintrin.h>
@@ -42,7 +45,7 @@ double DynEval::positionalScore(const Board &b)const {
     PlayerColor currentColor=b.currentColor();
     PlayerColor oppositeColor=(currentColor==PlayerColor::WHITE?PlayerColor::BLACK:PlayerColor::WHITE);
 
-    alignas(64) uint8_t nS[1024];
+    alignas(64) uint8_t nS[1024] = {0};
     for(int i=0;i<1024;i++)
     {
         nS[i]=0;
@@ -67,7 +70,7 @@ double DynEval::positionalScore(const Board &b)const {
             }
         }
     }
-    double bugScore[32];
+    double bugScore[32] = {0.0};
 
 
     for(int p=1;p<=28;p++){
@@ -77,40 +80,97 @@ double DynEval::positionalScore(const Board &b)const {
             positionT currPos=b.G.getPosition(p);
 
             if(b.G.topPiece(currPos)!=p){
-                bugScore[p]+=W.converedWeight(kind(p));
+                bugScore[p]+=W.isCoveredWeight(kind(p));
             }
             
-            bugScore[p]+=((double)(nS[currPos]>>3))*W.numEnemyCloseWeight(kind(p))+
-                    ((double)((nS[currPos]>>3)+(nS[currPos]&7)))*W.totalNumCloseWeight(kind(p));
+            bugScore[p]+=((double)(nS[currPos]>>3))*W.enemyCloseWeight(kind(p))+
+                    ((double)((nS[currPos]>>3)+(nS[currPos]&7)))*W.friendCloseWeight(kind(p));
         }
     }
     
     for(int i=baseMy;i<=baseMy+13;i++)score+=bugScore[i];
     for(int i=baseOpp;i<=baseOpp+13;i++)score-=bugScore[i];
     
+    //clog << "positionalScore: " << score << endl;
     return score;
 }
 
-double DynEval::strategicScore(const Board &b)const {
-    // Tipo pillbug affianco alla queen, la mosquito vicino a pezzi buoni, così via danno punti
-    return 0;
+double DynEval::strategicScore(const Board &b) const {
+    double score = 0;
+    PlayerColor color = b.currentColor();
+    int base = (color == PlayerColor::WHITE) ? 1 : 15;
+    positionT queenPos = b.G.getPosition(base + 7); // Queen index is 8 or 22
+
+    for (int i = base; i <= base + 13; i++) {
+        if (!b.G.isPlaced[i]) continue;
+        pieceT p = i;
+        positionT pPos = b.G.getPosition(p);
+        int k = kind(p);
+
+        if (k == PILLBUG) {
+            if (isAdjacent(pPos, queenPos)) {
+                score += W.pillbugNearQueenBonus();
+            }
+        }
+        else if (k == MOSQUITO) {
+            for (int d = 0; d < 6; d++) {
+                positionT neighbor = (pPos + dirDif[d]) & 1023;
+                if (b.G.occupied.get_bit(neighbor)) {
+                    pieceT top = b.G.topPiece(neighbor);
+                    if (kind(top) == SOLDIER_ANT || kind(top) == BEETLE) {
+                        score += W.mosquitoNearStrongBugBonus();
+                    }
+                }
+            }
+        }
+        else if (k == SPIDER) {
+            int dist = distanceToQueen(pPos, queenPos);
+            score -= dist * W.spiderDistancePenalty();
+        }
+    }
+
+    //clog << "strategicScore: " << score << endl;
+
+    return score;
 }
 
-double DynEval::topologyScore(const Board &b)const {
-    // Se c'è un anello non ci piace, se la queen è coperta da gate ci piace...
-    return 0;   
+
+double DynEval::topologyScore(const Board &b) const {
+    double score = 0;
+    PlayerColor color = b.currentColor();
+    int myQueen = (color == PlayerColor::WHITE) ? 8 : 22;
+    positionT queenPos = b.G.getPosition(myQueen);
+
+    int surrounding = isQueenAlmostSurrounded(b, queenPos);
+    score -= pow(10.0, surrounding);
+
+    if (isGateFormationAroundQueen(b, queenPos)) {
+        score += W.queenGateDefenseBonus();
+    }
+    if (detectRingFormation(b)) {
+        score -= W.ringPenalty();
+    }
+
+    //clog << "topologyScore: " << score << endl;
+    return score;
 }
+
 
 
 double DynEval::evalBoardCurrentPlayer(Board & b) const{
 
+    //clog << "calculating board evaluation" << endl;
+
     if(b.getGameState()>1){// implement suicide
+        if (b.getGameState()==BLACK_WIN && b.currentColor()==PlayerColor::BLACK || b.getGameState()==WHITE_WIN && b.currentColor()==PlayerColor::WHITE){
+            return 1e10;
+        } 
+        if (b.getGameState() == DRAW) return 0;
         return -1e10; //check if I won or the othe
     }
     b.ComputePossibleMoves();
 
     double score=0;
-    score += actionsScore(b);  // for each action, compute the utility of the action
     score += actionsScore(b);  // for each action, compute the utility of the action
     score += positionalScore(b);  // for each piece, compute the utility based on neighbor
     score += strategicScore(b);   // for some piece, if they are close to the queen can be helpful

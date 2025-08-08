@@ -1,1 +1,0 @@
-pyinstaller ./src/pyth/engine.py --name AntElligenceEnginePy --noconsole --onefile

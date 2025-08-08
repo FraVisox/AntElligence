@@ -1,0 +1,2 @@
+Player 1,Player 2,Player 1 Wins (White),Turns (White),Player 1 Wins (Black),Turns (Black),Player 2 Wins (White),Turns (White),Player 2 Wins (Black),Turns (Black),Draws,Turns (Draw),Average Time (White),Average Time (Black)
+Minimax,Mzinga,2,64.0,2,46.0,2,33.0,1,81.0,0,0,7.859085730143955,9.300015483583723

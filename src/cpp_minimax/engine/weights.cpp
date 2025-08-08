@@ -4,11 +4,11 @@
 #include <fstream>
 using namespace std;
 
-WeightsHelper::WeightsHelper():numActOffset(0),noisyOffset(1),converedOffset(2),numEnemyCloseOffset(3),totalNumCloseOffset(4),placedOffset(5){
+WeightsHelper::WeightsHelper(): placedOffset(0), isPinnedOffset(1), isCoveredOffset(2), noisyOffset(3), quietOffset(4), friendCloseOffset(5), enemyCloseOffset(6) {
 
   std::ifstream file("./cpp_minimax/weights.txt");
   if (file) {
-      for(int i = 0; i < 48; i++) {
+      for(int i = 0; i < 62; i++) {
           file >> weightVector[i];
       }
   } else {
@@ -19,51 +19,210 @@ WeightsHelper::WeightsHelper():numActOffset(0),noisyOffset(1),converedOffset(2),
 
 const void WeightsHelper::initDefaultWeights() {
 
-  cout << "Default\n";
+  clog << "Default\n";
 
-  double hv[48]={
-//  S     B   G    Q    A    M    L    P 
-    4,  20,   4,  50,   4,   6,   4,   11, // numActionWeight
-    4,  20,  15,  10,  30,  10,   5,   5,  // noisyWeight
-   -5, -10,  -5,-120, -30, -15,  -7, -10,  // converedWeight
-   -1,   1,  -4, -80,  -5,  -7,  -2,   0,  // numEnemyCloseWeight
-    0,   0,   4, -60,   0,  20,   4,   5,  // totalNumCloseWeight
-    5,  10,   8,  60,  10,   5,  20,   4   // placedWeight
-  };
-  for(int i=0;i<48;i++){
+  int hv[61] = {
+  // InPlayWeight
+  25436,
+  -47942,
+  62698,
+  13433,
+  132380,
+  35702,
+  428,
+  -3,
+
+  // IsPinnedWeight
+  -46539,
+  -48021,
+  -82598,
+  -129954,
+  -51036,
+  -47853,
+  428,
+  36,
+
+  // IsCoveredWeight
+  7318,
+  9325,
+  24024,
+  -20359,
+  -1515,
+  -5471,
+  1,
+  1,
+
+  // NoisyMoveWeight
+  139756,
+  142117,
+  105511,
+  72291,
+  53867,
+  34855,
+  -327,
+  -327,
+
+  // QuietMoveWeight
+  -20696,
+  11689,
+  -12497,
+  95775,
+  4129,
+  3658,
+  -2037,
+  -5,
+
+  // FriendlyNeighborWeight
+  21040,
+  36463,
+  13656,
+  -317467,
+  14307,
+  9199,
+  426,
+  1,
+
+  // EnemyNeighborWeight
+  47143,
+  63937,
+  24316,
+  -538149,
+  21240,
+  20205,
+  0,
+  25,
+
+  // Others
+  15000, //pillbugNearQueenBonus
+  10000, //mosquitoNearStrongBugBonus
+  10000, //spiderDistancePenalty
+  40000, //queenGateDefenseBonus
+  30000 //ringPenalty
+};
+
+  /*
+  double hv[56] = {
+  // InPlayWeight
+  25435.882238354585,
+  -47942.30787762037,
+  62698.37281422093,
+  13432.951885680533,
+  132380.04004659085,
+  35702.098965012,
+  428.1203911929252,
+  -2.92230300211222,
+
+  // IsPinnedWeight
+  -46539.05096879799,
+  -48021.26522496219,
+  -82598.03083886552,
+  -129954.41883899852,
+  -51035.8531595224,
+  -47853.25550138967,
+  428.1203911929252,
+  36.14230688121976,
+
+  // IsCoveredWeight
+  7318.062445533153,
+  9325.20680229596,
+  24024.225201639405,
+  -20359.393475776742,
+  -1515.3280863367781,
+  -5471.658340342187,
+  1.0348840069979819,
+  1.0348840069979819,
+
+  // NoisyMoveWeight
+  139756.22020687832,
+  142117.44307757894,
+  105510.87832342245,
+  72291.27947098055,
+  53866.8750489757,
+  34855.368897836735,
+  -327.45214315771926,
+  -327.45214315771926,
+
+  // QuietMoveWeight
+  -20695.847798165196,
+  11689.30208954932,
+  -12497.189426607008,
+  95774.84135111222,
+  4129.437215966653,
+  3658.3069258791934,
+  -2037.2972162731394,
+  -4.7686213002021525,
+
+  // FriendlyNeighborWeight
+  21040.37841289118,
+  36462.79568546643,
+  13656.02929100097,
+  -317466.59939896787,
+  14307.12578295306,
+  9198.549211028952,
+  426.07017642756523,
+  0.7586273420223163,
+
+  // EnemyNeighborWeight
+  47143.13584635398,
+  63931.69017718444,
+  24316.040387962978,
+  -538148.8342704792,
+  21240.12696300159,
+  20205.426928489276,
+  0,
+  24.950130621306656
+};
+*/
+  for(int i=0;i<61;i++){
     weightVector[i]=hv[i];
   }
-
-  for(int e=0;e<6;e++){
-    for(int i=0;i<28;i++){
-      BugType k=kind(i+1);
-      explicitWeight[e*28+i]=weightVector[e*8+k];
-    }
-  }
-  
-  
 }
 
 
 
-const  double WeightsHelper::numActionWeight(BugType bt) const{
+const  int WeightsHelper::placedWeight(BugType bt) const{
   return weightVector[0+bt];
 }
-const  double WeightsHelper::noisyWeight(BugType bt) const {
+const  int WeightsHelper::isPinnedWeight(BugType bt) const {
   return weightVector[8+bt];
 }
-const  double WeightsHelper::converedWeight(BugType bt ) const{
+const  int WeightsHelper::isCoveredWeight(BugType bt ) const{
   return weightVector[16+bt];
 }
-const  double WeightsHelper::numEnemyCloseWeight(BugType bt)const{
+const  int WeightsHelper::noisyWeight(BugType bt)const{
   return weightVector[24+bt];
 }
-const  double WeightsHelper::totalNumCloseWeight(BugType bt)const{
+const  int WeightsHelper::quietWeight(BugType bt)const{
   return weightVector[32+bt];
 }
-const  double WeightsHelper::placedWeight(BugType bt) const{
+const  int WeightsHelper::friendCloseWeight(BugType bt) const{
   return weightVector[40+bt];
 }
+
+const int WeightsHelper::enemyCloseWeight(BugType bt) const{
+  return weightVector[48+bt];
+}
+
+const int WeightsHelper::pillbugNearQueenBonus() const {
+  return weightVector[56];
+}
+
+const int WeightsHelper::mosquitoNearStrongBugBonus() const {
+  return weightVector[57];
+}
+
+const int WeightsHelper::spiderDistancePenalty() const {
+  return weightVector[58];
+}
+
+const int WeightsHelper::queenGateDefenseBonus() const {
+  return weightVector[59];
+}
+
+const int WeightsHelper::ringPenalty() const {
+  return weightVector[60];
+}
+
   
 
 double startGame[8][7]={

@@ -28,14 +28,14 @@ else:
 def write_weights_file(weights_dict, filename=WEIGHTS_FILE):
     """Write weights to the structured text file."""
     with open(filename, 'w') as f:
-        f.write(f"{weights_dict['QueenMoveWeight']} ")
-        f.write(f"{weights_dict['numActionWeight']} ")
-        
         # Write array weights
-        for weight_name in ['noisyWeight', 'coveredWeight', 'numEnemyCloseWeight', 
-                           'totalNumCloseWeight', 'placedWeight']:
+        for weight_name in ['inPlay', 'isPinned', 'isCovered', 'noisyWeight', 'quietWeight', 'friendlyNeighbor', 
+                           'enemyNeighbor']:
             weights_str = ' '.join([str(weights_dict[f'{weight_name}_{i}']) for i in range(8)])
             f.write(f"{weights_str} ")
+    
+    # Write single value weights
+    f.write(f"{weights_dict['pillbugNearQ']} {weights_dict['mosquitoNearStrong']} {weights_dict['spiderDistance']} {weights_dict['queenGate']} {weights_dict['ringPenalty']}")
 
 def play_single_game(pl1_path, pl2_path, matches=NUMBER_OF_MATCHES):
     """
@@ -207,16 +207,21 @@ def objective(trial):
     weights = {}
     
     # Single value parameters
-    weights['QueenMoveWeight'] = trial.suggest_float('QueenMoveWeight', 50, 400)
-    weights['numActionWeight'] = trial.suggest_float('numActionWeight', 20, 150)
+    weights['pillbugNearQ'] = trial.suggest_float('pillbugNearQ', 1000, 600000)
+    weights['mosquitoNearStrong'] = trial.suggest_float('mosquitoNearStrong', 1000, 600000)
+    weights['spiderDistance'] = trial.suggest_float('spiderDistance', 1000, 600000)
+    weights['queenGate'] = trial.suggest_float('queenGate', 1000, 600000)
+    weights['ringPenalty'] = trial.suggest_float('ringPenalty', 1000, 600000)
     
     # Array parameters (8 pieces each: S, B, G, Q, A, M, L, P)
     weight_categories = [
-        ('noisyWeight', -200, 200),
-        ('coveredWeight', -300, 300),
-        ('numEnemyCloseWeight', -600, 200),
-        ('totalNumCloseWeight', -600, 200),
-        ('placedWeight', -600, 600)
+        ('inPlay', -600000, 600000),
+        ('isPinned', -600000, 600000),
+        ('isCovered', -600000, 600000),
+        ('noisyWeight', -600000, 600000),
+        ('quietWeight', -600000, 600000),
+        ('friendlyNeighbor', -600000, 600000), 
+        ('enemyNeighbor', -600000, 600000)
     ]
     
     for category, min_val, max_val in weight_categories:
@@ -277,19 +282,42 @@ def main():
     
     # Add initial trial with current best weights (optional)
     initial_weights = {
-        'QueenMoveWeight': 200,
-        'numActionWeight': 80,
-        'noisyWeight_0': 140, 'noisyWeight_1': 140, 'noisyWeight_2': 105, 'noisyWeight_3': 95,
-        'noisyWeight_4': 53, 'noisyWeight_5': 34, 'noisyWeight_6': 140, 'noisyWeight_7': 100,
-        'coveredWeight_0': -45, 'coveredWeight_1': -48, 'coveredWeight_2': -82, 'coveredWeight_3': -130,
-        'coveredWeight_4': -51, 'coveredWeight_5': -47, 'coveredWeight_6': -45, 'coveredWeight_7': -70,
-        'numEnemyCloseWeight_0': 47, 'numEnemyCloseWeight_1': 63, 'numEnemyCloseWeight_2': 24, 'numEnemyCloseWeight_3': -538,
-        'numEnemyCloseWeight_4': 21, 'numEnemyCloseWeight_5': 20, 'numEnemyCloseWeight_6': 9, 'numEnemyCloseWeight_7': 30,
-        'totalNumCloseWeight_0': 21, 'totalNumCloseWeight_1': 36, 'totalNumCloseWeight_2': 13, 'totalNumCloseWeight_3': -317,
-        'totalNumCloseWeight_4': 14, 'totalNumCloseWeight_5': 9, 'totalNumCloseWeight_6': 4, 'totalNumCloseWeight_7': 40,
-        'placedWeight_0': 25, 'placedWeight_1': 48, 'placedWeight_2': 63, 'placedWeight_3': 13,
-        'placedWeight_4': 132, 'placedWeight_5': 35, 'placedWeight_6': 20, 'placedWeight_7': 50
+        # InPlayWeight
+        'inPlay_0': 25436, 'inPlay_1': -47942, 'inPlay_2': 62698, 'inPlay_3': 13433,
+        'inPlay_4': 132380, 'inPlay_5': 35702, 'inPlay_6': 428, 'inPlay_7': -3,
+
+        # IsPinnedWeight
+        'isPinned_0': -46539, 'isPinned_1': -48021, 'isPinned_2': -82598, 'isPinned_3': -129954,
+        'isPinned_4': -51036, 'isPinned_5': -47853, 'isPinned_6': 428, 'isPinned_7': 36,
+
+        # IsCoveredWeight
+        'isCovered_0': 7318, 'isCovered_1': 9325, 'isCovered_2': 24024, 'isCovered_3': -20359,
+        'isCovered_4': -1515, 'isCovered_5': -5471, 'isCovered_6': 1, 'isCovered_7': 1,
+
+        # NoisyMoveWeight
+        'noisyWeight_0': 139756, 'noisyWeight_1': 142117, 'noisyWeight_2': 105511, 'noisyWeight_3': 72291,
+        'noisyWeight_4': 53867, 'noisyWeight_5': 34855, 'noisyWeight_6': -327, 'noisyWeight_7': -327,
+
+        # QuietMoveWeight
+        'quietWeight_0': -20696, 'quietWeight_1': 11689, 'quietWeight_2': -12497, 'quietWeight_3': 95775,
+        'quietWeight_4': 4129, 'quietWeight_5': 3658, 'quietWeight_6': -2037, 'quietWeight_7': -5,
+
+        # FriendlyNeighborWeight
+        'friendlyNeighbor_0': 21040, 'friendlyNeighbor_1': 36463, 'friendlyNeighbor_2': 13656, 'friendlyNeighbor_3': -317467,
+        'friendlyNeighbor_4': 14307, 'friendlyNeighbor_5': 9199, 'friendlyNeighbor_6': 426, 'friendlyNeighbor_7': 1,
+
+        # EnemyNeighborWeight
+        'enemyNeighbor_0': 47143, 'enemyNeighbor_1': 63937, 'enemyNeighbor_2': 24316, 'enemyNeighbor_3': -538149,
+        'enemyNeighbor_4': 21240, 'enemyNeighbor_5': 20205, 'enemyNeighbor_6': 0, 'enemyNeighbor_7': 25,
+
+        # Single value weights
+        'pillbugNearQ': 15000,
+        'mosquitoNearStrong': 10000,
+        'spiderDistance': 10000,
+        'queenGate': 40000,
+        'ringPenalty': 30000
     }
+
     
     try:
         study.enqueue_trial(initial_weights)
@@ -300,7 +328,7 @@ def main():
     # Run optimization
     print("Starting optimization...")
     try:
-        study.optimize(objective, n_trials=100, timeout=3600*4)  # 4 hours timeout
+        study.optimize(objective, n_trials=1000, timeout=3600*12)  # 12 hours timeout
     except KeyboardInterrupt:
         print("Optimization interrupted by user")
     

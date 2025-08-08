@@ -3,24 +3,37 @@
 #define WEIGHTS_HELP_H
 class WeightsHelper{
     public:
-        alignas(32)double weightVector[48];
-        alignas(32) double explicitWeight[168];
+        alignas(32) int weightVector[61];
      
         WeightsHelper();
         const void initDefaultWeights();
 
-        const  double numActionWeight(BugType) const;
-        const int numActOffset;
-        const  double noisyWeight(BugType) const ;
-        const int noisyOffset;
-        const  double converedWeight(BugType) const;
-        const int converedOffset;
-        const  double numEnemyCloseWeight(BugType)const;
-        const int numEnemyCloseOffset;
-        const  double totalNumCloseWeight(BugType)const;
-        const int totalNumCloseOffset;
-        const  double placedWeight(BugType) const;
+        const  int placedWeight(BugType) const;
         const int placedOffset;
+
+        const  int isPinnedWeight(BugType) const;
+        const int isPinnedOffset;
+
+        const  int isCoveredWeight(BugType) const;
+        const int isCoveredOffset;
+
+        const  int noisyWeight(BugType) const ;
+        const int noisyOffset;
+
+        const  int quietWeight(BugType) const ;
+        const int quietOffset;
+
+        const  int friendCloseWeight(BugType)const;
+        const int friendCloseOffset;
+
+        const  int enemyCloseWeight(BugType)const;
+        const int enemyCloseOffset;
+
+        const int pillbugNearQueenBonus() const;
+        const int mosquitoNearStrongBugBonus() const;
+        const int spiderDistancePenalty() const;
+        const int queenGateDefenseBonus() const;
+        const int ringPenalty() const;
 };
 extern double startGame[8][7];
 

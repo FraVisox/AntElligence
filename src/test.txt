@@ -1,5 +1,0 @@
-Evalueted 288 board, found solution 46 with value 4374.5 and depth 2
-Evalueted 8571 board, found solution 46 with value -3318.38 and depth 3
-Evalueted 39223 board, found solution 41 with value 6645.64 and depth 4
-Evalueted 807030 board, found solution 41 with value -2239.54 and depth 5
-Evalueted 3534297 board, found solution 1032 with value 10657.3 and depth 6

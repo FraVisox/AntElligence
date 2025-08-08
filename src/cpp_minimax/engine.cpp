@@ -121,11 +121,109 @@ void Engine::validmoves(){
     cout<<actionToString(board.resAction[board.numAction-1], board)<<"\n";
 }
 
+
 void Engine::bestmove(string param){
     if (board.currentTurn == 1) {
-        cout << "wG1\n";
+        cout << "wL\n";
     } else if (board.currentTurn == 2) {
-        cout << "bS1 -"+actions[0]+"\n";
+        cout << "bL -"+actions[0]+"\n";
+    } else if (board.currentTurn == 3) {
+        // Extract action from the other, here we assume it's -wL
+        int len = actions[1].size();
+        string where = actions[1].substr(len-3);
+        if (where == "-wL") {
+            cout << "wQ wL/\n";
+        } else if (where == "\\wL") {
+            cout << "wQ wL-\n";
+        } else if (where == "wL/") {
+            cout << "wQ wL\\\n";
+        } else if (where == "wL-") {
+            cout << "wQ /wL\n";
+        } else if (where == "wL\\") {
+            cout << "wQ -wL\n";
+        } else {
+            cout << "wQ \\wL\n";
+        }
+    } else if (board.currentTurn == 4) {
+        // Extract where to put it based on the other placement of queen or other bug
+        int len = actions[2].size();
+        if (actions[2][len-1] == '/') {
+            cout << "bQ /bL\n";
+        } else if (actions[2][len-1] == '-') {
+            cout << "bQ /bL\n"; //TODO: what to do in case of an inline placement
+        } else {
+            cout << "bQ \\bL\n";
+        }
+    } else if (board.currentTurn == 5) {
+        // Put the ant on the other end of the ladybug
+        int len = actions[1].size();
+        string where = actions[1].substr(len-3);
+        if (where == "-wL") {
+            cout << "wA1 wL\\\n";
+        } else if (where == "\\wL") {
+            cout << "wA1 /wL\n";
+        } else if (where == "wL/") {
+            cout << "wA1 -wL\n";
+        } else if (where == "wL-") {
+            cout << "wA1 \\wL\n";
+        } else if (where == "wL\\") {
+            cout << "wA1 wL/\n";
+        } else {
+            cout << "wA1 wL-\n";
+        }
+    } else if (board.currentTurn == 6) {
+        cout << "bP -bQ\n";
+    } else if (board.currentTurn == 7) {
+        int len = actions[1].size();
+        string where = actions[1].substr(len-3);
+        if (where == "-wL") {
+            cout << "wM wL-\n";
+        } else if (where == "\\wL") {
+            cout << "wM wL\\\n";
+        } else if (where == "wL/") {
+            cout << "wM /wL\n";
+        } else if (where == "wL-") {
+            cout << "wM -wL\n";
+        } else if (where == "wL\\") {
+            cout << "wM \\wL\n";
+        } else {
+            cout << "wM wL/\n";
+        }
+    } else if (board.currentTurn == 8) {
+
+        board.ComputePossibleMoves();
+
+        bool isPossiblebMbP = false;
+        bool isPossiblebA1bL = false;
+        for(int i=0;i<board.numAction;i++){
+            string action = actionToString(board.resAction[i], board);
+            if (action == "bM \\bP" || action == "bM /bP") {
+                isPossiblebMbP = true;
+                break;
+            }
+            if (action == "bA1 \\bL" || action == "bA1 /bL") {
+                isPossiblebA1bL = true;
+            }
+        }
+        
+        if (actions[3] == "bQ /bL") {
+            if (isPossiblebMbP) { 
+                cout << "bM \\bP\n";
+            } else if (isPossiblebA1bL)  {
+                cout << "bA1 \\bL\n";
+            } else {
+                cout << actionToString(agent.calculate_best_move(board), board)<<"\n";
+            }
+        }
+        else {
+            if (isPossiblebMbP)  {
+                cout << "bM /bP\n";
+            } else if (isPossiblebA1bL) {
+                cout << "bA1 /bL\n";
+            } else {
+                cout << actionToString(agent.calculate_best_move(board), board)<<"\n";
+            }
+        }
     } else {
         cout << actionToString(agent.calculate_best_move(board), board)<<"\n";
     }

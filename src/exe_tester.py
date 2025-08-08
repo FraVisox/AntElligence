@@ -5,7 +5,7 @@ import time
 
 # To set
 file_results = "../results/game_results.csv"
-number_of_matches = 15
+number_of_matches = 7
 number_of_turns_per_match = 200
 number_moves_log = 1
 
@@ -171,10 +171,13 @@ def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = No
 
                 start = time.time()
                 moving_player.stdin.write(bestmove)
-                move = output = moving_player.stdout.readline()
+                output = moving_player.stdout.readline()
                 end = time.time()
+                move = ""
                 while not output.startswith(ending_sequence):
-                    print(output.strip())
+                    if (output.strip()):
+                        print(output.strip())
+                    move = output
                     output = moving_player.stdout.readline()
                 
                 if match % 2 == 1 and turn % 2 == 1:
@@ -188,12 +191,14 @@ def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = No
 
                 output = moving_player.stdout.readline()
                 while not output.startswith(ending_sequence):
-                    print(output.strip())
+                    if (output.strip()):
+                        print(output.strip())
                     output = moving_player.stdout.readline()
 
                 response = output = opponent.stdout.readline()
                 while not output.startswith(ending_sequence):
-                    print(output.strip())
+                    if (output.strip()):
+                        print(output.strip())
                     output = opponent.stdout.readline()
 
 

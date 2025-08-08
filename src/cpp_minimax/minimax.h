@@ -26,10 +26,8 @@ public:
     const double MAX_EVAL = 1e10;
 
     double utility(Board &board) const;
-    actionT initiate_minimax_fixed(Board &board,int depth)  ;
     actionT initiate_minimax_learning(Board &board,int depth, double learning_fact);
 
-    double minmax(Board& board, int depth, double alpha, double beta) const ;
     double minmax2(Board& board, int depth,double alpha, double beta) const ;
     pair<actionT,double> minimaxComplete(Board board, int );
     bool is_time_up() const;
@@ -41,14 +39,9 @@ public:
             timeLimit = chrono::seconds(tl);
     }
 
-    double parallel_minimax_first(Board board, int depth_remaining, double alpha, double beta) const;
-
     actionT calculate_best_move(Board &board);
     actionT initiate_minimax_parallel(Board &board,int depth);
 };
-
-
-
 
 
 #endif

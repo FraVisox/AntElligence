@@ -84,7 +84,7 @@ actionT MinimaxAgent::initiate_minimax_parallel(Board &board,int depth) {
             break;
         }   
     }
-    clog<<"Evalueted "<<toale_evaled<<" board, found solution "<<best_move<<" with value "<<best_value<<" and depth "<<depth<<endl;
+    clog<<"Evaluated "<<toale_evaled<<" board, found solution "<<best_move<<" with value "<<best_value<<" and depth "<<depth<<endl;
     return best_move;
 }
 
@@ -282,7 +282,6 @@ actionT MinimaxAgent::initiate_minimax_learning(Board &board,int depth, double l
     double eval=0;
     vector<double> ris(numAction);
     for(int j=0;j<numAction;j++){
-        
         actionT move = vectSort[j].second;
         board.applayAction(move);
         ris[j]= -minmax2(board, depth - 1, -beta, -alpha);
@@ -313,12 +312,6 @@ actionT MinimaxAgent::initiate_minimax_learning(Board &board,int depth, double l
         //throw "Not valid";
     }
     return nextAct[i-1];
-
-    
-
-
-    clog<<"Evalueted "<<toale_evaled<<" board, found solution "<<best_move<<" with value "<<best_value<<" and depth "<<depth<<endl;
-    return best_move;
 }
 
 
@@ -339,7 +332,7 @@ actionT MinimaxAgent::calculate_best_move(Board &board) {
     int depth=2;
     
     while(!is_time_up()){
-        actionT ris =  initiate_minimax_learning(board,depth,2); //initiate_minimax_parallel(board,depth);
+        actionT ris =  initiate_minimax_parallel(board,depth); //initiate_minimax_parallel(board,depth);
         if(!is_time_up()){
             next_move=ris;
             depth++;
