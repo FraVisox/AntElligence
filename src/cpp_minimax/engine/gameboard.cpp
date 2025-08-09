@@ -25,6 +25,9 @@ gameboard::gameboard(const gameboard& g,actionT a){
         }
     }
 
+    occupied.updateOr(g.occupied);
+    not_movable_position.updateOr(g.not_movable_position);
+    
     for(int i=0;i<1024;i++)
             high[i]=g.high[i];
     for(int i=0;i<16;i++){
