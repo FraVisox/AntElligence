@@ -38,8 +38,9 @@ int i=0;
         if(board.currentTurn&1){
             board.ComputePossibleMoves();
             M=board.resAction[rand()%board.numAction];
-        }else
+        }else{
             M=a.calculate_best_move(board);
+        }
         cout<<i<<actionToString(M,board)<<endl;
         board.applayAction(M);
     }
