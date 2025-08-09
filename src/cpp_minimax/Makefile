@@ -42,7 +42,7 @@ test-% : test/test-%.cpp $(ALL_OJB)
 
 
 main : main.cpp $(ALL_OJB)  
-	$(CXX) $(CXXFLAGS) main.cpp $(ALL_OJB) -o main
+	$(CXX) $(CXXFLAGS) main.cpp $(ALL_OJB) -o main_new
 
 self_play : self_play.cpp $(ALL_OJB)  
 	$(CXX) $(CXXFLAGS) self_play.cpp $(ALL_OJB) -o self_play

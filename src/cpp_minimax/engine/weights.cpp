@@ -107,10 +107,10 @@ const void WeightsHelper::initDefaultWeights() {
   60000, //spiderElbowBonus
   20000, //hopperEscapeBonus
   50000, //ladybugPocketBonus
-  80000, //ladybugPocketBonus
-  40000, //ladybugPocketBonus
-  70000, //ladybugPocketBonus
-  100000, //ladybugPocketBonus
+  20000, //movedAwayFromQueenWeight
+  10000, //ringFreeTrapBonus
+  70000, //mosquitoNearPillbugNearQueenBonus
+  100000, //fasterMateBonus
 
   }; 
 
