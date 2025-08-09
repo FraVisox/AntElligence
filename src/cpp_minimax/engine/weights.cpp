@@ -8,7 +8,7 @@ WeightsHelper::WeightsHelper(): placedOffset(0), isPinnedOffset(1), isCoveredOff
 
   std::ifstream file("./cpp_minimax/weights.txt");
   if (file) {
-      for(int i = 0; i < 62; i++) {
+      for(int i = 0; i < 72; i++) {
           file >> weightVector[i];
       }
   } else {
@@ -21,7 +21,9 @@ const void WeightsHelper::initDefaultWeights() {
 
   clog << "Default\n";
 
-  int hv[61] = {
+  // NEW DEFAULT:
+
+  int hv[72] = {
   // InPlayWeight
   25436,
   -47942,
@@ -97,82 +99,21 @@ const void WeightsHelper::initDefaultWeights() {
   10000, //mosquitoNearStrongBugBonus
   10000, //spiderDistancePenalty
   40000, //queenGateDefenseBonus
-  30000 //ringPenalty
-};
+  30000, //ringPenalty
+  20000, //queenCanEscape
+  40000, //beetleOnKeyBonus
+  10000, //blockingQueenSpotBonus
+  60000, //unpinnedAntBonus
+  60000, //spiderElbowBonus
+  20000, //hopperEscapeBonus
+  50000, //ladybugPocketBonus
+  80000, //ladybugPocketBonus
+  40000, //ladybugPocketBonus
+  70000, //ladybugPocketBonus
+  100000, //ladybugPocketBonus
 
-  /*
-  double hv[56] = {
-  // InPlayWeight
-  25435.882238354585,
-  -47942.30787762037,
-  62698.37281422093,
-  13432.951885680533,
-  132380.04004659085,
-  35702.098965012,
-  428.1203911929252,
-  -2.92230300211222,
+  }; 
 
-  // IsPinnedWeight
-  -46539.05096879799,
-  -48021.26522496219,
-  -82598.03083886552,
-  -129954.41883899852,
-  -51035.8531595224,
-  -47853.25550138967,
-  428.1203911929252,
-  36.14230688121976,
-
-  // IsCoveredWeight
-  7318.062445533153,
-  9325.20680229596,
-  24024.225201639405,
-  -20359.393475776742,
-  -1515.3280863367781,
-  -5471.658340342187,
-  1.0348840069979819,
-  1.0348840069979819,
-
-  // NoisyMoveWeight
-  139756.22020687832,
-  142117.44307757894,
-  105510.87832342245,
-  72291.27947098055,
-  53866.8750489757,
-  34855.368897836735,
-  -327.45214315771926,
-  -327.45214315771926,
-
-  // QuietMoveWeight
-  -20695.847798165196,
-  11689.30208954932,
-  -12497.189426607008,
-  95774.84135111222,
-  4129.437215966653,
-  3658.3069258791934,
-  -2037.2972162731394,
-  -4.7686213002021525,
-
-  // FriendlyNeighborWeight
-  21040.37841289118,
-  36462.79568546643,
-  13656.02929100097,
-  -317466.59939896787,
-  14307.12578295306,
-  9198.549211028952,
-  426.07017642756523,
-  0.7586273420223163,
-
-  // EnemyNeighborWeight
-  47143.13584635398,
-  63931.69017718444,
-  24316.040387962978,
-  -538148.8342704792,
-  21240.12696300159,
-  20205.426928489276,
-  0,
-  24.950130621306656
-};
-*/
   for(int i=0;i<61;i++){
     weightVector[i]=hv[i];
   }
@@ -223,7 +164,43 @@ const int WeightsHelper::ringPenalty() const {
   return weightVector[60];
 }
 
+const int WeightsHelper::queenCanEscape() const {
+  return weightVector[61];
+}
+const int WeightsHelper::beetleOnKeyBonus() const {
+  return weightVector[62];
+}
+const int WeightsHelper::blockingQueenSpotBonus() const {
+  return weightVector[63];
+}
+const int WeightsHelper::unpinnedAntBonus() const {
+  return weightVector[64];
+}
+const int WeightsHelper::spiderElbowBonus() const {
+  return weightVector[65];
+}
+const int WeightsHelper::hopperEscapeBonus() const {
+  return weightVector[66];
+}
+const int WeightsHelper::ladybugPocketBonus() const {
+  return weightVector[67];
+}
   
+const int WeightsHelper::movedAwayFromQueenWeight() const {
+  return weightVector[68];
+}
+
+const int WeightsHelper::ringFreeTrapBonus() const {
+  return weightVector[69];
+}
+
+const int WeightsHelper::mosquitoNearPillbugNearQueenBonus() const {
+  return weightVector[70];
+}
+
+const int WeightsHelper::fasterMateBonus() const {
+  return weightVector[71];
+}
 
 double startGame[8][7]={
     {//QueenBee

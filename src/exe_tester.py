@@ -25,7 +25,7 @@ if platform.system()=="Linux":
 else:
     files_to_match = {
         "Minimax": "./cpp_minimax/main.exe",
-        "Mzinga": "../dist/MzingaEngine.exe"
+        "Strong": "../dist/OurEngineStrong.exe"
     }
 
 options_players = [

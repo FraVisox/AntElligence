@@ -64,6 +64,20 @@ class DynEval{
         return false;
     }
 
+    static bool isInsideRing(const Board &b, positionT p) {
+        if (!b.G.occupied.get_bit(p)) {
+            bool full = true;
+            for (int d = 0; d < 6; d++) {
+                if (!b.G.occupied.get_bit((p + dirDif[d]) & 1023)) {
+                    full = false;
+                    break;
+                }
+            }
+            if (full) return true;
+        }
+        return false;
+    }
+
 public:
 
     double evalBoardCurrentPlayer(Board &) const;

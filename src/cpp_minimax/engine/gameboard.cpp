@@ -128,6 +128,16 @@ bool gameboard::isTop(const pieceT &bug) const {
     return (topPiece(pos)==bug);
 }
 
+vector<pieceT> gameboard::getBugs(const positionT &pos) const {
+    vector<pieceT> bugs;
+    for(int i=0;i<HIGHT_BOARD;i++){
+        if(gb[i][pos &1023]!=0)
+            bugs.push_back(gb[i][pos &1023]);
+    }
+    return bugs;
+}
+
+
 /**
  * \brief Checks if a bug piece can be moved.
  *
