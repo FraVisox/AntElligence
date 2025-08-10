@@ -30,9 +30,22 @@ bool MinimaxAgent::is_time_up() const{
 
 std::atomic<long> toale_evaled{0};
 
-/*double MinimaxAgent::parallel_minimax_first(Board board, int depth_remaining, double alpha, double beta) const {
-    return minmax(board,depth_remaining,alpha,beta);
-}*/
+unordered_map<size_t,double> HMP;
+double MinimaxAgent::utility(Board &board) const {
+    #pragma omp critical
+    toale_evaled.fetch_add(1, std::memory_order_relaxed);
+    size_t H=board.getHash();
+
+    int c=HMP.count(H); 
+    if(c>0){
+        return HMP.at(H);
+    }
+    double v1=ev.evalBoardCurrentPlayer(board);
+
+    #pragma omp critical
+    HMP.insert(make_pair(H,v1));
+    return v1;
+}
 
 actionT MinimaxAgent::initiate_minimax_parallel(Board &board,int depth) {
     GameState state = board.getGameState();
@@ -88,12 +101,6 @@ actionT MinimaxAgent::initiate_minimax_parallel(Board &board,int depth) {
     return best_move;
 }
 
-
-double MinimaxAgent::utility(Board &board) const {
-    toale_evaled.fetch_add(1, std::memory_order_relaxed);
-    double v1=ev.evalBoardCurrentPlayer(board);
-    return v1;
-}
 
 
 
@@ -219,13 +226,15 @@ double MinimaxAgent::minmax2( Board &board, int depth_remaining, double alpha, d
     //      Parallel case: execute in parallel for level 2
     //========================================================
 
+    return parallel_depth2(board,depth_remaining,alpha,beta,sorted_pair);
+
     vector<double> res(n);
 
     shared_bit_pruning=false;
     double best_result=MIN_EVAL;
     
 
-    #pragma omp parallel for 
+    #pragma omp parallel for  
     for(int i=0;i<n;i++){
         bool tmp_read;
         #pragma omp atomic read
@@ -283,6 +292,53 @@ pair<actionT,double> MinimaxAgent::minimaxComplete(Board board,int d){
     }
     return ris;
 }
+
+
+double MinimaxAgent::parallel_depth2(Board& board, int depth, double alpha, double beta,
+                       const std::vector<std::pair<double,actionT>>& ordered) const {
+    std::atomic<double> shared_alpha{alpha};
+    std::atomic<bool>   stop{false};
+    std::atomic<double> best{MIN_EVAL};
+
+    #pragma omp parallel
+    #pragma omp single nowait
+    {
+        #pragma omp taskgroup
+        for (int i = 0; i < (int)ordered.size(); ++i) {            
+            #pragma omp task firstprivate(i) shared(stop, shared_alpha, best)
+            {
+                if (stop.load(std::memory_order_relaxed)){
+                    #pragma omp cancellation point taskgroup
+                }else{
+                    Board b1(board, ordered[i].second);
+                    double a = shared_alpha.load(std::memory_order_relaxed);
+
+                    double s = -minmax2(b1, depth - 1, -beta, -a);
+                    // update best and alpha
+                    double prev = shared_alpha.load(std::memory_order_relaxed);
+                    while (s > prev &&
+                           !shared_alpha.compare_exchange_weak(prev, s,
+                               std::memory_order_relaxed, std::memory_order_relaxed)) {}
+
+                    // track best (CAS)
+                    double old = best.load(std::memory_order_relaxed);
+                    while (s > old &&
+                           !best.compare_exchange_weak(old, s,
+                               std::memory_order_relaxed, std::memory_order_relaxed)) {}
+
+                    if (s >= beta) {
+                        stop.store(true, std::memory_order_relaxed);
+                        #pragma omp cancel taskgroup        // <-- not in a critical
+                    }
+                }
+                #pragma omp cancellation point taskgroup    // allow this task to observe cancel
+
+            }
+        }
+    }
+    return best;
+}
+
 
 actionT MinimaxAgent::initiate_minimax_learning(Board &board,int depth, double learning_fact) {
 

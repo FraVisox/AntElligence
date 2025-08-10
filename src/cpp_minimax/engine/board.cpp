@@ -426,45 +426,173 @@ void Board::possibleMoves_Grasshopper(pieceT bug){
 
 void Board::possibleMoves_SoldierAnt(pieceT bug){
     if (G.canPieceMove(bug,currentTurn)) {
-        
-        
         const positionT startPos=G.getPosition(bug);
 
         G.removePiece(bug);
         BoardBitSet isOccupiedNear[6];
-        
-
-        for(int i=0;i<6;i++){
-            isOccupiedNear[i]=G.occupied.getRot(i);
-        }
-        
-        BoardBitSet canGoTo[6];
-        for(int i=0;i<6;i++){
-            canGoTo[i].reset();
-            canGoTo[i]=((isOccupiedNear[(i+5)%6] ^ isOccupiedNear[(i+1)%6]) & (~isOccupiedNear[i]));
-        }
-
         BoardBitSet reachable;
+
+        BoardBitSet canGoTo[6];
+
+        //  NEW VERSION 
+        isOccupiedNear[0]=G.occupied.getRot0();
+        isOccupiedNear[1]=G.occupied.getRot1();
+        isOccupiedNear[2]=G.occupied.getRot2();
+        isOccupiedNear[3]=G.occupied.getRot3();
+        isOccupiedNear[4]=G.occupied.getRot4();
+        isOccupiedNear[5]=G.occupied.getRot5();
+        
+        
+        
+
+        canGoTo[0]=((isOccupiedNear[5] ^ isOccupiedNear[1]) & (~isOccupiedNear[0]));
+        canGoTo[1]=((isOccupiedNear[0] ^ isOccupiedNear[2]) & (~isOccupiedNear[1]));
+        canGoTo[2]=((isOccupiedNear[1] ^ isOccupiedNear[3]) & (~isOccupiedNear[2]));
+        canGoTo[3]=((isOccupiedNear[2] ^ isOccupiedNear[4]) & (~isOccupiedNear[3]));
+        canGoTo[4]=((isOccupiedNear[3] ^ isOccupiedNear[5]) & (~isOccupiedNear[4]));
+        canGoTo[5]=((isOccupiedNear[4] ^ isOccupiedNear[0]) & (~isOccupiedNear[5]));
         reachable.set(startPos,1);
         
         BoardBitSet pr;
+
+        const __m512i idx_next0 = _mm512_set_epi64(8+0, 7,6,5,4,3,2,1);
+        const __m512i idx_prev3 = _mm512_set_epi64(6,5,4,3,2,1,0,15);
+        __m512i reachablelo, reachablehi, int1lo, int1hi,nb0,nb1,out0,out1,pv0,pv1;
+
         for(int i=0;i<64;i++){
-            pr.updateOr(reachable);
-            for(int j=0;j<6;j++){
-                reachable.updateOr((canGoTo[j] & reachable).getRot((j+3)%6));     
-            }
+            //BoardBitSet r1=reachable |((canGoTo[0] & reachable).getRot3()); 
+            reachablelo=reachable.lo;
+            reachablehi=reachable.hi;
+            int1lo=_mm512_and_si512(canGoTo[0].lo,reachablelo);
+            int1hi=_mm512_and_si512(canGoTo[0].hi,reachablehi);
+            pv0 = _mm512_permutex2var_epi64(int1lo, idx_prev3, int1hi); // prev for v0
+            pv1 = _mm512_permutex2var_epi64(int1hi, idx_prev3, int1lo); // prev for v1
+            out0 = _mm512_shrdi_epi64(int1lo, pv0, 1);
+            out1 = _mm512_shrdi_epi64(int1hi, pv1, 1);
+            reachable.lo= _mm512_or_si512(reachablelo, out0);
+            reachable.hi = _mm512_or_si512(reachablehi, out1);
+            
+            //_mm512_store_si512((__m512i*)&reachable.bv[0], reachable.lo);
+            //_mm512_store_si512((__m512i*)&reachable.bv[8], reachable.hi);
+            //if(!(r1==reachable)){
+            //    cout<<"err1"<<endl;
+            //}
+            //
+            //BoardBitSet r2=reachable|((canGoTo[1] & reachable).getRot4()); 
+
+
+            reachablelo=reachable.lo;
+            reachablehi=reachable.hi;
+            int1lo=_mm512_and_si512(canGoTo[1].lo,reachablelo);
+            int1hi=_mm512_and_si512(canGoTo[1].hi,reachablehi);
+            pv0 = _mm512_permutex2var_epi64(int1lo, idx_prev3, int1hi); // prev for v0
+            pv1 = _mm512_permutex2var_epi64(int1hi, idx_prev3, int1lo); // prev for v1
+            out0 = _mm512_shrdi_epi64(int1lo, pv0, 32);
+            out1 = _mm512_shrdi_epi64(int1hi, pv1, 32);
+            reachable.lo= _mm512_or_si512(reachablelo, out0);
+            reachable.hi = _mm512_or_si512(reachablehi, out1);
+
+            //_mm512_store_si512((__m512i*)&reachable.bv[0], reachable.lo);
+            //_mm512_store_si512((__m512i*)&reachable.bv[8], reachable.hi);
+            //if(!(r2==reachable)){
+            //    cout<<"err2"<<endl;
+            //}
+            //
+            //BoardBitSet r3=reachable|((canGoTo[2] & reachable).getRot5()); 
+
+
+            reachablelo=reachable.lo;
+            reachablehi=reachable.hi;
+            int1lo=_mm512_and_si512(canGoTo[2].lo,reachablelo);
+            int1hi=_mm512_and_si512(canGoTo[2].hi,reachablehi);
+            pv0 = _mm512_permutex2var_epi64(int1lo, idx_prev3, int1hi); // prev for v0
+            pv1 = _mm512_permutex2var_epi64(int1hi, idx_prev3, int1lo); // prev for v1
+            out0 = _mm512_shrdi_epi64(int1lo, pv0, 31);
+            out1 = _mm512_shrdi_epi64(int1hi, pv1, 31);
+            reachable.lo= _mm512_or_si512(reachablelo, out0);
+            reachable.hi = _mm512_or_si512(reachablehi, out1);
+
+
+            //_mm512_store_si512((__m512i*)&reachable.bv[0], reachable.lo);
+            //_mm512_store_si512((__m512i*)&reachable.bv[8], reachable.hi);
+            //if(!(r3==reachable)){
+            //    cout<<"err3"<<endl;
+            //}
+            //
+            //BoardBitSet r4=reachable|((canGoTo[3] & reachable).getRot0()); 
+
+            reachablelo=reachable.lo;
+            reachablehi=reachable.hi;
+            int1lo=_mm512_and_si512(canGoTo[3].lo,reachablelo);
+            int1hi=_mm512_and_si512(canGoTo[3].hi,reachablehi);
+            nb0 = _mm512_permutex2var_epi64(int1lo, idx_next0, int1hi);
+            nb1 = _mm512_permutex2var_epi64(int1hi, idx_next0, int1lo);
+            out0 = _mm512_shldi_epi64(int1lo, nb0, 1);
+            out1 = _mm512_shldi_epi64(int1hi, nb1, 1);
+            reachable.lo= _mm512_or_si512(reachablelo, out0);
+            reachable.hi = _mm512_or_si512(reachablehi, out1);
+            
+            //_mm512_store_si512((__m512i*)&reachable.bv[0], reachable.lo);
+            //_mm512_store_si512((__m512i*)&reachable.bv[8], reachable.hi);
+            //if(!(r4==reachable)){
+            //    cout<<"err4"<<endl;
+            //}
+            //
+            //BoardBitSet r5=reachable |((canGoTo[4] & reachable).getRot1());
+
+            reachablelo=reachable.lo;
+            reachablehi=reachable.hi;
+            int1lo=_mm512_and_si512(canGoTo[4].lo,reachablelo);
+            int1hi=_mm512_and_si512(canGoTo[4].hi,reachablehi);
+            nb0 = _mm512_permutex2var_epi64(int1lo, idx_next0, int1hi);
+            nb1 = _mm512_permutex2var_epi64(int1hi, idx_next0, int1lo);
+            out0 = _mm512_shldi_epi64(int1lo, nb0, 32);
+            out1 = _mm512_shldi_epi64(int1hi, nb1, 32);
+            reachable.lo= _mm512_or_si512(reachablelo, out0);
+            reachable.hi = _mm512_or_si512(reachablehi, out1);
+
+            //_mm512_store_si512((__m512i*)&reachable.bv[0], reachable.lo);
+            //_mm512_store_si512((__m512i*)&reachable.bv[8], reachable.hi);
+            //if(!(r5==reachable)){
+            //    cout<<"err5"<<endl;
+            //}
+            //BoardBitSet r6=reachable| ((canGoTo[5] & reachable).getRot2()); 
+
+            reachablelo=reachable.lo;
+            reachablehi=reachable.hi;
+            int1lo=_mm512_and_si512(canGoTo[5].lo,reachablelo);
+            int1hi=_mm512_and_si512(canGoTo[5].hi,reachablehi);
+            nb0 = _mm512_permutex2var_epi64(int1lo, idx_next0, int1hi);
+            nb1 = _mm512_permutex2var_epi64(int1hi, idx_next0, int1lo);
+            out0 = _mm512_shldi_epi64(int1lo, nb0, 31);
+            out1 = _mm512_shldi_epi64(int1hi, nb1, 31);
+            reachable.lo= _mm512_or_si512(reachablelo, out0);
+            reachable.hi = _mm512_or_si512(reachablehi, out1);
+
+
+            //if(!(r6==reachable)){
+            //    cout<<"err6"<<endl;
+            //}
             if(reachable==pr)break;
         }
+
+        _mm512_store_si512((__m512i*)&reachable.bv[0], reachable.lo);
+        _mm512_store_si512((__m512i*)&reachable.bv[8], reachable.hi);
         
         reachable.set(startPos,0);
+        
+        for (int i = 0; i < 16; ++i) {
+            uint64_t x = reachable.bv[i];
+            if (!x) continue;
 
-        for(uint64_t i=0;i<16;i++){
-            if(reachable.bv[i]>0ull){
-                for(uint64_t j=0;j<64;j++){
-                    if(reachable.bv[i]&(1ull<<(63-j))){
-                        resAction[numAction++]=(actionT)(bug|(i<<11)|(j<<5));
-                    }
-                }
+            const actionT base = actionT(bug | (i << 11));
+            int l=_mm_popcnt_u64(x);
+            while (l) {
+                unsigned b = __builtin_ctzll(x);           // index of LSB set bit (0..63)
+                unsigned j = 63u - b;                      // your encoding uses MSB-first j
+                resAction[numAction++] = actionT(base | (j << 5));
+                x ^= (1<<b);                                // clear that LSB (branchless)
+                l--;
             }
         }
       G.addPiece(startPos,bug);    
@@ -932,10 +1060,13 @@ struct MurmurStyleHasher {
 };
 
 std::size_t Board::getHash()const  {
-    
+    int16_t v[28];
 
+    for(int i=1;i<28;i++){
+        v[i-1]=(G.isPlaced[i]?G.bugPosition[i]:0);
+    }
     return std::hash<std::string_view>{}(
-        std::string_view(reinterpret_cast<const char*>(G.bugPosition+1), 28 * sizeof(int16_t))
+        std::string_view(reinterpret_cast<const char*>(v), 28 * sizeof(int16_t))
     );
 }
 
