@@ -3,6 +3,7 @@
 #define WEIGHTS_HELP_H
 class WeightsHelper{
     public:
+        const int numberOfWeights=72;
         alignas(32) int weightVector[72];
      
         WeightsHelper();

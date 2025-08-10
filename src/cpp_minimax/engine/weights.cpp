@@ -19,7 +19,6 @@ WeightsHelper::WeightsHelper(): placedOffset(0), isPinnedOffset(1), isCoveredOff
 
 const void WeightsHelper::initDefaultWeights() {
 
-  clog << "Default\n";
 
   // NEW DEFAULT:
 
@@ -95,11 +94,24 @@ const void WeightsHelper::initDefaultWeights() {
   25,
 
   // Others
-  15000, //pillbugNearQueenBonus
+  150000, //pillbugNearQueenBonus
   10000, //mosquitoNearStrongBugBonus
   10000, //spiderDistancePenalty
   40000, //queenGateDefenseBonus
   30000, //ringPenalty
+
+  0, //queenCanEscape
+  0, //beetleOnKeyBonus
+  0, //blockingQueenSpotBonus
+  0, //unpinnedAntBonus
+  0, //spiderElbowBonus
+  0, //hopperEscapeBonus
+  0, //ladybugPocketBonus
+  0, //movedAwayFromQueenWeight
+  0, //ringFreeTrapBonus
+  0, //mosquitoNearPillbugNearQueenBonus
+  0, //fasterMateBonus
+  /*
   20000, //queenCanEscape
   40000, //beetleOnKeyBonus
   10000, //blockingQueenSpotBonus
@@ -112,9 +124,10 @@ const void WeightsHelper::initDefaultWeights() {
   70000, //mosquitoNearPillbugNearQueenBonus
   100000, //fasterMateBonus
 
+  */
   }; 
 
-  for(int i=0;i<61;i++){
+  for(int i=0;i<numberOfWeights;i++){
     weightVector[i]=hv[i];
   }
 }

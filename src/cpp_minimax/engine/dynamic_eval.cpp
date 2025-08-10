@@ -24,7 +24,7 @@ double DynEval::actionsScore(const Board & b)const {
         actBug[i]=0;
     }
     // === New: Ladybug can reach normally inaccessible pockets or ring interiors
-    int ladybugsIntoPockets = 0;
+    //int ladybugsIntoPockets = 0;
     for(int i=0;i<b.numAction;i++){
         actionT action=b.resAction[i];
         pieceT bug=action%32;
@@ -37,6 +37,7 @@ double DynEval::actionsScore(const Board & b)const {
             score += W.quietWeight(kind(bug));
         }
 
+        /*
         // === New: Add a weight if the bug moves away from our queen
         if (isAdjacent(b.G.getPosition(bug), b.G.getPosition(myQueen)) && !isAdjacent(destPos, b.G.getPosition(myQueen))) {
             score += W.movedAwayFromQueenWeight();
@@ -54,11 +55,14 @@ double DynEval::actionsScore(const Board & b)const {
         if (neighbors >= 4 || isInsideRing(b, destPos)) {
             ladybugsIntoPockets++;
         }
+            */
     }
 
+    /*
     if (ladybugsIntoPockets > 0) {
         score += ladybugsIntoPockets * W.ladybugPocketBonus();
     }
+        */
 
     for(int i=0;i<32;i++){
         if(actBug[i] == 0){
@@ -67,6 +71,7 @@ double DynEval::actionsScore(const Board & b)const {
     }
 
 
+    /*
     // === New: Unpinned ants
     int base = (b.currentColor() == PlayerColor::WHITE) ? 1 : 15;
     for (int i = base; i <= base + 13; i++) {
@@ -111,6 +116,7 @@ double DynEval::actionsScore(const Board & b)const {
         score += (myFreed) * W.ringFreeTrapBonus();
         score -= W.ringPenalty();
     }
+        */
 
     return score;
 }
@@ -180,6 +186,7 @@ double DynEval::strategicScore(const Board &b) const {
     positionT queenPos = b.G.getPosition(base + 7); // Queen index is 8 or 22
 
 
+    /*
     // === New: Beetle on top of opponent’s Queen or key attacker (ANT) ===
     int myBeetlesOnKey = 0;
     int oppBeetlesOnKey = 0;
@@ -245,6 +252,7 @@ double DynEval::strategicScore(const Board &b) const {
     if (spiderElbows > 0) {
         score += spiderElbows * W.spiderElbowBonus();
     }
+        */
 
     for (int i = base; i <= base + 13; i++) {
         if (!b.G.isPlaced[i]) continue;
@@ -259,26 +267,30 @@ double DynEval::strategicScore(const Board &b) const {
         }
         else if (k == MOSQUITO) {
             // === New: Mosquito near pillbug and queen is better
-            bool nearPill = false;
-            bool nearQueen = false;
+            //bool nearPill = false;
+            //bool nearQueen = false;
             for (int d = 0; d < 6; d++) {
                 positionT neighbor = (pPos + dirDif[d]) & 1023;
                 if (b.G.occupied.get_bit(neighbor)) {
                     pieceT top = b.G.topPiece(neighbor);
                     if (kind(top) == SOLDIER_ANT || kind(top) == BEETLE || kind(top) == PILLBUG) {
                         score += W.mosquitoNearStrongBugBonus();
+                        /*
                         if (kind(top) == PILLBUG) {
                             nearPill = true;
                         }
                     }
                     else if (kind(top) == QUEEN) {
                         nearQueen = true;
+                        */
                     }
                 }
             }
+            /*
             if (nearPill && nearQueen) {
                 score += W.mosquitoNearPillbugNearQueenBonus();
             }
+                */
         }
         else if (k == SPIDER) {
             int dist = distanceToQueen(pPos, queenPos);
@@ -286,6 +298,7 @@ double DynEval::strategicScore(const Board &b) const {
         }
     }
 
+    /*
     // === New: Checkmate faster
     auto minMovesToMate = [&](PlayerColor side) {
         positionT oppQ = (side == PlayerColor::WHITE) ? b.G.getPosition(22) : b.G.getPosition(8);
@@ -314,6 +327,7 @@ double DynEval::strategicScore(const Board &b) const {
     if (myMateDist < oppMateDist) {
         score += (oppMateDist - myMateDist) * W.fasterMateBonus();
     }
+        */
 
 
     return score;
@@ -345,10 +359,6 @@ double DynEval::topologyScore(const Board &b) const {
 
 double DynEval::evalBoardCurrentPlayer(Board & b) const{
 
-    // Measure the time
-    auto start = std::chrono::high_resolution_clock::now();
-
-
     if(b.getGameState()>1){// implement suicide
         if (b.getGameState()==BLACK_WIN && b.currentColor()==PlayerColor::BLACK || b.getGameState()==WHITE_WIN && b.currentColor()==PlayerColor::WHITE){
             return 1e10;
@@ -364,9 +374,5 @@ double DynEval::evalBoardCurrentPlayer(Board & b) const{
     score += strategicScore(b);   // for some piece, if they are close to the queen can be helpful
     score += topologyScore(b);   // find if there are rings or other 
 
-    auto end = std::chrono::high_resolution_clock::now();
-
-    clog << "Time to evaluate one board: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << endl;
-    
     return score;
 }
