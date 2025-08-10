@@ -217,7 +217,7 @@ GameState Board::getGameState(){
     if(currentTurn>MAX_TURN_SIZE || ne>1)return GameState::DRAW;
     return GameState::STARTED;
 }
-
+//bool isDBG=false;
 
 void Board::ComputePossibleMoves(){
     if(!hasUpdate){
@@ -426,6 +426,7 @@ void Board::possibleMoves_Grasshopper(pieceT bug){
 
 void Board::possibleMoves_SoldierAnt(pieceT bug){
     if (G.canPieceMove(bug,currentTurn)) {
+        //if(isDBG)clog<<" Debug: findig movement for "<<bug<<endl;
         const positionT startPos=G.getPosition(bug);
 
         G.removePiece(bug);
@@ -460,6 +461,8 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
         __m512i reachablelo, reachablehi, int1lo, int1hi,nb0,nb1,out0,out1,pv0,pv1;
 
         for(int i=0;i<64;i++){
+            pr.hi=reachable.hi;
+            pr.lo=reachable.lo;
             //BoardBitSet r1=reachable |((canGoTo[0] & reachable).getRot3()); 
             reachablelo=reachable.lo;
             reachablehi=reachable.hi;
@@ -474,9 +477,9 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
             
             //_mm512_store_si512((__m512i*)&reachable.bv[0], reachable.lo);
             //_mm512_store_si512((__m512i*)&reachable.bv[8], reachable.hi);
-            //if(!(r1==reachable)){
+            //if(isDBG)if(!(r1==reachable)){
             //    cout<<"err1"<<endl;
-            //}
+            //}else{cout<<"OK1"<<endl;}
             //
             //BoardBitSet r2=reachable|((canGoTo[1] & reachable).getRot4()); 
 
@@ -494,9 +497,9 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
 
             //_mm512_store_si512((__m512i*)&reachable.bv[0], reachable.lo);
             //_mm512_store_si512((__m512i*)&reachable.bv[8], reachable.hi);
-            //if(!(r2==reachable)){
+            //if(isDBG)if(!(r2==reachable)){
             //    cout<<"err2"<<endl;
-            //}
+            //}else{cout<<"OK2"<<endl;}
             //
             //BoardBitSet r3=reachable|((canGoTo[2] & reachable).getRot5()); 
 
@@ -515,9 +518,9 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
 
             //_mm512_store_si512((__m512i*)&reachable.bv[0], reachable.lo);
             //_mm512_store_si512((__m512i*)&reachable.bv[8], reachable.hi);
-            //if(!(r3==reachable)){
+            //if(isDBG)if(!(r3==reachable)){
             //    cout<<"err3"<<endl;
-            //}
+            //}else{cout<<"OK3"<<endl;}
             //
             //BoardBitSet r4=reachable|((canGoTo[3] & reachable).getRot0()); 
 
@@ -534,9 +537,9 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
             
             //_mm512_store_si512((__m512i*)&reachable.bv[0], reachable.lo);
             //_mm512_store_si512((__m512i*)&reachable.bv[8], reachable.hi);
-            //if(!(r4==reachable)){
+            //if(isDBG)if(!(r4==reachable)){
             //    cout<<"err4"<<endl;
-            //}
+            //}else{cout<<"OK4"<<endl;}
             //
             //BoardBitSet r5=reachable |((canGoTo[4] & reachable).getRot1());
 
@@ -553,9 +556,10 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
 
             //_mm512_store_si512((__m512i*)&reachable.bv[0], reachable.lo);
             //_mm512_store_si512((__m512i*)&reachable.bv[8], reachable.hi);
-            //if(!(r5==reachable)){
+            //if(isDBG)if(!(r5==reachable)){
             //    cout<<"err5"<<endl;
-            //}
+            //}else{cout<<"OK5"<<endl;}
+            //
             //BoardBitSet r6=reachable| ((canGoTo[5] & reachable).getRot2()); 
 
             reachablelo=reachable.lo;
@@ -570,9 +574,13 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
             reachable.hi = _mm512_or_si512(reachablehi, out1);
 
 
-            //if(!(r6==reachable)){
+            
+            //if(isDBG)if(!(r6==reachable)){
             //    cout<<"err6"<<endl;
-            //}
+            //}else{cout<<"OK6"<<endl;}
+            
+            //if(isDBG)reachable.printDBG();
+
             if(reachable==pr)break;
         }
 
@@ -588,10 +596,13 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
             const actionT base = actionT(bug | (i << 11));
             int l=_mm_popcnt_u64(x);
             while (l) {
+
                 unsigned b = __builtin_ctzll(x);           // index of LSB set bit (0..63)
                 unsigned j = 63u - b;                      // your encoding uses MSB-first j
+
+                //if(isDBG)cout<<"Adding the possibility to go to "<<base/32+j<<endl;
                 resAction[numAction++] = actionT(base | (j << 5));
-                x ^= (1<<b);                                // clear that LSB (branchless)
+                x &=x-1;                                // clear that LSB (branchless)
                 l--;
             }
         }
