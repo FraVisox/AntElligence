@@ -25,7 +25,6 @@ double DynEval::actionsScore(const Board & b)const {
             score += W.quietWeight(kind(bug));
         }
     }
-        */
 
     for(int i=0;i<32;i++){
         if(actBug[i] == 0){
@@ -123,7 +122,6 @@ double DynEval::strategicScore(const Board &b) const {
                     }
                 }
             }
-                */
         }
         else if (k == SPIDER) {
             int dist = distanceToQueen(pPos, queenPos);
