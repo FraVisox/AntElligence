@@ -34,8 +34,8 @@ def write_weights_file(weights_dict, filename=WEIGHTS_FILE):
             weights_str = ' '.join([str(weights_dict[f'{weight_name}_{i}']) for i in range(8)])
             f.write(f"{weights_str} ")
     
-    # Write single value weights
-    f.write(f"{weights_dict['pillbugNearQ']} {weights_dict['mosquitoNearStrong']} {weights_dict['spiderDistance']} {weights_dict['queenGate']} {weights_dict['ringPenalty']}")
+        # Write single value weights
+        f.write(f"{weights_dict['pillbugNearQ']} {weights_dict['mosquitoNearStrong']} {weights_dict['spiderDistance']} {weights_dict['queenGate']} {weights_dict['ringPenalty']}")
 
 def play_single_game(pl1_path, pl2_path, matches=NUMBER_OF_MATCHES):
     """
@@ -105,7 +105,7 @@ def play_single_game(pl1_path, pl2_path, matches=NUMBER_OF_MATCHES):
                         break
 
                 response = ''.join(response_lines)
-                print(response.strip())
+                #print(response.strip())
 
                 # Check for game end
                 if "WhiteWins" in response:
@@ -207,11 +207,11 @@ def objective(trial):
     weights = {}
     
     # Single value parameters
-    weights['pillbugNearQ'] = trial.suggest_float('pillbugNearQ', 1000, 600000)
-    weights['mosquitoNearStrong'] = trial.suggest_float('mosquitoNearStrong', 1000, 600000)
-    weights['spiderDistance'] = trial.suggest_float('spiderDistance', 1000, 600000)
-    weights['queenGate'] = trial.suggest_float('queenGate', 1000, 600000)
-    weights['ringPenalty'] = trial.suggest_float('ringPenalty', 1000, 600000)
+    weights['pillbugNearQ'] = trial.suggest_int('pillbugNearQ', 1000, 600000)
+    weights['mosquitoNearStrong'] = trial.suggest_int('mosquitoNearStrong', 1000, 600000)
+    weights['spiderDistance'] = trial.suggest_int('spiderDistance', 1000, 600000)
+    weights['queenGate'] = trial.suggest_int('queenGate', 1000, 600000)
+    weights['ringPenalty'] = trial.suggest_int('ringPenalty', 1000, 600000)
     
     # Array parameters (8 pieces each: S, B, G, Q, A, M, L, P)
     weight_categories = [
@@ -226,7 +226,7 @@ def objective(trial):
     
     for category, min_val, max_val in weight_categories:
         for i in range(8):
-            weights[f'{category}_{i}'] = trial.suggest_float(f'{category}_{i}', min_val, max_val)
+            weights[f'{category}_{i}'] = trial.suggest_int(f'{category}_{i}', min_val, max_val)
     
     # Evaluate these weights
     fitness = evaluate_weights(weights)

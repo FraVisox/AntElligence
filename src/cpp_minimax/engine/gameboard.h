@@ -77,6 +77,7 @@ class gameboard{
     void removePiece(const pieceT &b);    
     void addPiece(const positionT &pos, const pieceT &b);
     bool isTop(const pieceT &bug) const ;
+    vector<pieceT> getBugs(const positionT &pos) const ;
     bool canPieceMove(const pieceT &b,int turn);
     pieceT topPiece(const positionT &pos) const ;
     pieceT basePiece(const positionT &pos);
