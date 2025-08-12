@@ -31,7 +31,7 @@ int SETUP_depth_pruning;
 
 std::atomic<long> toale_evaled{0};
 
-unordered_map<size_t,double> HMP;
+unordered_map<size_t,double> HMP[10];
 double MinimaxAgent::utility(Board &board) const {
 
     #pragma omp critical(MOR)
@@ -41,15 +41,16 @@ double MinimaxAgent::utility(Board &board) const {
     std::unordered_map<size_t, double, std::hash<unsigned long>, std::equal_to<size_t>, std::allocator<std::pair<const size_t, double>>>::iterator c;double r;
 
     #pragma omp critical(HMP)
-    c=HMP.find(H); 
-    if(c!=HMP.end()){
+    c=HMP[board.currentTurn%10].find(H); 
+
+    if(c!=HMP[board.currentTurn%10].end()){
 
         return c->second;
     }
     double v1=ev.evalBoardCurrentPlayer(board);
     auto P=make_pair(H,v1);
     #pragma omp critical(HMP)
-    HMP.insert(P);
+    HMP[board.currentTurn%10].insert(P);
     return v1;
 }
 
@@ -189,7 +190,7 @@ actionT MinimaxAgent::initiate_minimax_parallel2(Board &board,int depth) {
         for(int q=0;q<innAct;q++){
 
             
-            #pragma omp atomic read 
+            #pragma omp critical(alpha_update)
             tempAlpha=alpha;
             
             betaInn=min(-tempAlpha,betaInn);
@@ -523,9 +524,9 @@ actionT MinimaxAgent::calculate_best_move(Board &board) {
     //auto r3=minimaxComplete(board,3);cout<<"d =3 has action "<< r3.first<<" with va "<<r3.second<<endl;    
     //auto r4=minimaxComplete(board,4);cout<<"d =4 has action "<< r4.first<<" with va "<<r4.second<<endl;
     
-    //omp_set_num_threads(4); // limit to 4 threads
+    //omp_set_num_threads(3); // limit to 4 threads
     while(!is_time_up() && depth <15){
-        SETUP_depth_pruning=-1;
+        SETUP_depth_pruning=3;
         actionT ris =initiate_minimax_parallel(board,depth);
         //SETUP_depth_pruning=-1;
         //ris =  initiate_minimax_parallel(board,depth);
@@ -537,6 +538,8 @@ actionT MinimaxAgent::calculate_best_move(Board &board) {
         }
     }
 
+    HMP[board.currentTurn%10].clear();
+    HMP[(board.currentTurn+1)%10].clear();
     
     return next_move;
 }
