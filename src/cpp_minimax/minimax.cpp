@@ -190,7 +190,7 @@ actionT MinimaxAgent::initiate_minimax_parallel2(Board &board,int depth) {
         for(int q=0;q<innAct;q++){
 
             
-            #pragma omp atomic read 
+            #pragma omp critical(alpha_update)
             tempAlpha=alpha;
             
             betaInn=min(-tempAlpha,betaInn);
