@@ -159,6 +159,7 @@ class Board {
     void possibleMoves_Ladybug(pieceT bug);
     void computePillbugMovinPieces();
 
+    void controlValidirt();
 };
 
 

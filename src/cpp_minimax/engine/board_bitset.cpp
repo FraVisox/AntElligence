@@ -125,7 +125,25 @@ void BoardBitSet::printDBG(){
 
 
 
-BoardBitSet BoardBitSet::getRot(int d) const {    
+BoardBitSet BoardBitSet::getRot(int d) const {  
+    switch (d)
+    {
+    case 0:
+        return getRot0();
+    case 1:
+        return getRot1();
+    case 2:
+        return getRot2();
+    case 3:
+        return getRot3();
+    case 4:
+        return getRot4();
+    case 5:
+        return getRot5();
+    default:
+        break;
+    }
+
     BoardBitSet ba;
     switch (d){// 1,32,31,1023,992,993,0,0
         case 0:  // rot l of 
