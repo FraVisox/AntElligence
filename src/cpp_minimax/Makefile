@@ -1,5 +1,5 @@
 # Compiler and flags
-CXX = g++ -Ofast  -O3 -g -fopenmp -funroll-loops -fomit-frame-pointer -fno-exceptions  -fno-rtti -march=native -flto 
+CXX = g++ -Ofast  -O3 -g -fopenmp -funroll-loops -fomit-frame-pointer -fno-exceptions -mavx512vbmi2 -fno-rtti  -march=native -flto 
 
 #-fsanitize=address
 OUT_DIR = out
@@ -13,20 +13,20 @@ ENGINE_CPPS = $(addprefix engine/, $(addsuffix .cpp, $(SRC_ENGINE)))
 ENGINE_H = $(addprefix engine/, $(addsuffix .h, $(SRC_ENGINE)))
 
 
-ALL_OJB = $(ENGINE_OBJS) out/engine.o out/minimax.o out/board_score.o out/board_score_mzinga.o  out/TT.o
+ALL_OJB = $(ENGINE_OBJS) out/engine.o out/minimax.o   out/TT.o 
 # Default targetvva
 all: $(ENGINE_OBJS)
 
 out/minimax.o : minimax.cpp $(ENGINE_H)
 	$(CXX)  $(CXXFLAGS) -c $< -o $@
  
-out/engine.o : engine.cpp $(ENGINE_H) out/board_score.o  out/board_score_mzinga.o
+out/engine.o : engine.cpp $(ENGINE_H) 
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 out/TT.o : TT.cpp $(ENGINE_H) TT.h 
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(OUT_DIR)/board.o: engine/board.cpp $(ENGINE_H) out/board_score.o  out/board_score_mzinga.o
+$(OUT_DIR)/board.o: engine/board.cpp $(ENGINE_H) 
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 

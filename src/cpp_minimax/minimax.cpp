@@ -20,7 +20,6 @@
 #include <mutex>
 
 
-
 std::atomic<bool> time_up_flag(false);
 
 bool MinimaxAgent::is_time_up() const{
@@ -28,26 +27,34 @@ bool MinimaxAgent::is_time_up() const{
 }
 
 
+int SETUP_depth_pruning;
+
 std::atomic<long> toale_evaled{0};
 
 unordered_map<size_t,double> HMP;
 double MinimaxAgent::utility(Board &board) const {
-    #pragma omp critical
+
+    #pragma omp critical(MOR)
     toale_evaled.fetch_add(1, std::memory_order_relaxed);
     size_t H=board.getHash();
 
-    int c=HMP.count(H); 
-    if(c>0){
-        return HMP.at(H);
+    std::unordered_map<size_t, double, std::hash<unsigned long>, std::equal_to<size_t>, std::allocator<std::pair<const size_t, double>>>::iterator c;double r;
+
+    #pragma omp critical(HMP)
+    c=HMP.find(H); 
+    if(c!=HMP.end()){
+
+        return c->second;
     }
     double v1=ev.evalBoardCurrentPlayer(board);
-
-    #pragma omp critical
-    HMP.insert(make_pair(H,v1));
+    auto P=make_pair(H,v1);
+    #pragma omp critical(HMP)
+    HMP.insert(P);
     return v1;
 }
 
 actionT MinimaxAgent::initiate_minimax_parallel(Board &board,int depth) {
+
     GameState state = board.getGameState();
     if (state == GameState::DRAW    ||
         state == GameState::WHITE_WIN||
@@ -79,7 +86,6 @@ actionT MinimaxAgent::initiate_minimax_parallel(Board &board,int depth) {
 
     sort(vectSort.begin(),vectSort.end());
     //reverse(vectSort.begin(),vectSort.end());
-
     double eval=0;
     for(int j=0;j<numAction;j++){
         
@@ -95,8 +101,9 @@ actionT MinimaxAgent::initiate_minimax_parallel(Board &board,int depth) {
         alpha = std::max(alpha, eval);
         if (alpha >= beta) {
             break;
-        }   
+        }
     }
+
     clog<<"Evalueted "<<toale_evaled<<" board, found solution "<<best_move<<" with value "<<best_value<<" and depth "<<depth<<endl;
     return best_move;
 }
@@ -104,11 +111,125 @@ actionT MinimaxAgent::initiate_minimax_parallel(Board &board,int depth) {
 
 
 
-bool shared_bit_pruning;
+
+
+actionT MinimaxAgent::initiate_minimax_parallel2(Board &board,int depth) {
+
+
+    GameState state = board.getGameState();
+    if (state == GameState::DRAW    ||
+        state == GameState::WHITE_WIN||
+        state == GameState::BLACK_WIN) {
+        return pass();
+    }
+    double best_value = MIN_EVAL;
+    double alpha = MIN_EVAL;
+    double beta = MAX_EVAL;
+
+    board.ComputePossibleMoves();
+    
+
+    actionT best_move = board.resAction[0];
+    time_up_flag.store(false);
+
+    int numAction=board.numAction;
+    vector<actionT> nextAct(numAction);
+    for(int i=0;i<numAction;i++)
+        nextAct[i]=board.resAction[i];
+
+    vector<pair<double,actionT>> vectSort(numAction);
+    for(int i=0;i<numAction;i++){
+        board.applayAction(nextAct[i]);
+        vectSort[i]=make_pair(utility(board),nextAct[i]);
+        board.undoAction();
+    }
+
+
+    sort(vectSort.begin(),vectSort.end());
+    //reverse(vectSort.begin(),vectSort.end());
+
+
+
+    double eval=0;
+    vector<double> resUtil(numAction);
+
+    #pragma omp parallel for schedule(dynamic,1) 
+    for(int i=0;i<numAction;i++){
+
+        double alphaInn=-beta;
+        double betaInn=-alpha;
+        bool exit=false;
+        double best_valueInn = MIN_EVAL;
+
+        // ===================================
+        // EXPLICIT FIRST LEVEL OF COMPUTATION
+        // ===================================
+        Board b1(board,vectSort[i].second);    
+        b1.ComputePossibleMoves();
+
+
+        // Sort variables
+        int innAct=b1.numAction;
+        vector<actionT> futureActs(innAct);
+        for(int q=0;q<innAct;q++)
+            futureActs[q]=b1.resAction[q];
+        
+        vector<pair<double,actionT>> sorted_pair;
+        sorted_pair.reserve(innAct);
+        for(int q=0;q<innAct;q++){
+            b1.applayAction(futureActs[q]);
+            sorted_pair.emplace_back(utility(b1),futureActs[q]);
+            b1.undoAction();
+        }
+        sort(sorted_pair.begin(),sorted_pair.end());
+        
+
+        double tempAlpha;
+        // First level search
+        for(int q=0;q<innAct;q++){
+
+            
+            #pragma omp atomic read 
+            tempAlpha=alpha;
+            
+            betaInn=min(-tempAlpha,betaInn);
+
+            b1.applayAction(sorted_pair[q].second);
+            double score=-minmax2(b1,depth-2,-betaInn,-alphaInn);
+            b1.undoAction();
+            best_valueInn=max(best_valueInn,score);
+            alphaInn=max(alphaInn,score);
+
+            if(alphaInn>=betaInn){
+                resUtil[i]=-betaInn;
+
+                break;
+            }
+        }
+
+        resUtil[i]=-best_valueInn;
+
+        #pragma omp critical(alpha_update)
+        {
+            if (-best_valueInn > alpha) alpha = -best_valueInn;
+        }
+    }
+    
+    for(int i=0;i<numAction;i++){
+        if(resUtil[i]>best_value){
+            best_value=resUtil[i];
+            best_move=vectSort[i].second;
+        }
+    }
+    
+    clog<<"Evalueted "<<toale_evaled<<" board, found solution "<<best_move<<" with value "<<best_value<<" and depth "<<depth<<endl;
+    return best_move;
+}
+
+
 
 double MinimaxAgent::minmax2( Board &board, int depth_remaining, double alpha, double beta) const {
     if(is_time_up()){return MAX_EVAL;}
-        
     //======================
     //      BASE CASE
     //======================
@@ -130,45 +251,14 @@ double MinimaxAgent::minmax2( Board &board, int depth_remaining, double alpha, d
     double best_value=MIN_EVAL;
     int n=board.numAction;    
     vector<actionT> nextActs(n);
-
+ 
     for(int i=0;i<n;i++) nextActs[i]=board.resAction[i];
 
-    //===========================================================
-    //  Trivial case: not sorted, evaluate directly - parallel
-    //===========================================================
-    if(depth_remaining==1 && false){            
-        int NP=omp_get_num_procs();
 
-        for (int i = 0; i < n; i+=NP) {
-
-
-            int nl=min(NP,n-i);
-            vector<double> ut(nl);
-
-            #pragma opm parallel for
-            for(int j=0;j<nl;j++){
-                Board b1(board,nextActs[i+j]);
-                ut[j] = -utility(b1);
-            }
-
-            for(int j=0;j<nl;j++){
-                best_value = std::max(best_value, ut[j]);
-                alpha = std::max(alpha, ut[j]);
-                if (alpha>=beta) {
-                    return best_value;  //THIS LINE
-                }
-            }
-            
-            
-        } 
-        return best_value;
-    }
-
-    bool tmp_read;
     //===============================================
-    //      Trivial case - non paralle
+    //      Trivial case - non parallel
     //================================================
-    if(depth_remaining==1 ){         
+    if(depth_remaining==1 ){        
         double score;   
         for (int i = 0; i < n; i++) {
             
@@ -178,15 +268,13 @@ double MinimaxAgent::minmax2( Board &board, int depth_remaining, double alpha, d
             best_value = std::max(best_value, score);
             alpha = std::max(alpha, score);
 
-            #pragma omp atomic read
-            tmp_read=shared_bit_pruning;
-            
-            if (alpha>=beta  || tmp_read){
-                return best_value;  //THIS LINE
+            if (alpha>=beta ){
+                return best_value;  
             }
         } 
         return best_value;
     }
+
     //========================================================
     //      Sort the variables based on utils
     //========================================================
@@ -195,75 +283,122 @@ double MinimaxAgent::minmax2( Board &board, int depth_remaining, double alpha, d
     sorted_pair.reserve(n);
     for(int i=0;i<n;i++){
         board.applayAction(nextActs[i]);
-        sorted_pair.push_back(make_pair(utility(board),nextActs[i]));
+        sorted_pair.emplace_back(utility(board),nextActs[i]);
         board.undoAction();
     }
+    
     sort(sorted_pair.begin(),sorted_pair.end());
     //reverse(sorted_pair.begin(),sorted_pair.end());
 
     
+
+    //=======================================================
+    //      parallel starting: work for latest depth (e.g. 3)
+    //=======================================================
+    if(depth_remaining==SETUP_depth_pruning){
+        
     
+        vector<double> resUtil(n);
+        bool exitAll=false;
+
+        #pragma omp parallel for schedule(dynamic,1) 
+        for(int i=0;i<n;i++){
+
+            resUtil[i]=MIN_EVAL;
+            double alphaInn=-beta;
+            double betaInn=-alpha;
+            double best_valueInn = MIN_EVAL;
+            bool localExit;
+            #pragma omp critical(exit)
+            localExit=exitAll;
+                    
+            if(!localExit){
+                    
+
+                // ===================================
+                // EXPLICIT FIRST LEVEL OF COMPUTATION
+                // ===================================
+                
+                Board b1(board,sorted_pair[i].second);    
+                b1.ComputePossibleMoves();
+                
+                
+                // Sort variables
+                int innAct=b1.numAction;
+                vector<actionT> futureActs(b1.resAction,b1.resAction+innAct);
+
+
+                vector<pair<double,actionT>> sorted_pairInn;
+                sorted_pairInn.reserve(innAct);
+                for(int q=0;q<innAct;q++){
+                    b1.applayAction(futureActs[q]);
+                    sorted_pairInn.emplace_back(utility(b1),futureActs[q]);
+                    b1.undoAction();
+                }
+                sort(sorted_pairInn.begin(),sorted_pairInn.end());
+                
+
+                double tempAlpha;
+                // First level search
+                for(int q=0;q<innAct;q++){
+                    
+                    
+                    #pragma omp critical(exit)
+                    localExit=exitAll;
+                    if(localExit)
+                        break;
+
+                    #pragma omp atomic read 
+                    tempAlpha=alpha;
+                    
+                    betaInn=min(-tempAlpha,betaInn);
+
+                    b1.applayAction(sorted_pairInn[q].second);
+                    double score=-minmax2(b1,depth_remaining-2,-betaInn,-alphaInn);
+                    b1.undoAction();
+                    best_valueInn=max(best_valueInn,score);
+                    alphaInn=max(alphaInn,score);
+
+                    if(alphaInn>=betaInn){
+                        break;
+                    }
+                }
+                resUtil[i]=-best_valueInn;
+
+                
+
+                #pragma omp critical(alpha_update)
+                {
+                    if(best_value<resUtil[i])best_value=resUtil[i];
+                    if (alpha<resUtil[i]) alpha =resUtil[i];
+
+                    if(alpha>=beta){
+                        exitAll=true;
+                    }
+                }
+            }
+        }
+        return best_value;
+    }
+
+
     //========================================================
     //      Non parallel case: execute all
     //========================================================
-    if(depth_remaining>2){
-        for(int i=0;i<n;i++){
-            board.applayAction(sorted_pair[i].second);
-            double score=-minmax2(board,depth_remaining-1,-beta,-alpha);
-            board.undoAction();
-            best_value=max(best_value,score);
-            alpha=max(alpha,score);
-
-            if(alpha>=beta){
-                return beta;
-            }
-        }
-        return best_value;
-    }
-
-    //clog<<"NO"<<endl;throw 2;
-    //========================================================
-    //      Parallel case: execute in parallel for level 2
-    //========================================================
-
-    return parallel_depth2(board,depth_remaining,alpha,beta,sorted_pair);
-
-    vector<double> res(n);
-
-    shared_bit_pruning=false;
-    double best_result=MIN_EVAL;
     
-
-    #pragma omp parallel for  
-    for(int i=0;i<n;i++){
-        bool tmp_read;
-        #pragma omp atomic read
-        tmp_read=shared_bit_pruning;
-        if(!tmp_read){
-            actionT move=sorted_pair[i].second;
-            Board b1(board,move);
-            res[i]= -minmax2( b1, depth_remaining - 1, -beta, -alpha);
-
-            
-            #pragma omp atomic read
-            tmp_read=shared_bit_pruning;
-
-            if(res[i]>=beta ){
-                #pragma omp atomic write
-                shared_bit_pruning=true;
-                best_value=res[i];
-            }
-        }
-    }
-    if(shared_bit_pruning)
-        return best_value;
     
     for(int i=0;i<n;i++){
-        best_value = std::max(best_value, res[i]);
+        board.applayAction(sorted_pair[i].second);
+        double score=-minmax2(board,depth_remaining-1,-beta,-alpha);
+        board.undoAction();
+        best_value=max(best_value,score);
+        alpha=max(alpha,score);
+
+        if(alpha>=beta){
+            return best_value;
+        }
     }
     return best_value;
-
-
 }
 
 
@@ -272,7 +407,7 @@ pair<actionT,double> MinimaxAgent::minimaxComplete(Board board,int d){
     if(d==1){
         board.ComputePossibleMoves();
         for(int i=0;i<board.numAction;i++){
-            Board b1(board);
+            Board b1(board,board.resAction[i]);
             b1.applayAction(board.resAction[i]);
             double currV=-utility(b1);
             if(currV>ris.second){
@@ -282,7 +417,7 @@ pair<actionT,double> MinimaxAgent::minimaxComplete(Board board,int d){
     }else{
         board.ComputePossibleMoves();
         for(int i=0;i<board.numAction;i++){
-            Board b1(board);
+            Board b1(board,board.resAction[i]);
             b1.applayAction(board.resAction[i]);
             double val=-minimaxComplete(b1,d-1).second;
             if(val>ris.second){
@@ -291,52 +426,6 @@ pair<actionT,double> MinimaxAgent::minimaxComplete(Board board,int d){
         }
     }
     return ris;
-}
-
-
-double MinimaxAgent::parallel_depth2(Board& board, int depth, double alpha, double beta,
-                       const std::vector<std::pair<double,actionT>>& ordered) const {
-    std::atomic<double> shared_alpha{alpha};
-    std::atomic<bool>   stop{false};
-    std::atomic<double> best{MIN_EVAL};
-
-    #pragma omp parallel
-    #pragma omp single nowait
-    {
-        #pragma omp taskgroup
-        for (int i = 0; i < (int)ordered.size(); ++i) {            
-            #pragma omp task firstprivate(i) shared(stop, shared_alpha, best)
-            {
-                if (stop.load(std::memory_order_relaxed)){
-                    #pragma omp cancellation point taskgroup
-                }else{
-                    Board b1(board, ordered[i].second);
-                    double a = shared_alpha.load(std::memory_order_relaxed);
-
-                    double s = -minmax2(b1, depth - 1, -beta, -a);
-                    // update best and alpha
-                    double prev = shared_alpha.load(std::memory_order_relaxed);
-                    while (s > prev &&
-                           !shared_alpha.compare_exchange_weak(prev, s,
-                               std::memory_order_relaxed, std::memory_order_relaxed)) {}
-
-                    // track best (CAS)
-                    double old = best.load(std::memory_order_relaxed);
-                    while (s > old &&
-                           !best.compare_exchange_weak(old, s,
-                               std::memory_order_relaxed, std::memory_order_relaxed)) {}
-
-                    if (s >= beta) {
-                        stop.store(true, std::memory_order_relaxed);
-                        #pragma omp cancel taskgroup        // <-- not in a critical
-                    }
-                }
-                #pragma omp cancellation point taskgroup    // allow this task to observe cancel
-
-            }
-        }
-    }
-    return best;
 }
 
 
@@ -428,18 +517,20 @@ actionT MinimaxAgent::calculate_best_move(Board &board) {
     actionT next_move=board.resAction[0];
 
 
-    int depth=2;
+    int depth=3;
     
-    //auto r2=minimaxComplete(board,2);
-    //auto r3=minimaxComplete(board,3);
-    //auto r4=minimaxComplete(board,4);
-
-    //cout<<"d =2 has action "<< r2.first<<" with va "<<r2.second<<endl;
-    //cout<<"d =3 has action "<< r3.first<<" with va "<<r3.second<<endl;
-    //cout<<"d =4 has action "<< r4.first<<" with va "<<r4.second<<endl;
-
+    //auto r2=minimaxComplete(board,2);cout<<"d =2 has action "<< r2.first<<" with va "<<r2.second<<endl;
+    //auto r3=minimaxComplete(board,3);cout<<"d =3 has action "<< r3.first<<" with va "<<r3.second<<endl;    
+    //auto r4=minimaxComplete(board,4);cout<<"d =4 has action "<< r4.first<<" with va "<<r4.second<<endl;
+    
+    //omp_set_num_threads(4); // limit to 4 threads
     while(!is_time_up() && depth <15){
-        actionT ris =  initiate_minimax_parallel(board,depth);
+        SETUP_depth_pruning=-1;
+        actionT ris =initiate_minimax_parallel(board,depth);
+        //SETUP_depth_pruning=-1;
+        //ris =  initiate_minimax_parallel(board,depth);
+         //auto r4=minimaxComplete(board,depth);cout<<"d ="<<depth<<" has action "<< r4.first<<" with va "<<r4.second<<endl;
+    
         if(!is_time_up()){
             next_move=ris;
             depth++;

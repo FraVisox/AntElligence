@@ -29,9 +29,12 @@ int main(){
     srand(51);
 
     Board board(GameType::Base_MLP);
-    board.applayAction(stringToAction(board,"wB1"));
-    board.applayAction(stringToAction(board,"bS1 -wB1"));
-int i=0;
+    string v[12]={"wL","bL wL\\","wQ -wL","bA1 bL-","wA1 wL/","bM bL\\","wM \\wL","bQ /bL","wA1 bM\\","bA1 -wQ","wA2 wL/","bA2 \\bA1"};
+    
+    for(int i=0;i<12;i++){
+        board.applayAction(stringToAction(board,v[i]));
+    }
+    int i=0;
     while(board.currentTurn<30 && board.getGameState()<2){
         i++;
         actionT M;

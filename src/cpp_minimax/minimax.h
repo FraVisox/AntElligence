@@ -41,6 +41,8 @@ public:
 
     actionT calculate_best_move(Board &board);
     actionT initiate_minimax_parallel(Board &board,int depth);
+    actionT initiate_minimax_parallel2(Board &board,int depth);
+    actionT minimax_parallel_first(Board &board,int depth);
     double parallel_depth2(Board& board, int depth, double alpha, double beta,
                        const std::vector<std::pair<double,actionT>>& ordered) const;
 };
