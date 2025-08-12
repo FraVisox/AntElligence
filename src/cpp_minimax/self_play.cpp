@@ -29,13 +29,11 @@ int main(){
     srand(51);
 
     Board board(GameType::Base_MLP);
-    board.applayAction(stringToAction(board,"wB1"));
-    board.applayAction(stringToAction(board,"bS1 -wB1"));
-int i=0;
-    while(board.currentTurn<30 && board.getGameState()<2){
+    int i=0;
+    while(board.currentTurn<80 && board.getGameState()<2){
         i++;
         actionT M;
-        if(board.currentTurn&1){
+        if(board.currentTurn&1 ||board.currentTurn<30 ){
             board.ComputePossibleMoves();
             M=board.resAction[rand()%board.numAction];
         }else{
@@ -44,5 +42,6 @@ int i=0;
         cout<<i<<actionToString(M,board)<<endl;
         board.applayAction(M);
     }
+    cout<<"Game ended with status"<<board.getGameState()<<endl;
     return 0;
 }

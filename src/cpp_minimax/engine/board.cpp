@@ -53,6 +53,7 @@ int Board::currentPlayerTurn(){
 }
 
 Board::Board(const Board& b,const actionT a ): G(b.G,a){
+    
     this->currentTurn=b.currentTurn;
     this->inHandPiece=b.inHandPiece;
     this->numAction=b.numAction;
@@ -125,6 +126,7 @@ void Board::addPieceHand(pieceT p){
 
 
 void Board::undoAction(){
+    
     pieceT b=     prevBug[currentTurn-1];
     positionT pos=prevPos[currentTurn-1];
     prevMoved[0]=hisPM1[currentTurn-1];
@@ -146,11 +148,10 @@ void Board::undoAction(){
 
     G.hasUpdatedArticulation=false;
     //clog<<"Ended undo"<<endl;
-
+   
 }
 
-void Board::applayAction(actionT act){    
-    
+void Board::applayAction(actionT act){     
     hisPM1[currentTurn]=prevMoved[0];
     hisPM2[currentTurn]=prevMoved[1];
     //confHistory[currentTurn]=G.toHash();
@@ -1183,5 +1184,32 @@ void Board::printBoard(){
 }
 
 
+void Board::controlValidirt(){
+    int totP=0;
+    for(int i=1;i<=28;i++){
+        if(G.isPlaced[i]){
+            totP++;;
+            positionT p=G.getPosition(i);
+            if(G.high[p]==0){
+                cout<<"NOOOO"<<endl;;
+            }
+            bool ce=false;
+            for(int h=0;h<G.high[p];h++){
+                if(G.gb[h][p]==i)
+                    ce=true;
+            }
+            if(!ce){
+                cout<<"NO ,prese"<<endl;
+            }
+        }
+    }
+    int rp=0;
+    for(int i=0;i<1024;i++){
+        rp+=G.high[i];
+    }
+    if(rp!=totP){
+        cout<<"NOOO diff num"<<endl;
+    }
+}
 
 #endif
