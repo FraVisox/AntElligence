@@ -1,8 +1,7 @@
 #include <string>
 #include "piece.h"
 using namespace std;
-
-
+#include <iostream>
 const pieceT INVALID_PIECE=0;
 
 pieceT extractPiece(string s){
@@ -22,15 +21,61 @@ pieceT extractPiece(string s){
     return buildPiece(kind,col,numIncr);
 }
 
-PlayerColor col(pieceT p){
 
-    if(p>0 && p<=14) return PlayerColor::WHITE;
-    if(p>14 && p<=28) return PlayerColor::BLACK;
-    if(p==29 && isSimulatingPiece) return col(simulatedPiece);
-    throw "Asking color of a non-piece";
+
+const PlayerColor PIECE_COLOR[]={
+    PlayerColor::WHITE, // BugType::SPIDER
+    PlayerColor::WHITE, // BugType::SPIDER
+    PlayerColor::WHITE, // BugType::SPIDER
+    PlayerColor::WHITE, // BugType::BEETLE
+    PlayerColor::WHITE, // BugType::BEETLE
+    PlayerColor::WHITE, // BugType::GRASSHOPPER
+    PlayerColor::WHITE, // BugType::GRASSHOPPER
+    PlayerColor::WHITE, // BugType::GRASSHOPPER
+    PlayerColor::WHITE, // BugType::QUEEN
+    PlayerColor::WHITE, // BugType::SOLDIER_ANT
+    PlayerColor::WHITE, // BugType::SOLDIER_ANT
+    PlayerColor::WHITE, // BugType::SOLDIER_ANT
+    PlayerColor::WHITE, // BugType::MOSQUITO
+    PlayerColor::WHITE, // BugType::LADYBUG
+    PlayerColor::WHITE, // BugType::PILLBUG
+    PlayerColor::BLACK, // BugType::SPIDER
+    PlayerColor::BLACK, // BugType::SPIDER
+    PlayerColor::BLACK, // BugType::BEETLE
+    PlayerColor::BLACK, // BugType::BEETLE
+    PlayerColor::BLACK, // BugType::GRASSHOPPER
+    PlayerColor::BLACK, // BugType::GRASSHOPPER
+    PlayerColor::BLACK, // BugType::GRASSHOPPER
+    PlayerColor::BLACK, // BugType::QUEEN
+    PlayerColor::BLACK, // BugType::SOLDIER_ANT
+    PlayerColor::BLACK, // BugType::SOLDIER_ANT
+    PlayerColor::BLACK, // BugType::SOLDIER_ANT
+    PlayerColor::BLACK, // BugType::MOSQUITO
+    PlayerColor::BLACK, // BugType::LADYBUG
+    PlayerColor::BLACK // BugType::PILLBUG
+};
+
+
+const PlayerColor col(const pieceT p) {
+    return PIECE_COLOR[p];
 }
 
 const BugType PIECE_KIND_NUM[]={
+    BugType::SPIDER,
+    BugType::SPIDER,
+    BugType::SPIDER,
+    BugType::BEETLE,
+    BugType::BEETLE,
+    BugType::GRASSHOPPER,
+    BugType::GRASSHOPPER,
+    BugType::GRASSHOPPER,
+    BugType::QUEEN,
+    BugType::SOLDIER_ANT,
+    BugType::SOLDIER_ANT,
+    BugType::SOLDIER_ANT,
+    BugType::MOSQUITO,
+    BugType::LADYBUG,
+    BugType::PILLBUG,
     BugType::SPIDER,
     BugType::SPIDER,
     BugType::BEETLE,
@@ -47,13 +92,21 @@ const BugType PIECE_KIND_NUM[]={
     BugType::PILLBUG
 };
 
-BugType kind(pieceT p){
-    if(p>0 && p<=28)
-        return PIECE_KIND_NUM[(p-1)%14];
-    throw "Asking kind of a non-piece";
+const  BugType kind(const pieceT& p){
+    //if(p>0 && p<=28)
+        return PIECE_KIND_NUM[p];
+    //std::cerr<<"Error in piece, in kind: asking for kind of "<<p<<std::endl;
+    //throw "Asking kind of a non-piece";
 }
 
 const int NUM_INC_PIECE[]={
+    0,
+    1,2,
+    1,2,
+    1,2,3,
+    0,
+    1,2,3,
+    0,0,0,
     1,2,
     1,2,
     1,2,3,
@@ -64,7 +117,7 @@ const int NUM_INC_PIECE[]={
 
 
 int numInc(pieceT p){
-    return NUM_INC_PIECE[(p-1)%14];
+    return NUM_INC_PIECE[p];
 }
 
 pieceT getCandidateForKind(BugType t,PlayerColor col){
@@ -81,7 +134,8 @@ pieceT getCandidateForKind(BugType t,PlayerColor col){
     case BugType::MOSQUITO:    return inc+12; break;  // 12
     case BugType::LADYBUG:     return inc+13; break;  // 13
     case BugType::PILLBUG:     return inc+14; break;  // 14
-    default: throw "NOT VALID BUG TYPE";
+    //default:std::cerr<<"Error in piece, in getCandidate"<<std::endl;
+    // throw "NOT VALID BUG TYPE";
     }
 }
 
@@ -100,7 +154,8 @@ pieceT buildPiece(enum BugType k,PlayerColor c,int numIncr){
     case BugType::MOSQUITO:     r+=11;        break;  // 12
     case BugType::LADYBUG:      r+=12;        break;  // 13
     case BugType::PILLBUG:      r+=13;        break;  // 14
-    default: throw "NOT A KIND";
+    //default: std::cerr<<"Error in piece, in buildPiece"<<std::endl;
+    //throw "NOT A KIND";
     }
     return r;
 } 
@@ -156,7 +211,8 @@ pieceT decodeBug(char* s){
     case 'm': numInc=0; bt=BugType::MOSQUITO; break;
     case 'l': numInc=0; bt=BugType::LADYBUG; break;
     case 'p': numInc=0; bt=BugType::PILLBUG; break;
-    default: throw "Not a valid bug";
+    //default: std::cerr<<"Error in piece, in decodeBug"<<std::endl;
+    //throw "Not a valid bug";
     }
     return buildPiece(bt,col,numInc);
 }

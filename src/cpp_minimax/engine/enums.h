@@ -5,7 +5,7 @@
 #include <cstdint>
 using namespace std;
 typedef uint16_t actionT;
-const  int MAX_ACTIONS_SIZE=512;
+const  int MAX_ACTIONS_SIZE=256;
 
 
 
@@ -77,4 +77,17 @@ BugType parseBugType(string s);
 
 
 enum class StrategyName;
+
+
+#define InPlayWeight 0
+#define IsPinnedWeight 1 
+#define IsCoveredWeight 2
+#define NoisyMoveWeight 3
+#define QuietMoveWeight 4
+#define FriendlyNeighborWeight 5
+#define EnemyNeighborWeight 6
+
+
+
+
 #endif

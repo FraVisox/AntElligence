@@ -1,5 +1,5 @@
 #include "enums.h"
-
+#include <iostream>
 /**
  * \brief Parses a color string to a PlayerColor enum.
  *
@@ -9,8 +9,8 @@
  */
 PlayerColor parseColor(string s){
     if(s=="b") return PlayerColor::BLACK;
-    if(s=="w") return PlayerColor::WHITE;
-    throw "Invalid color for string "+s;
+    return PlayerColor::WHITE;
+    //std::cerr<<"Error in enums, in parseColor"<<std::endl;throw "Invalid color for string "+s;
 }
 
 char _bug_string[]="QSBGAMLP";
@@ -41,8 +41,8 @@ enum BugType parseBugType(string s){
     if(s=="A") return BugType::SOLDIER_ANT;
     if(s=="M") return BugType::MOSQUITO;
     if(s=="L") return BugType::LADYBUG;
-    if(s=="P") return BugType::PILLBUG;
-    throw "Invalid bug type";
+    return BugType::PILLBUG;
+    //std::cerr<<"Error in enums, in string parseBug"<<std::endl;throw "Invalid bug type";
 }
 
 
@@ -65,10 +65,11 @@ string GameStateToString(GameState gs){
             return "WhiteWins";
         case BLACK_WIN:
             return "BlackWins";
-        case DRAW:
+        default:
             return "Draw";
     }
-    throw "Invalid game state";
+    /*std::cerr<<"Error in enums, in gameToString"<<std::endl;
+    throw "Invalid game state";*/
 }
 
 
@@ -92,10 +93,11 @@ string GameTypeToString(GameType gt){
             return "Base+MP";
         case Base_LP:
             return "Base+LP";
-        case Base_MLP:
+        default:
             return "Base+MLP";
     }
-    throw "Invalid game type";
+    /*std::cerr<<"Error in enums, in gameTypeString "<<std::endl;
+    throw "Invalid game type";*/
 }
 
 string ColorToCompleteString(PlayerColor c){

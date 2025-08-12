@@ -44,7 +44,7 @@ enum BugType {
 struct Coord {
     int x, y;
     int distance_to(const Coord& other) const {
-        return std::max({ std::abs(x - other.x), std::abs(y - other.y), std::abs(x + y - other.x - other.y) });
+        return std::max( std::abs(x - other.x), std::max(std::abs(y - other.y), std::abs(x + y - other.x - other.y) ));
     }
 };
 

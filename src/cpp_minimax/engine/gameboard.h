@@ -17,11 +17,14 @@ class gameboard{
     public:
     gameboard();
     gameboard(GameType);
+    gameboard(const gameboard&, const actionT& a);
 
-    pieceT gb[8][1024];  // Vector of stacks that contain bugs. One stack at each position. The board is thus 100*100
-    positionT bugPosition[32];
-    BoardBitSet occupied;
-    uint8_t high[1024];
+    alignas(64) pieceT gb[8][1024];  // Vector of stacks that contain bugs. One stack at each position. The board is thus 100*100
+    alignas(64) positionT bugPosition[32];
+    alignas(64) BoardBitSet occupied;
+
+    alignas(64)BoardBitSet not_movable_position;
+    alignas(64) uint8_t high[1024];
     
     bitset<32> isPlaced;
     
@@ -53,7 +56,7 @@ class gameboard{
 
     
     //And the placing
-    positionT validPositionPlaceBuffer[70];
+    positionT validPositionPlaceBuffer[64];
     int numValidPosition;
     void computeValidPositionPlaceNew(PlayerColor color);
 
@@ -69,15 +72,16 @@ class gameboard{
     bitset<285> toHash();
     //Manage pieces
     
-    positionT getPosition(const pieceT &p);
+    positionT getPosition(const pieceT &p) const ;
     void updatePos(const pieceT &bug,const positionT &pos);
     void removePiece(const pieceT &b);    
     void addPiece(const positionT &pos, const pieceT &b);
-    bool isTop(const pieceT &bug);
+    bool isTop(const pieceT &bug) const ;
+    vector<pieceT> getBugs(const positionT &pos) const ;
     bool canPieceMove(const pieceT &b,int turn);
-    pieceT topPiece(const positionT &pos);
+    pieceT topPiece(const positionT &pos) const ;
     pieceT basePiece(const positionT &pos);
-    int getHight(const positionT &pos);
+    int getHight(const positionT &pos) const;
 
     //Main function to understand the movements
     bool canMoveWithoutBreakingHiveRule(const pieceT &b,int turn);
@@ -86,13 +90,10 @@ class gameboard{
   
     //PRIVATE FUNCTIONS TO FIND ARTICULATION POINTS (HIVE RULE) AND CALCULATE POSITION
 
-    private:
+    public :
 
     int timer=0;
-    int lastUpdateTurn=-1;
-    bitset<SIZE_BOARD*SIZE_BOARD> not_movable_position;
-    bitset<SIZE_BOARD*SIZE_BOARD> visited_dfs;
-    int disc[SIZE_BOARD*SIZE_BOARD],low[SIZE_BOARD*SIZE_BOARD];
+    bool hasUpdatedArticulation=false;;
 
 
     /**
@@ -104,15 +105,17 @@ class gameboard{
      * The articulation points are used to check if a
      * bug can be moved without breaking the hive rule.
      */
-    void find_articulation(){
+    void find_articulation(){    
+        BoardBitSet visited_dfs;
+        int disc[SIZE_BOARD*SIZE_BOARD],low[SIZE_BOARD*SIZE_BOARD];
+
+        not_movable_position.reset();
         if(occupied.none())
             return;
 
-        not_movable_position.reset();
-        visited_dfs.reset();
 
         positionT startPos;
-        for(pieceT p=0;p<32;p++){
+        for(pieceT p=1;p<=28;p++){
             if(isPlaced[p]){
                 positionT e=bugPosition[p];
                 startPos=e;
@@ -121,9 +124,8 @@ class gameboard{
             }
         }
 
-        dfs(startPos,0);
+        dfs(startPos,0,visited_dfs,disc,low);
     }
-
 
     /**
      * \brief Depth-first search to find articulation points.
@@ -134,7 +136,7 @@ class gameboard{
      * \param v The current position.
      * \param p The parent position, defaults to NULL_POSITION.
      */
-    void dfs(positionT &v, const positionT &p, bool flag=false) {
+    void dfs(positionT &v, const positionT &p,BoardBitSet &visited_dfs,int disc[],int low[], bool flag=false) {
 
         //Mark this as visited
         visited_dfs.set(v,1);
@@ -145,13 +147,13 @@ class gameboard{
         int children=0;
         for (int dir=0;dir<6;dir++){
             positionT to=applayMove(v,dir);
-            if(isFree(to))continue;
+            if(!occupied.get_bit(to))continue;
             //If this is a back edge, update low
-            if (visited_dfs[to]) {
+            if (visited_dfs.get_bit(to)) {
                 low[v] = min(low[v], disc[to]);
             } else {
                 //Make it a children of this node and visit it
-                dfs(to, v,true);
+                dfs(to, v,visited_dfs,disc,low,true);
                 //Check if the subtree rooted at v has a connection to one of the ancestors of u
                 low[v] = min(low[v], low[to]);
                 

@@ -5,16 +5,49 @@
 
 gameboard::gameboard(){
     memset(high, 0, sizeof(high));
+
+    hasUpdatedArticulation=false;
     isPlaced.reset();
 }
 
+gameboard::gameboard(const gameboard& g,const actionT& a){
+    
+    isPlaced=g.isPlaced;
+    for(int i=0;i<32;i++)
+        this->bugPosition[i]=g.bugPosition[i];
+
+
+    for(int i=0;i<1024;i++){
+        for(int h=0;h<8;h++){
+            gb[h][i]=g.gb[h][i];
+        }
+    }
+    
+    occupied.updateOr(g.occupied);
+    not_movable_position.updateOr(g.not_movable_position);
+    
+    for(int i=0;i<1024;i++)
+            high[i]=g.high[i];
+
+    for(int i=0;i<16;i++){
+        this->occupied.bv[i]=g.occupied.bv[i];
+    }
+    
+    this->isPlaced=g.isPlaced;
+    
+    
+    hasUpdatedArticulation=false;
+    
+}
 
 gameboard::gameboard(GameType gt){
     memset(high, 0, sizeof(high));
+
+    hasUpdatedArticulation=false;
     isPlaced.reset();
 }
 
-positionT gameboard::getPosition(const pieceT &p){
+positionT gameboard::getPosition(const pieceT &p) const {
     return  bugPosition[p];
 }
 
@@ -29,6 +62,7 @@ void gameboard::removePiece(const pieceT &b){
     high[pos &1023]--;
     if(isFree(pos))
         occupied.set(pos,0);
+
 }
 
 /**
@@ -91,10 +125,20 @@ void gameboard::copy(gameboard& g){
  * \param bug The bug to check.
  * \return True if the bug is at the top of the stack, false otherwise.
  */
-bool gameboard::isTop(const pieceT &bug){
+bool gameboard::isTop(const pieceT &bug) const {
     positionT pos=getPosition(bug);
     return (topPiece(pos)==bug);
 }
+
+vector<pieceT> gameboard::getBugs(const positionT &pos) const {
+    vector<pieceT> bugs;
+    for(int i=0;i<HIGHT_BOARD;i++){
+        if(gb[i][pos &1023]!=0)
+            bugs.push_back(gb[i][pos &1023]);
+    }
+    return bugs;
+}
+
 
 /**
  * \brief Checks if a bug piece can be moved.
@@ -112,7 +156,7 @@ bool gameboard::canPieceMove(const pieceT &b,int turn){
 }
 
 
-int gameboard::getHight(const positionT &pos){
+int gameboard::getHight(const positionT &pos) const {
     return high[pos &1023];
 }
 /**
@@ -156,10 +200,11 @@ bool gameboard::canSlideToFreeDir(const positionT &from,const positionT &to, dir
  * \throw A string with the message "Asked piece for empty pos" if the position
  *        is empty.
  */
-pieceT gameboard::topPiece(const positionT &pos){
+pieceT gameboard::topPiece(const positionT &pos) const {
     //if(!isFree(pos)){
         return gb[getHight(pos)-1][pos &1023];
     //}
+    //std::cerr<<"Error in gameboard, in top Piece"<<std::endl;
     //throw "Asked piece for empty pos";
 }
 
@@ -178,12 +223,14 @@ bitset<285> gameboard::toHash(){
             numPlaced++;
             positionT pos=getPosition(b);
             
-            bs=(bs<<10);
-            bs|=pos;
+            for(int j=0;j<10;j++){
+                bs[i*10+j]=(pos>>j)&1;
+            }
         }
     }
-    bs<<5;
-    bs|=numPlaced;
+    for(int j=0;j<5;j++){
+        bs[280+j]=(numPlaced>>j)&1;
+    }
     return bs;
 }
 
@@ -243,25 +290,22 @@ void gameboard::computeValidPositionPlaceNew(PlayerColor color){  // there is a 
         hons.updateOr(xbbs.getRot(d));
         hono.updateOr(ybbs.getRot(d));
     }
-    /*
-    for(int d=0;d<6;d++){
-        hons|=sameCN[d];
-    }
-    for(int d=0;d<6;d++){
-        hono|=diffCN[d];
-    }
-        */
 
 
     canPlace.updateAnd(hons);
     canPlace.updateAnd(~hono);
-    for(unsigned int IPos=0;IPos<1024;IPos++){
-        if(canPlace.get_bit(IPos)){
-            validPositionPlaceBuffer[numValidPosition]=IPos;
-            numValidPosition++;
+
+    for(uint64_t i=0;i<16;i++){
+        if(canPlace.bv[i]>0){
+            for(uint64_t j=0;j<64;j++){
+                if(canPlace.bv[i]&(1ull<<(63-j))){
+
+                    validPositionPlaceBuffer[numValidPosition]=(i<<6)|(j);
+                    numValidPosition++;
+                }
+            }
         }
     }
-    //cout<<numValidPosition<<endl;
 }
 
 
@@ -301,10 +345,10 @@ bool gameboard::canMoveWithoutBreakingHiveRule(const pieceT &b,int turn){
         return true;
 
     //Update cache
-    if(turn != lastUpdateTurn){
-        lastUpdateTurn = turn;
+    if(!hasUpdatedArticulation){
+        hasUpdatedArticulation =true;
         find_articulation();
     }
 
-    return not_movable_position[getPosition(b) ] == 0;
+    return not_movable_position.get_bit(p) == 0;
 }

@@ -6,11 +6,9 @@
 #include "gameboard.h"
 #include "action.h"
 #include <queue>
-#include <string.h>
-#include <unordered_map>
-#include <string>
 #include <cmath>
 #include <algorithm>
+#include "weights.h"
 
 // =============================================================================
 // ADVANCED EVALUATION STRUCTURES
@@ -25,29 +23,16 @@ struct BugMetrics {
     bool NearOwnQueen = false;
     bool CanReachQueenHole = false;
 
-    int NoisyMoves = 0;      // Moves that threaten or capture
-    int QuietMoves = 0;      // Positional moves
-    int FriendlyNeighbors = 0;
-    int EnemyNeighbors = 0;
+    double NoisyMoves = 0;      // Moves that threaten or capture
+    double QuietMoves = 0;      // Positional moves
+    double FriendlyNeighbors = 0;
+    double EnemyNeighbors = 0;
 };
 
-struct MetricWeights {
-    std::unordered_map<std::string, double> weights;
 
-    double Get(BugType type, const std::string& key) const {
-        std::string composed = std::to_string((int)type) + "_" + key;
-        auto it = weights.find(composed);
-        return (it != weights.end()) ? it->second : 0.0;
-    }
-    
-    void Set(BugType type, const std::string& key, double value) {
-        std::string composed = std::to_string((int)type) + "_" + key;
-        weights[composed] = value;
-    }
-};
 
 struct BoardMetrics {
-    std::unordered_map<std::string, BugMetrics> pieceMetrics;
+    BugMetrics pieceMetrics[29];
     int PiecesInPlay = 0;
     int PiecesInHand = 0;
 
@@ -78,12 +63,12 @@ class Board {
 
     Board();
     Board(GameType);
+    Board(const Board&,const actionT );
 
-    void copy(Board&);
 
-
+    bool hasUpdate;
     //Current status
-    PlayerColor currentColor();
+    PlayerColor currentColor() const;
     int currentPlayerTurn();
     bool placedQueen();
     
@@ -91,7 +76,7 @@ class Board {
 
     // update the state
     void applayAction(actionT a);
-
+    void undoAction();
 
     // compute possible moves
     void ComputePossibleMoves();
@@ -100,19 +85,22 @@ class Board {
     GameState getGameState();
     
     int currentTurn;
-
+    positionT prevPos[MAX_TURN_SIZE];
+    pieceT   prevBug[MAX_TURN_SIZE];
+    pieceT hisPM1[MAX_TURN_SIZE];
+    pieceT hisPM2[MAX_TURN_SIZE];
     // describe the status
     gameboard G;
     bitset<32> inHandPiece;
-    pieceT prevMoved[2];
+    uint32_t prevMoved[2];
 
     string toString();
     actionT suggestInitialMove();
-    bitset<285> simple_hash(PlayerColor color);
-    uint64_t getHash();
+    bitset<285> simple_hash();
+    size_t getHash() const;
 
-    int getScore(PlayerColor color);
-    int getScoreBug(pieceT p);
+    double getScore();
+    double getScoreBug(pieceT p);
     int surround_score();
     int mobility_score();
     int isPinned(pieceT bug);
@@ -137,7 +125,6 @@ class Board {
     int bug_utility_score();
 
     // Advanced evaluation helpers
-    MetricWeights initializeWeightsFromXML(const std::string& filename);
     std::string pieceToString(pieceT piece);
     BugMetrics calculatePieceMetrics(pieceT piece);
     BoardMetrics calculateBoardMetrics();
@@ -145,18 +132,17 @@ class Board {
     double calculateLateGameThreatScore();
 
     // Advanced evaluation function
-    double evaluateAdvanced(PlayerColor playerColor);
+    double evaluateAdvanced();
 
-
+    short idxStartActions[32];
     // returns the actions
     actionT resAction[MAX_ACTIONS_SIZE];
-    int numAction;
-    bitset<285> confHistory[MAX_TURN_SIZE+2];
-
-    private:
+    int numAction=0;
+    //bitset<285> confHistory[MAX_TURN_SIZE+2];
+    void printBoard();
     
     // auxiliary for pillbug
-    actionT pillbugMoves[20];
+    actionT pillbugMoves[24];
     int pillbugTotMoves;
 
     // auxiliary for Ants moves
@@ -173,6 +159,7 @@ class Board {
     void possibleMoves_Ladybug(pieceT bug);
     void computePillbugMovinPieces();
 
+    void controlValidirt();
 };
 
 

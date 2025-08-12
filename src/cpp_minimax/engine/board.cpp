@@ -19,13 +19,16 @@
  * black nor white queens have been placed on the board yet.
  */
 Board::Board(){ 
-
+    hasUpdate=true;
     currentTurn = 1;
     //We do not change the type of game
     inHandPiece.reset();
     prevMoved[0]=0;
     prevMoved[1]=0;
+    
+    G.hasUpdatedArticulation=false;
 };    
+
 
 
 /**
@@ -33,7 +36,7 @@ Board::Board(){
  *
  * \return The color of the current player (WHITE or BLACK).
  */
-PlayerColor Board::currentColor(){
+PlayerColor Board::currentColor() const{
     if(currentTurn%2==1) return PlayerColor::WHITE;
     return PlayerColor::BLACK;
 }
@@ -49,31 +52,24 @@ int Board::currentPlayerTurn(){
     return (currentTurn-1)/2+1;
 }
 
-void Board::copy(Board &b){
-    this->G.copy(b.G);
+Board::Board(const Board& b,const actionT a ): G(b.G,a){
+    
     this->currentTurn=b.currentTurn;
     this->inHandPiece=b.inHandPiece;
     this->numAction=b.numAction;
     this->prevMoved[0]=b.prevMoved[0];
-    this->prevMoved[1]=b.prevMoved[1];
-    for(int i=0;i<256;i++)
-        this->resAction[i]=b.resAction[i];
-
-    for(int i=0;i<MAX_ACTIONS_SIZE;i++)
-        this->resAction[i]=b.resAction[i];
-    //for(int i=0;i<MAX_TURN_SIZE;i++)
-    //    this->confHistory[i]=b.confHistory[i];
-    for(int i=0;i<20;i++)
-        this->pillbugMoves[i]=b.pillbugMoves[i];
-    this->pillbugTotMoves=b.pillbugTotMoves;
-    this->inQueue=b.inQueue;
+    this->prevMoved[1]=b.prevMoved[1];    
+    applayAction(a);
+    this->hasUpdate=true;
+    G.hasUpdatedArticulation=false;
 }
 
 
 
 
-Board::Board(GameType gt) : G(gt){
 
+Board::Board(GameType gt) : G(gt){
+    hasUpdate=true;
     currentTurn=1;
     for(int i=1;i<12;i++){
         addPieceHand(i);
@@ -97,6 +93,8 @@ Board::Board(GameType gt) : G(gt){
                                 addPieceHand(13);addPieceHand(27);
                                 addPieceHand(14);addPieceHand(28);break;
     }
+        G.hasUpdatedArticulation=false;
+
 }
 
 /**
@@ -127,24 +125,55 @@ void Board::addPieceHand(pieceT p){
 }
 
 
+void Board::undoAction(){
+    
+    pieceT b=     prevBug[currentTurn-1];
+    positionT pos=prevPos[currentTurn-1];
+    prevMoved[0]=hisPM1[currentTurn-1];
+    prevMoved[1]=hisPM2[currentTurn-1];
+    if(b!=0){
+        //clog<<"\n\n-----------------------------------\nUpdating : b!= 0"<<endl;
+        G.removePiece(b);
+        //clog<<"Removed piece  "<<b<<endl;
+        if(pos==1025){
+        //    clog<<"Added to hand"<<endl;
+            inHandPiece.set(b,1);
+        } else{
+        //    clog<<"Added to position "<<pos<<endl;
+            G.addPiece(pos,b);
+        }
+    }
+    currentTurn--;    
+    hasUpdate=true;
 
-void Board::applayAction(actionT act){
+    G.hasUpdatedArticulation=false;
+    //clog<<"Ended undo"<<endl;
+   
+}
+
+void Board::applayAction(actionT act){     
+    hisPM1[currentTurn]=prevMoved[0];
+    hisPM2[currentTurn]=prevMoved[1];
     //confHistory[currentTurn]=G.toHash();
     if(act==0){
+        prevBug[currentTurn]=0;
         currentTurn++;
         prevMoved[currentColor()]=0;
+        hasUpdate=true;
+        G.hasUpdatedArticulation=false;
         return;
     }
 
     pieceT p=(act%32);
     positionT dest=act/32;
-
+    prevBug[currentTurn]=p;
     if(!G.isPlaced[p]){
+        prevPos[currentTurn]=1025;
         currentTurn++;
         prevMoved[currentColor()]=0;
         inHandPiece.set(p,0);
-        
     }else{
+        prevPos[currentTurn]=G.getPosition(p);
         computePillbugMovinPieces();
         prevMoved[1-currentColor()]=p;
         for(int i=0;i<pillbugTotMoves;i++){
@@ -155,14 +184,20 @@ void Board::applayAction(actionT act){
         currentTurn++;
         G.removePiece(p);
     }
+
+    G.hasUpdatedArticulation=false;
+    hasUpdate=true;
     G.addPiece(dest,p);
 }
 
 
 GameState Board::getGameState(){
+    if(currentTurn==0) return GameState::NOT_STARTED;
     int bugWQ=0,bugBQ=0;
 
-
+    if(!G.isPlaced[8])return GameState::STARTED;
+    if(!G.isPlaced[22])return GameState::STARTED;
+    
     positionT WQPos=G.getPosition(8);
     positionT BQPos=G.getPosition(22); 
     for(int i=0;i<6;i++){
@@ -173,21 +208,23 @@ GameState Board::getGameState(){
     if(bugBQ==6)return GameState::WHITE_WIN;
     if(bugWQ==6)return GameState::BLACK_WIN;
     
-    bitset<285> r=G.toHash();
-
+    
     int ne=0;
-    for(int i=1;i<currentTurn; i++){
+    /*for(int i=1;i<currentTurn; i++){
         if(r==confHistory[i])
             ne++;
-    }  
+    } */ 
     
-    if(currentTurn==0) return GameState::NOT_STARTED;
     if(currentTurn>MAX_TURN_SIZE || ne>1)return GameState::DRAW;
     return GameState::STARTED;
 }
-
+//bool isDBG=false;
 
 void Board::ComputePossibleMoves(){
+    if(!hasUpdate){
+        return;
+    }
+    hasUpdate=false;
     numAction=0;  
 
     pillbugTotMoves=0;
@@ -262,79 +299,24 @@ void Board::ComputePossibleMoves(){
         }
     }
     //cout<<"Move place:"<<numAction<<endl;
-
     // 5- moves
     if(placedQueen()){
         for(pieceT b=1;b<=28;b++){
+            idxStartActions[b]=numAction;
             if(!G.isPlaced[b])continue;
             if (b == prevMoved[currentColor()]) continue;
             possibleMovesBug(b);
         }
+        
+        idxStartActions[29]=numAction;
         computePillbugMovinPieces();
+        
         for(int i=0;i<pillbugTotMoves;i++){
             resAction[numAction]=pillbugMoves[i];
+            numAction++;
         }
-        /*
-        if(pillbugTotMoves>0){ 
-
-            bitset<32> seen(0);
-            int startPar=0;
-            int endPart=1;   // excluded
-            int tA=numAction;
-            std::sort(pillbugMoves,pillbugMoves+pillbugTotMoves);
-        
-            while(endPart<=tA){
-                while(endPart<tA && resAction[endPart-1]<resAction[endPart]){
-                    endPart++;
-                }
-                int i=startPar,j=0;
-                while(i<endPart && j<pillbugTotMoves){
-                    if(resAction[i]==pillbugMoves[j]){
-                        seen.set(j,1);
-                        i++;
-                        j++;
-                    }else if(resAction[i]<pillbugMoves[j]){
-                        i++;
-                    }else{
-                        j++;
-                    }
-                }
-                startPar=endPart;
-                endPart=startPar+1;
-            }
-            for(int i=0;i<pillbugTotMoves;i++){
-                if(!seen[i]){
-                    resAction[numAction]=pillbugMoves[i];
-                    numAction++;
-                }
-            }
-
-            
-            //cout<<"PTM: "<<pillbugTotMoves<<"  TOT:"<<numAction<<endl;
-            /*for(int h=0;h<pillbugTotMoves;h++){
-                cout<<((pillbugMoves[h])&((((actionT)1)<<63)-1))<<endl;
-            }
-            for(int k=0;k<numAction;k++){
-                cout<<(resAction[k])<<endl;
-            }
-            bool flag;*/
-            /*
-            for(int i=0;i<pillbugTotMoves;i++){
-                flag=true;
-                for(int j=0;j<numAction;j++){
-                    if(pillbugMoves[i]==resAction[j]){
-                        flag=false;
-                        //G.isValidMoveBitmask[G._isValidMoveBitmask_rel_pos[j]]=0;
-                        break;
-                    }
-                }
-                if(flag){
-                    resAction[numAction]=pillbugMoves[i];
-                    numAction++;
-                }
-            }
-        }  */ 
     }
+
     if(numAction==0){
         //G.isValidMoveBitmask[0]=1;
         //G.associatedAction[0]=0;
@@ -342,11 +324,13 @@ void Board::ComputePossibleMoves(){
         resAction[0]=0;
     }
     return;
+    
 }
 
 
 void Board::possibleMovesBug(pieceT b){
     if (b == INVALID_PIECE) return;
+    
     if(col(b)==currentColor()){ // turn is required to make the program efficent
         switch(kind(b)){
             case BEETLE:
@@ -443,46 +427,184 @@ void Board::possibleMoves_Grasshopper(pieceT bug){
 
 void Board::possibleMoves_SoldierAnt(pieceT bug){
     if (G.canPieceMove(bug,currentTurn)) {
-        inQueue.reset();
-        inQueue.updateOr(G.occupied);
-
+        //if(isDBG)clog<<" Debug: findig movement for "<<bug<<endl;
         const positionT startPos=G.getPosition(bug);
 
-        inQueue.set(startPos ,1);
         G.removePiece(bug);
         BoardBitSet isOccupiedNear[6];
-        
-
-        for(int i=0;i<6;i++){
-            isOccupiedNear[i]=G.occupied;
-            isOccupiedNear[i].getRot(i);
-        }
-        
-        BoardBitSet canGoTo[6];
-        for(int i=0;i<6;i++){
-            canGoTo[i]=(isOccupiedNear[(i+5)%6] ^ isOccupiedNear[(i+1)%6]) & (~isOccupiedNear[i]);
-        }
-
         BoardBitSet reachable;
+
+        BoardBitSet canGoTo[6];
+
+        //  NEW VERSION 
+        isOccupiedNear[0]=G.occupied.getRot0();
+        isOccupiedNear[1]=G.occupied.getRot1();
+        isOccupiedNear[2]=G.occupied.getRot2();
+        isOccupiedNear[3]=G.occupied.getRot3();
+        isOccupiedNear[4]=G.occupied.getRot4();
+        isOccupiedNear[5]=G.occupied.getRot5();
+        
+        
+        
+
+        canGoTo[0]=((isOccupiedNear[5] ^ isOccupiedNear[1]) & (~isOccupiedNear[0]));
+        canGoTo[1]=((isOccupiedNear[0] ^ isOccupiedNear[2]) & (~isOccupiedNear[1]));
+        canGoTo[2]=((isOccupiedNear[1] ^ isOccupiedNear[3]) & (~isOccupiedNear[2]));
+        canGoTo[3]=((isOccupiedNear[2] ^ isOccupiedNear[4]) & (~isOccupiedNear[3]));
+        canGoTo[4]=((isOccupiedNear[3] ^ isOccupiedNear[5]) & (~isOccupiedNear[4]));
+        canGoTo[5]=((isOccupiedNear[4] ^ isOccupiedNear[0]) & (~isOccupiedNear[5]));
         reachable.set(startPos,1);
+        
         BoardBitSet pr;
+
+        const __m512i idx_next0 = _mm512_set_epi64(8+0, 7,6,5,4,3,2,1);
+        const __m512i idx_prev3 = _mm512_set_epi64(6,5,4,3,2,1,0,15);
+        __m512i reachablelo, reachablehi, int1lo, int1hi,nb0,nb1,out0,out1,pv0,pv1;
+
         for(int i=0;i<64;i++){
-            pr=reachable;
-            for(int j=0;j<6;j++){
-                reachable.updateOr((canGoTo[j] & reachable).getRot((j+3)%6));     
-            }
+            pr.hi=reachable.hi;
+            pr.lo=reachable.lo;
+            //BoardBitSet r1=reachable |((canGoTo[0] & reachable).getRot3()); 
+            reachablelo=reachable.lo;
+            reachablehi=reachable.hi;
+            int1lo=_mm512_and_si512(canGoTo[0].lo,reachablelo);
+            int1hi=_mm512_and_si512(canGoTo[0].hi,reachablehi);
+            pv0 = _mm512_permutex2var_epi64(int1lo, idx_prev3, int1hi); // prev for v0
+            pv1 = _mm512_permutex2var_epi64(int1hi, idx_prev3, int1lo); // prev for v1
+            out0 = _mm512_shrdi_epi64(int1lo, pv0, 1);
+            out1 = _mm512_shrdi_epi64(int1hi, pv1, 1);
+            reachable.lo= _mm512_or_si512(reachablelo, out0);
+            reachable.hi = _mm512_or_si512(reachablehi, out1);
+            
+            //_mm512_store_si512((__m512i*)&reachable.bv[0], reachable.lo);
+            //_mm512_store_si512((__m512i*)&reachable.bv[8], reachable.hi);
+            //if(isDBG)if(!(r1==reachable)){
+            //    cout<<"err1"<<endl;
+            //}else{cout<<"OK1"<<endl;}
+            //
+            //BoardBitSet r2=reachable|((canGoTo[1] & reachable).getRot4()); 
+
+
+            reachablelo=reachable.lo;
+            reachablehi=reachable.hi;
+            int1lo=_mm512_and_si512(canGoTo[1].lo,reachablelo);
+            int1hi=_mm512_and_si512(canGoTo[1].hi,reachablehi);
+            pv0 = _mm512_permutex2var_epi64(int1lo, idx_prev3, int1hi); // prev for v0
+            pv1 = _mm512_permutex2var_epi64(int1hi, idx_prev3, int1lo); // prev for v1
+            out0 = _mm512_shrdi_epi64(int1lo, pv0, 32);
+            out1 = _mm512_shrdi_epi64(int1hi, pv1, 32);
+            reachable.lo= _mm512_or_si512(reachablelo, out0);
+            reachable.hi = _mm512_or_si512(reachablehi, out1);
+
+            //_mm512_store_si512((__m512i*)&reachable.bv[0], reachable.lo);
+            //_mm512_store_si512((__m512i*)&reachable.bv[8], reachable.hi);
+            //if(isDBG)if(!(r2==reachable)){
+            //    cout<<"err2"<<endl;
+            //}else{cout<<"OK2"<<endl;}
+            //
+            //BoardBitSet r3=reachable|((canGoTo[2] & reachable).getRot5()); 
+
+
+            reachablelo=reachable.lo;
+            reachablehi=reachable.hi;
+            int1lo=_mm512_and_si512(canGoTo[2].lo,reachablelo);
+            int1hi=_mm512_and_si512(canGoTo[2].hi,reachablehi);
+            pv0 = _mm512_permutex2var_epi64(int1lo, idx_prev3, int1hi); // prev for v0
+            pv1 = _mm512_permutex2var_epi64(int1hi, idx_prev3, int1lo); // prev for v1
+            out0 = _mm512_shrdi_epi64(int1lo, pv0, 31);
+            out1 = _mm512_shrdi_epi64(int1hi, pv1, 31);
+            reachable.lo= _mm512_or_si512(reachablelo, out0);
+            reachable.hi = _mm512_or_si512(reachablehi, out1);
+
+
+            //_mm512_store_si512((__m512i*)&reachable.bv[0], reachable.lo);
+            //_mm512_store_si512((__m512i*)&reachable.bv[8], reachable.hi);
+            //if(isDBG)if(!(r3==reachable)){
+            //    cout<<"err3"<<endl;
+            //}else{cout<<"OK3"<<endl;}
+            //
+            //BoardBitSet r4=reachable|((canGoTo[3] & reachable).getRot0()); 
+
+            reachablelo=reachable.lo;
+            reachablehi=reachable.hi;
+            int1lo=_mm512_and_si512(canGoTo[3].lo,reachablelo);
+            int1hi=_mm512_and_si512(canGoTo[3].hi,reachablehi);
+            nb0 = _mm512_permutex2var_epi64(int1lo, idx_next0, int1hi);
+            nb1 = _mm512_permutex2var_epi64(int1hi, idx_next0, int1lo);
+            out0 = _mm512_shldi_epi64(int1lo, nb0, 1);
+            out1 = _mm512_shldi_epi64(int1hi, nb1, 1);
+            reachable.lo= _mm512_or_si512(reachablelo, out0);
+            reachable.hi = _mm512_or_si512(reachablehi, out1);
+            
+            //_mm512_store_si512((__m512i*)&reachable.bv[0], reachable.lo);
+            //_mm512_store_si512((__m512i*)&reachable.bv[8], reachable.hi);
+            //if(isDBG)if(!(r4==reachable)){
+            //    cout<<"err4"<<endl;
+            //}else{cout<<"OK4"<<endl;}
+            //
+            //BoardBitSet r5=reachable |((canGoTo[4] & reachable).getRot1());
+
+            reachablelo=reachable.lo;
+            reachablehi=reachable.hi;
+            int1lo=_mm512_and_si512(canGoTo[4].lo,reachablelo);
+            int1hi=_mm512_and_si512(canGoTo[4].hi,reachablehi);
+            nb0 = _mm512_permutex2var_epi64(int1lo, idx_next0, int1hi);
+            nb1 = _mm512_permutex2var_epi64(int1hi, idx_next0, int1lo);
+            out0 = _mm512_shldi_epi64(int1lo, nb0, 32);
+            out1 = _mm512_shldi_epi64(int1hi, nb1, 32);
+            reachable.lo= _mm512_or_si512(reachablelo, out0);
+            reachable.hi = _mm512_or_si512(reachablehi, out1);
+
+            //_mm512_store_si512((__m512i*)&reachable.bv[0], reachable.lo);
+            //_mm512_store_si512((__m512i*)&reachable.bv[8], reachable.hi);
+            //if(isDBG)if(!(r5==reachable)){
+            //    cout<<"err5"<<endl;
+            //}else{cout<<"OK5"<<endl;}
+            //
+            //BoardBitSet r6=reachable| ((canGoTo[5] & reachable).getRot2()); 
+
+            reachablelo=reachable.lo;
+            reachablehi=reachable.hi;
+            int1lo=_mm512_and_si512(canGoTo[5].lo,reachablelo);
+            int1hi=_mm512_and_si512(canGoTo[5].hi,reachablehi);
+            nb0 = _mm512_permutex2var_epi64(int1lo, idx_next0, int1hi);
+            nb1 = _mm512_permutex2var_epi64(int1hi, idx_next0, int1lo);
+            out0 = _mm512_shldi_epi64(int1lo, nb0, 31);
+            out1 = _mm512_shldi_epi64(int1hi, nb1, 31);
+            reachable.lo= _mm512_or_si512(reachablelo, out0);
+            reachable.hi = _mm512_or_si512(reachablehi, out1);
+
+
+            
+            //if(isDBG)if(!(r6==reachable)){
+            //    cout<<"err6"<<endl;
+            //}else{cout<<"OK6"<<endl;}
+            
+            //if(isDBG)reachable.printDBG();
+
             if(reachable==pr)break;
         }
+
+        _mm512_store_si512((__m512i*)&reachable.bv[0], reachable.lo);
+        _mm512_store_si512((__m512i*)&reachable.bv[8], reachable.hi);
         
         reachable.set(startPos,0);
+        
+        for (int i = 0; i < 16; ++i) {
+            uint64_t x = reachable.bv[i];
+            if (!x) continue;
 
-        for(uint64_t i=0;i<16;i++){
-            if(reachable.bv[i]>0){
-                for(uint64_t j=0;j<64;j++){
-                    if(reachable.bv[i]&(1ull<<(63-j))){
-                        resAction[numAction++]=(actionT)(bug|(i<<11)|(j<<5));
-                    }
-                }
+            const actionT base = actionT(bug | (i << 11));
+            int l=_mm_popcnt_u64(x);
+            while (l) {
+
+                unsigned b = __builtin_ctzll(x);           // index of LSB set bit (0..63)
+                unsigned j = 63u - b;                      // your encoding uses MSB-first j
+
+                //if(isDBG)cout<<"Adding the possibility to go to "<<base/32+j<<endl;
+                resAction[numAction++] = actionT(base | (j << 5));
+                x &=x-1;                                // clear that LSB (branchless)
+                l--;
             }
         }
       G.addPiece(startPos,bug);    
@@ -514,7 +636,7 @@ void Board::possibleMoves_Spider(pieceT bug){
                             positionT next3=applayMove(next2,dr3);
                             positionT p1=applayMove(next2,(dr3+1)%6);
                             positionT p2=applayMove(next2,(dr3+5)%6);
-                            if( !G.occupied.get_bit(next3) && (dr3!=(dr2+3)%6) && (G.occupied.get_bit(p1)^G.occupied.get_bit(p2))){
+                            if( next3!=startPos && !G.occupied.get_bit(next3) && (dr3!=(dr2+3)%6) && (G.occupied.get_bit(p1)^G.occupied.get_bit(p2))){
                                     reached.set(next3,1);
                             }
                          }
@@ -523,6 +645,8 @@ void Board::possibleMoves_Spider(pieceT bug){
                 }
             }
         }
+        reached.set(startPos,0);
+
         positionT n1,n2,n3,n4,n5,n6;
         for(int dir1=0;dir1<6;dir1++){
             int dir2=(dir1+1)%6;
@@ -650,7 +774,7 @@ void Board::possibleMoves_Ladybug(pieceT bug){
 void Board::possibleMoves_Mosquito(pieceT bug){  // TODO
     if (!G.canPieceMove(bug, currentTurn)) 
         return;
-     positionT pos=G.getPosition(bug);
+    positionT pos=G.getPosition(bug);
 
     if(G.topPiece(pos)!=bug)return;
 
@@ -812,8 +936,7 @@ void Board::possibleMoves_Mosquito(pieceT bug){  // TODO
         
 
         for(int i=0;i<6;i++){
-            isOccupiedNear[i]=G.occupied;
-            isOccupiedNear[i].getRot(i);
+            isOccupiedNear[i]=G.occupied.getRot(i);
         }
         
         BoardBitSet canGoTo[6];
@@ -931,15 +1054,32 @@ string Board::toString() {
     return "Base+MLP;"+GameStateToString(getGameState())+";"+ColorToCompleteString(currentColor())+"["+to_string(currentPlayerTurn())+"]";
 }
 
-bitset<285> Board::simple_hash(PlayerColor color) {
+bitset<285> Board::simple_hash() {
     // TODO: use color
     return G.toHash();
 }
 
-uint64_t Board::getHash() {
-    // TODO: use color
-    bitset<285> bs = G.toHash();
-    return bs.to_ullong();
+
+
+#include <string_view>
+#include <array>
+struct MurmurStyleHasher {
+    std::size_t operator()(const std::array<uint16_t, 30>& arr) const {
+        uint16_t v[32];
+        auto ptr = reinterpret_cast<const char*>(v);
+        return std::hash<std::string_view>{}(std::string_view(ptr, sizeof(arr)));
+    }
+};
+
+std::size_t Board::getHash()const  {
+    int16_t v[28];
+
+    for(int i=1;i<28;i++){
+        v[i-1]=(G.isPlaced[i]?G.bugPosition[i]:0);
+    }
+    return std::hash<std::string_view>{}(
+        std::string_view(reinterpret_cast<const char*>(v), 28 * sizeof(int16_t))
+    );
 }
 
 actionT Board::suggestInitialMove() {
@@ -965,6 +1105,111 @@ actionT Board::suggestInitialMove() {
     */
    cout << "Suggesting initial" << endl;
    return 0;
+}
+
+void Board::printBoard(){
+    cout<<"BOARD:"<<endl;
+    for(int i=16;i<48;i++){
+        printf("%4d",(32*i+16)&1023);
+        if(i<10)cout<<" ";
+        for(int j=16;j<i;j++)std::cout<<"  ";
+        for(int j=16;j<48;j++){
+            gameboard &g=G;
+            if(g.high[(j+32*i)&1023]==0){
+                //printf("%3d", ((j+32*i)&1023)%1000);
+                cout<<"   ";
+            }
+            if(g.high[(j+32*i)&1023]>1){
+                cout<<"XXX";
+            }
+            if(g.high[(j+32*i)&1023]==1){
+                pieceT p=g.topPiece((j+32*i)&1023);
+                string s=PiecetoString(p);
+                cout<<s;
+                if(s.size()==2)cout<<" ";
+            }            
+            cout<<"|";
+        }
+        cout<<endl;
+    }
+
+    //cout<<"\n\n\nScore:\n  Black:"<<getScore(PlayerColor::BLACK)<<"\n  White:"<<getScore(PlayerColor::WHITE)<<endl;
+
+    cout<<"HIGHT:"<<endl;
+    for(int i=16;i<48;i++){
+        printf("%4d",(32*i+16)&1023);
+        if(i<10)cout<<" ";
+        for(int j=16;j<i;j++)std::cout<<"  ";
+        for(int j=16;j<48;j++){
+            if(G.high[(j+32*i)&1023]>0)
+                printf("%3d",G.high[(j+32*i)&1023]);
+            else
+                cout<<"   ";
+            cout<<"|";
+        }
+        cout<<endl;
+    }
+    
+    cout<<"OCCUPIED: "<<G.occupied.bv<<endl;
+    for(int i=16;i<48;i++){
+        printf("%4d",(32*i+16)&1023);
+        if(i<10)cout<<" ";
+        for(int j=16;j<i;j++)std::cout<<"  ";
+        for(int j=16;j<48;j++){
+            if(G.occupied.get_bit((j+32*i)&1023))
+                printf(" 1 ");
+            else
+                cout<<"   ";
+            cout<<"|";
+        }
+        cout<<endl;
+    }
+
+    cout<<" \n\n";
+    for(int i=1;i<=28;i++){
+        string s=PiecetoString(i);
+        cout<<s;
+        if(s.size()==2)cout<<" ";
+        cout<<"|";
+    }
+    cout<<endl;
+    for(int i=1;i<=28;i++){
+        printf("%3d|",G.bugPosition[i]%1000);
+    }
+    cout<<endl;
+    for(int i=1;i<=28;i++){
+        printf("%3d|",G.isPlaced[i]?1:0);
+    }
+    cout<<endl;
+}
+
+
+void Board::controlValidirt(){
+    int totP=0;
+    for(int i=1;i<=28;i++){
+        if(G.isPlaced[i]){
+            totP++;;
+            positionT p=G.getPosition(i);
+            if(G.high[p]==0){
+                cout<<"NOOOO"<<endl;;
+            }
+            bool ce=false;
+            for(int h=0;h<G.high[p];h++){
+                if(G.gb[h][p]==i)
+                    ce=true;
+            }
+            if(!ce){
+                cout<<"NO ,prese"<<endl;
+            }
+        }
+    }
+    int rp=0;
+    for(int i=0;i<1024;i++){
+        rp+=G.high[i];
+    }
+    if(rp!=totP){
+        cout<<"NOOO diff num"<<endl;
+    }
 }
 
 #endif
