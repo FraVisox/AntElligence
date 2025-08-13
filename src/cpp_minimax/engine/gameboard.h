@@ -105,10 +105,11 @@ class gameboard{
      * The articulation points are used to check if a
      * bug can be moved without breaking the hive rule.
      */
+
+    int disc[1024],low[1024];
+
     void find_articulation(){    
         BoardBitSet visited_dfs;
-        int disc[SIZE_BOARD*SIZE_BOARD],low[SIZE_BOARD*SIZE_BOARD];
-
         not_movable_position.reset();
         if(occupied.none())
             return;
@@ -135,39 +136,38 @@ class gameboard{
      *
      * \param v The current position.
      * \param p The parent position, defaults to NULL_POSITION.
-     */
-    void dfs(positionT &v, const positionT &p,BoardBitSet &visited_dfs,int disc[],int low[], bool flag=false) {
+        */
+        void dfs(positionT &v, const positionT &p,BoardBitSet &visited_dfs,int disc[],int low[], bool flag=false) {
 
-        //Mark this as visited
-        visited_dfs.set(v,1);
+            //Mark this as visited
+            visited_dfs.set(v,1);
 
-        //Set the discovery time and low time as current time
-        disc[v] = low[v] = timer++;
+            //Set the discovery time and low time as current time
+            disc[v] = low[v] = timer++;
 
-        int children=0;
-        for (int dir=0;dir<6;dir++){
-            positionT to=applayMove(v,dir);
-            if(!occupied.get_bit(to))continue;
-            //If this is a back edge, update low
-            if (visited_dfs.get_bit(to)) {
-                low[v] = min(low[v], disc[to]);
-            } else {
-                //Make it a children of this node and visit it
-                dfs(to, v,visited_dfs,disc,low,true);
-                //Check if the subtree rooted at v has a connection to one of the ancestors of u
-                low[v] = min(low[v], low[to]);
-                
-                //If the subtree rooted at to has not a connection to one of the ancestors of u, this is an articulation point
-                if (low[to] >= disc[v] && flag)
-                    not_movable_position.set(v,1);
-                
-                ++children;
+            int children=0;
+            for (int dir=0;dir<6;dir++){
+                positionT to=applayMove(v,dir);
+                if(!occupied.get_bit(to))continue;
+
+                if (visited_dfs.get_bit(to)) {
+                    low[v] = min(low[v], disc[to]);
+                } else {
+
+                    dfs(to, v,visited_dfs,disc,low,true);
+
+                    low[v] = min(low[v], low[to]);
+                    
+                    if (low[to] >= disc[v] && flag)
+                        not_movable_position.set(v,1);
+                    
+                    ++children;
+                }
             }
+            if(!flag && children > 1)
+                not_movable_position.set(v,1);
         }
-        if(!flag && children > 1)
-            not_movable_position.set(v,1);
-    }
 
-};
+    };
 
 #endif

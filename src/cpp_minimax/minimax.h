@@ -12,7 +12,6 @@
 #include  "engine/dynamic_eval.h"
 #include <unordered_map>
 
-extern unordered_map<size_t,double> HMP[10];
 class MinimaxAgent {
     DynEval ev;
 public:
@@ -42,7 +41,6 @@ public:
         else
             timeLimit = chrono::seconds(tl);
 
-        for(int i=0;i<10;i++){HMP[i%10].reserve(4020759);}
     }
 
     actionT calculate_best_move(Board &board);

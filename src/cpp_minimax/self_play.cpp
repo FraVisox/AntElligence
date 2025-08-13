@@ -26,11 +26,11 @@ int main(){
     MinimaxAgent a(5);
 
     //try{
-    srand(51);
+    //srand(13);
 
     Board board(GameType::Base_MLP);
     int i=0;
-    while(board.currentTurn<80 && board.getGameState()<2){
+    while(board.currentTurn<70 && board.getGameState()<2){
         i++;
         actionT M;
         if(board.currentTurn&1 ||board.currentTurn<30 ){

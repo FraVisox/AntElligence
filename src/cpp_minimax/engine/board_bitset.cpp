@@ -37,6 +37,8 @@ void BoardBitSet::set(const  uint64_t i,const  uint64_t v){
 }
 
 bool BoardBitSet::get_bit(const uint64_t i) const {
+
+
     return (this->bv[i >> 6]>>(63-(i &63u)))&1;
 }
 
@@ -108,7 +110,7 @@ BoardBitSet operator~(const BoardBitSet& a){
 
 
 
-void BoardBitSet::printDBG(){
+void BoardBitSet::printDBG()const {
     for(int i=16;i<48;i++){
         printf("%4d",(32*i+16)&1023);
         if(i<10)cout<<" ";
@@ -200,21 +202,38 @@ BoardBitSet BoardBitSet::getRot0() const {
     const __m512i nb0 = _mm512_permutex2var_epi64(lo, idx_next0, hi);
     const __m512i nb1 = _mm512_permutex2var_epi64(hi, idx_next0, lo);
 
-    __m512i out0 = _mm512_shldi_epi64(lo, nb0, 1);
-    __m512i out1 = _mm512_shldi_epi64(hi, nb1, 1);
-    BoardBitSet ba1(out0,out1);
-    
-    return ba1;
+    //__m512i out0 = _mm512_shldi_epi64(lo, nb0, 1);
+    //__m512i out1 = _mm512_shldi_epi64(hi, nb1, 1);
+    //BoardBitSet ba1(out0,out1);
+
+    __m512i o1 = _mm512_or_si512(_mm512_slli_epi64(lo, 1),
+                               _mm512_srli_epi64(nb0, 63));
+    __m512i o2 = _mm512_or_si512(_mm512_slli_epi64(hi, 1),
+                               _mm512_srli_epi64(nb1, 63));
+
+    BoardBitSet ba2(o1,o2);
+
+   
+    return ba2;
 }
 
 BoardBitSet BoardBitSet::getRot1() const {    
     const __m512i nb0 = _mm512_permutex2var_epi64(lo, idx_next0, hi);
     const __m512i nb1 = _mm512_permutex2var_epi64(hi, idx_next0, lo);
 
-    __m512i out0 = _mm512_shldi_epi64(lo, nb0, 32);
-    __m512i out1 = _mm512_shldi_epi64(hi, nb1, 32);
-    BoardBitSet ba1(out0,out1);
-    return ba1;
+    //__m512i out0 = _mm512_shldi_epi64(lo, nb0, 32);
+    //__m512i out1 = _mm512_shldi_epi64(hi, nb1, 32);
+    //BoardBitSet ba1(out0,out1);
+
+     __m512i o1 = _mm512_or_si512(_mm512_slli_epi64(lo, 32),
+                               _mm512_srli_epi64(nb0, 32));
+    __m512i o2 = _mm512_or_si512(_mm512_slli_epi64(hi, 32),
+                               _mm512_srli_epi64(nb1, 32));
+
+    BoardBitSet ba2(o1,o2);
+
+
+    return ba2;
 }
 
 
@@ -222,10 +241,19 @@ BoardBitSet BoardBitSet::getRot2() const {
     const __m512i nb0 = _mm512_permutex2var_epi64(lo, idx_next0, hi);
     const __m512i nb1 = _mm512_permutex2var_epi64(hi, idx_next0, lo);
 
-    __m512i out0 = _mm512_shldi_epi64(lo, nb0, 31);
-    __m512i out1 = _mm512_shldi_epi64(hi, nb1, 31);
-    BoardBitSet ba1(out0,out1);
-    return ba1;
+    //__m512i out0 = _mm512_shldi_epi64(lo, nb0, 31);
+    //__m512i out1 = _mm512_shldi_epi64(hi, nb1, 31);
+    //BoardBitSet ba1(out0,out1);
+
+     __m512i o1 = _mm512_or_si512(_mm512_slli_epi64(lo, 31),
+                               _mm512_srli_epi64(nb0, 33));
+    __m512i o2 = _mm512_or_si512(_mm512_slli_epi64(hi, 31),
+                               _mm512_srli_epi64(nb1, 33));
+
+    BoardBitSet ba2(o1,o2);
+    
+
+    return ba2;
 }
 
 const __m512i idx_prev3 = _mm512_set_epi64(6,5,4,3,2,1,0,15);
@@ -233,10 +261,17 @@ BoardBitSet BoardBitSet::getRot3() const {
     const __m512i pv0 = _mm512_permutex2var_epi64(lo, idx_prev3, hi); // prev for v0
     const __m512i pv1 = _mm512_permutex2var_epi64(hi, idx_prev3, lo); // prev for v1
 
-    __m512i out0 = _mm512_shrdi_epi64(lo, pv0, 1);
-    __m512i out1 = _mm512_shrdi_epi64(hi, pv1, 1);
-    BoardBitSet ba1(out0,out1);
-    return ba1;
+    //__m512i out0 = _mm512_shrdi_epi64(lo, pv0, 1);
+    //__m512i out1 = _mm512_shrdi_epi64(hi, pv1, 1);
+    //BoardBitSet ba1(out0,out1);
+
+    __m512i o1 = _mm512_or_si512(_mm512_srli_epi64(lo, 1),
+                                _mm512_slli_epi64(pv0, 63));
+    __m512i o2 = _mm512_or_si512(_mm512_srli_epi64(hi, 1),
+                                _mm512_slli_epi64(pv1, 63));
+    BoardBitSet ba2(o1,o2);
+
+    return ba2;
 
 }
 
@@ -244,19 +279,34 @@ BoardBitSet BoardBitSet::getRot4() const {
     const __m512i pv0 = _mm512_permutex2var_epi64(lo, idx_prev3, hi); // prev for v0
     const __m512i pv1 = _mm512_permutex2var_epi64(hi, idx_prev3, lo); // prev for v1
 
-    __m512i out0 = _mm512_shrdi_epi64(lo, pv0, 32);
-    __m512i out1 = _mm512_shrdi_epi64(hi, pv1, 32);
-    BoardBitSet ba1(out0,out1);
-    return ba1;
+    //__m512i out0 = _mm512_shrdi_epi64(lo, pv0, 32);
+    //__m512i out1 = _mm512_shrdi_epi64(hi, pv1, 32);
+
+
+    __m512i o1 = _mm512_or_si512(_mm512_srli_epi64(lo, 32),
+                                _mm512_slli_epi64(pv0, 32));
+    __m512i o2 = _mm512_or_si512(_mm512_srli_epi64(hi, 32),
+                                _mm512_slli_epi64(pv1, 32));
+
+    BoardBitSet ba2(o1,o2);
+    //BoardBitSet ba1(out0,out1);
+    return ba2;
 }
 
 BoardBitSet BoardBitSet::getRot5() const {    
     const __m512i pv0 = _mm512_permutex2var_epi64(lo, idx_prev3, hi); // prev for v0
     const __m512i pv1 = _mm512_permutex2var_epi64(hi, idx_prev3, lo); // prev for v1
 
-    __m512i out0 = _mm512_shrdi_epi64(lo, pv0, 31);
-    __m512i out1 = _mm512_shrdi_epi64(hi, pv1, 31);
-    BoardBitSet ba1(out0,out1);
-    return ba1;
+    //__m512i out0 = _mm512_shrdi_epi64(lo, pv0, 31);
+    //__m512i out1 = _mm512_shrdi_epi64(hi, pv1, 31);
+
+    //BoardBitSet ba1(out0,out1);
+    __m512i o1 = _mm512_or_si512(_mm512_srli_epi64(lo, 31),
+                                _mm512_slli_epi64(pv0, 33));
+    __m512i o2 = _mm512_or_si512(_mm512_srli_epi64(hi, 31),
+                                _mm512_slli_epi64(pv1, 33));
+    BoardBitSet ba2(o1,o2);
+   
+    return ba2;
 }
 

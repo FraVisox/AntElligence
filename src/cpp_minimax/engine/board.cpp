@@ -52,7 +52,7 @@ int Board::currentPlayerTurn(){
     return (currentTurn-1)/2+1;
 }
 
-Board::Board(const Board& b,const actionT a ): G(b.G,a){
+Board::Board(const Board& b,const actionT a ): G(b.G){
     
     this->currentTurn=b.currentTurn;
     this->inHandPiece=b.inHandPiece;
@@ -126,7 +126,7 @@ void Board::addPieceHand(pieceT p){
 
 
 void Board::undoAction(){
-    
+
     pieceT b=     prevBug[currentTurn-1];
     positionT pos=prevPos[currentTurn-1];
     prevMoved[0]=hisPM1[currentTurn-1];
@@ -471,8 +471,10 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
             int1hi=_mm512_and_si512(canGoTo[0].hi,reachablehi);
             pv0 = _mm512_permutex2var_epi64(int1lo, idx_prev3, int1hi); // prev for v0
             pv1 = _mm512_permutex2var_epi64(int1hi, idx_prev3, int1lo); // prev for v1
-            out0 = _mm512_shrdi_epi64(int1lo, pv0, 1);
-            out1 = _mm512_shrdi_epi64(int1hi, pv1, 1);
+            out0 = _mm512_or_si512(_mm512_srli_epi64(int1lo, 1),
+                                _mm512_slli_epi64(pv0, 63));//_mm512_shrdi_epi64(int1lo, pv0, 1);
+            out1 = _mm512_or_si512(_mm512_srli_epi64(int1hi, 1),
+                                _mm512_slli_epi64(pv1, 63));//_mm512_shrdi_epi64(int1hi, pv1, 1);
             reachable.lo= _mm512_or_si512(reachablelo, out0);
             reachable.hi = _mm512_or_si512(reachablehi, out1);
             
@@ -491,8 +493,10 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
             int1hi=_mm512_and_si512(canGoTo[1].hi,reachablehi);
             pv0 = _mm512_permutex2var_epi64(int1lo, idx_prev3, int1hi); // prev for v0
             pv1 = _mm512_permutex2var_epi64(int1hi, idx_prev3, int1lo); // prev for v1
-            out0 = _mm512_shrdi_epi64(int1lo, pv0, 32);
-            out1 = _mm512_shrdi_epi64(int1hi, pv1, 32);
+            out0 = _mm512_or_si512(_mm512_srli_epi64(int1lo, 32),
+                                _mm512_slli_epi64(pv0, 32));//_mm512_shrdi_epi64(int1lo, pv0, 32);
+            out1 = _mm512_or_si512(_mm512_srli_epi64(int1hi, 32),
+                                _mm512_slli_epi64(pv1, 32));//_mm512_shrdi_epi64(int1hi, pv1, 32);
             reachable.lo= _mm512_or_si512(reachablelo, out0);
             reachable.hi = _mm512_or_si512(reachablehi, out1);
 
@@ -511,8 +515,10 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
             int1hi=_mm512_and_si512(canGoTo[2].hi,reachablehi);
             pv0 = _mm512_permutex2var_epi64(int1lo, idx_prev3, int1hi); // prev for v0
             pv1 = _mm512_permutex2var_epi64(int1hi, idx_prev3, int1lo); // prev for v1
-            out0 = _mm512_shrdi_epi64(int1lo, pv0, 31);
-            out1 = _mm512_shrdi_epi64(int1hi, pv1, 31);
+            out0 =  _mm512_or_si512(_mm512_srli_epi64(int1lo, 31),
+                                _mm512_slli_epi64(pv0, 33));//_mm512_shrdi_epi64(int1lo, pv0, 31);
+            out1 = _mm512_or_si512(_mm512_srli_epi64(int1hi, 31),
+                                _mm512_slli_epi64(pv1, 33)); //_mm512_shrdi_epi64(int1hi, pv1, 31);
             reachable.lo= _mm512_or_si512(reachablelo, out0);
             reachable.hi = _mm512_or_si512(reachablehi, out1);
 
@@ -531,8 +537,10 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
             int1hi=_mm512_and_si512(canGoTo[3].hi,reachablehi);
             nb0 = _mm512_permutex2var_epi64(int1lo, idx_next0, int1hi);
             nb1 = _mm512_permutex2var_epi64(int1hi, idx_next0, int1lo);
-            out0 = _mm512_shldi_epi64(int1lo, nb0, 1);
-            out1 = _mm512_shldi_epi64(int1hi, nb1, 1);
+            out0 = _mm512_or_si512(_mm512_slli_epi64(int1lo, 1),
+                               _mm512_srli_epi64(nb0, 63));//_mm512_shldi_epi64(int1lo, nb0, 1);
+            out1 =  _mm512_or_si512(_mm512_slli_epi64(int1hi, 1),
+                               _mm512_srli_epi64(nb1, 63));//_mm512_shldi_epi64(int1hi, nb1, 1);
             reachable.lo= _mm512_or_si512(reachablelo, out0);
             reachable.hi = _mm512_or_si512(reachablehi, out1);
             
@@ -550,8 +558,10 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
             int1hi=_mm512_and_si512(canGoTo[4].hi,reachablehi);
             nb0 = _mm512_permutex2var_epi64(int1lo, idx_next0, int1hi);
             nb1 = _mm512_permutex2var_epi64(int1hi, idx_next0, int1lo);
-            out0 = _mm512_shldi_epi64(int1lo, nb0, 32);
-            out1 = _mm512_shldi_epi64(int1hi, nb1, 32);
+            out0 = _mm512_or_si512(_mm512_slli_epi64(int1lo, 32),
+                               _mm512_srli_epi64(nb0, 32));//_mm512_shldi_epi64(int1lo, nb0, 32);
+            out1 = _mm512_or_si512(_mm512_slli_epi64(int1hi, 32),
+                               _mm512_srli_epi64(nb1, 32));//_mm512_shldi_epi64(int1hi, nb1, 32);
             reachable.lo= _mm512_or_si512(reachablelo, out0);
             reachable.hi = _mm512_or_si512(reachablehi, out1);
 
@@ -569,8 +579,10 @@ void Board::possibleMoves_SoldierAnt(pieceT bug){
             int1hi=_mm512_and_si512(canGoTo[5].hi,reachablehi);
             nb0 = _mm512_permutex2var_epi64(int1lo, idx_next0, int1hi);
             nb1 = _mm512_permutex2var_epi64(int1hi, idx_next0, int1lo);
-            out0 = _mm512_shldi_epi64(int1lo, nb0, 31);
-            out1 = _mm512_shldi_epi64(int1hi, nb1, 31);
+            out0 = _mm512_or_si512(_mm512_slli_epi64(int1lo, 31),
+                               _mm512_srli_epi64(nb0, 33));//_mm512_shldi_epi64(int1lo, nb0, 31);
+            out1 = _mm512_or_si512(_mm512_slli_epi64(int1hi, 31),
+                               _mm512_srli_epi64(nb1, 33));//_mm512_shldi_epi64(int1hi, nb1, 31);
             reachable.lo= _mm512_or_si512(reachablelo, out0);
             reachable.hi = _mm512_or_si512(reachablehi, out1);
 
@@ -1054,31 +1066,22 @@ string Board::toString() {
     return "Base+MLP;"+GameStateToString(getGameState())+";"+ColorToCompleteString(currentColor())+"["+to_string(currentPlayerTurn())+"]";
 }
 
-bitset<285> Board::simple_hash() {
-    // TODO: use color
-    return G.toHash();
-}
 
 
 
 #include <string_view>
 #include <array>
-struct MurmurStyleHasher {
-    std::size_t operator()(const std::array<uint16_t, 30>& arr) const {
-        uint16_t v[32];
-        auto ptr = reinterpret_cast<const char*>(v);
-        return std::hash<std::string_view>{}(std::string_view(ptr, sizeof(arr)));
-    }
-};
 
 std::size_t Board::getHash()const  {
-    int16_t v[28];
+    int16_t v[30];
 
-    for(int i=1;i<28;i++){
-        v[i-1]=(G.isPlaced[i]?G.bugPosition[i]:0);
+    for(int i=1;i<=28;i++){
+        v[i-1]=(G.isPlaced[i]?G.bugPosition[i]:1025);
     }
+    v[28]=prevMoved[0];
+    v[29]=prevMoved[1];
     return std::hash<std::string_view>{}(
-        std::string_view(reinterpret_cast<const char*>(v), 28 * sizeof(int16_t))
+        std::string_view(reinterpret_cast<const char*>(v), 30 * sizeof(int16_t))
     );
 }
 
@@ -1181,6 +1184,7 @@ void Board::printBoard(){
         printf("%3d|",G.isPlaced[i]?1:0);
     }
     cout<<endl;
+    cout<<" prev moved: "<<prevMoved[0]<<",  "<<prevMoved[1]<<endl;
 }
 
 
