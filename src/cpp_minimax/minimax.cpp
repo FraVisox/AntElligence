@@ -1,128 +1,42 @@
 #include "minimax.h"
-#include <string>
-#include <vector>
 #include <algorithm>
-#include <limits>
-#include <iostream>
-#include <chrono>
-#include <bitset>
-#include <future>
-#include <vector>
 #include <atomic>
+#include <bitset>
+#include <chrono>
+#include <future>
+#include <iostream>
+#include <limits>
 #include <mutex>
+#include <string>
+#include <unordered_map>
+#include <vector>
 #include "TT.h"
-
 #include <omp.h>
 
-#include <future>
-#include <vector>
-#include <atomic>
-#include <mutex>
-
-
-std::atomic<bool> time_up_flag(false);
-
-bool MinimaxAgent::is_time_up() const{
-    return (std::chrono::high_resolution_clock::now() - start_time )>= timeLimit;
+bool MinimaxAgent::is_time_up() const {
+    return (std::chrono::high_resolution_clock::now() - start_time) >= timeLimit;
 }
-
-
-int SETUP_depth_pruning;
-
 std::atomic<long> toale_evaled{0};
 
-unordered_map<size_t,double> HMP[10];
+
+int SETUP_depth_pruning = 3;
+
+struct MoveScore {
+    actionT move{};
+    double  score{};
+    bool operator<(const MoveScore& rhs) const noexcept { return score < rhs.score; }
+};
+
 double MinimaxAgent::utility(Board &board) const {
     toale_evaled.fetch_add(1, std::memory_order_relaxed);
         return ev.evalBoardCurrentPlayer(board);
-/*
-
-    #pragma omp critical(MOR)
-    size_t H=board.getHash();
-
-
-    unordered_map<size_t,double>::iterator c;
-
-    #pragma omp critical(HMP)
-    c=HMP[board.currentTurn%10].find(H); 
-
-    if(c!=HMP[board.currentTurn%10].end()){
-
-        return c->second;
-    }
-    double v1=ev.evalBoardCurrentPlayer(board);
-    auto P=make_pair(H,v1);
-    
-    #pragma omp critical(HMP)
-    HMP[board.currentTurn%10].insert(P);
-
-    return v1;*/
 }
 
-actionT MinimaxAgent::initiate_minimax_parallel(Board &board,int depth) {
+// Negamax with alpha-beta pruning. Keep signature/name for compatibility.
+double MinimaxAgent::minmax2(Board& board, int depth_remaining, double alpha, double beta) const {
+    if (is_time_up()) return MAX_EVAL; // sentinel: caller should stop searching
 
-    GameState state = board.getGameState();
-    if (state == GameState::DRAW    ||
-        state == GameState::WHITE_WIN||
-        state == GameState::BLACK_WIN) {
-        return pass();
-    }
-    double best_value = MIN_EVAL;
-    double alpha = MIN_EVAL;
-    double beta = MAX_EVAL;
-
-    board.ComputePossibleMoves();
-    
-
-    actionT best_move = board.resAction[0];
-    time_up_flag.store(false);
-
-    int numAction=board.numAction;
-    vector<actionT> nextAct(numAction);
-    for(int i=0;i<numAction;i++)
-        nextAct[i]=board.resAction[i];
-
-    vector<pair<double,actionT>> vectSort(numAction);
-    for(int i=0;i<numAction;i++){
-        board.applayAction(nextAct[i]);
-        vectSort[i]=make_pair(utility(board),nextAct[i]);
-        board.undoAction();
-    }
-
-    sort(vectSort.begin(),vectSort.end());
-    //reverse(vectSort.begin(),vectSort.end());
-    double eval=0;
-    for(int j=0;j<numAction;j++){
-        
-        actionT move = vectSort[j].second;
-        board.applayAction(move);
-        eval= -minmax2(board, depth - 1, -beta, -alpha);
-        board.undoAction();
-
-        if (eval > best_value) {
-            best_value = eval;
-            best_move =move;;
-        }
-        alpha = std::max(alpha, eval);
-        if (alpha >= beta) {
-            break;
-        }
-    }
-
-    clog<<"Evalueted "<<toale_evaled<<" board, found solution "<<best_move<<" with value "<<best_value<<" and depth "<<depth<<endl;
-    return best_move;
-}
-
-
-
-
-
-
-double MinimaxAgent::minmax2( Board &board, int depth_remaining, double alpha, double beta) const {
-    if(is_time_up()){return MAX_EVAL;}
-    //======================
-    //      BASE CASE
-    //======================
+    // Base cases
     GameState state = board.getGameState();
     if (state == GameState::DRAW    ||
         state == GameState::WHITE_WIN||
@@ -131,230 +45,210 @@ double MinimaxAgent::minmax2( Board &board, int depth_remaining, double alpha, d
         return utility(board);
     }
 
-
-    //========================================================
-    //     non base case: define best and next acts
-    //========================================================
-
     board.ComputePossibleMoves();
-
-    double best_value=MIN_EVAL;
-    int n=board.numAction;    
+    const int n = board.numAction;
     vector<actionT> nextActs(n);
- 
+    
+    
     for(int i=0;i<n;i++) nextActs[i]=board.resAction[i];
 
+    // Fast leaf (no parallel here)
+    if (depth_remaining == 1) {
+        double best_value = MIN_EVAL;
+        for (int i = 0; i < n; ++i) {
 
-    //===============================================
-    //      Trivial case - non parallel
-    //================================================
-    if(depth_remaining==1 ){        
-        double score;   
-        for (int i = 0; i < n; i++) {
-            
-            board.applayAction(nextActs[i]);
-            score = -utility(board);
+            const actionT mv = nextActs[i];
+            board.applayAction(mv);
+            // negamax: value = -eval(child)
+            const double v = -utility(board);
             board.undoAction();
-            best_value = std::max(best_value, score);
-            alpha = std::max(alpha, score);
-
-            if (alpha>=beta ){
-                return best_value;  
-            }
-        } 
+            if (v > best_value) best_value = v;
+            if (best_value > alpha) alpha = best_value;
+            if (alpha >= beta) break;
+        }
         return best_value;
     }
 
-    //========================================================
-    //      Sort the variables based on utils
-    //========================================================
-
-    vector<pair<double,actionT>> sorted_pair;
-    sorted_pair.reserve(n);
-    for(int i=0;i<n;i++){
-        board.applayAction(nextActs[i]);
-        sorted_pair.emplace_back(utility(board),nextActs[i]);
+    // Build a small local buffer for ordering
+    std::vector<MoveScore> ordered;
+    ordered.reserve(n);
+    for (int i = 0; i < n; ++i) {
+        const actionT mv = nextActs[i];
+        board.applayAction(mv);
+        ordered.push_back(MoveScore{mv, utility(board)});
         board.undoAction();
     }
-    
-    sort(sorted_pair.begin(),sorted_pair.end());
-    //reverse(sorted_pair.begin(),sorted_pair.end());
+    std::sort(ordered.begin(), ordered.end()); // low->high; we use negamax so high is searched later
 
-    
+    double best_value = MIN_EVAL;
 
-    //=======================================================
-    //      parallel starting: work for latest depth (e.g. 3)
-    //=======================================================
-    if(depth_remaining==SETUP_depth_pruning){
-        
-        vector<double> resUtil(n);
-        bool exitAll=false;
+    // Parallel only at the chosen frontier (same as your SETUP_depth_pruning)
+    if (depth_remaining == SETUP_depth_pruning) {
+        std::atomic<bool> exitAll{false};
+        std::atomic<double> alphaAtomic{alpha};
 
-        #pragma omp parallel for schedule(dynamic,1) 
-        for(int i=0;i<n;i++){
+        // Results buffer
+        std::vector<double> resUtil(n, MIN_EVAL);
 
-            resUtil[i]=MIN_EVAL;
-            double alphaInn=-beta;
-            double betaInn=-alpha;
-            double best_valueInn = MIN_EVAL;
-            bool localExit;
-            #pragma omp atomic read
-            localExit=exitAll;
-                    
-            if(!localExit){
-                    
+        #pragma omp parallel for schedule(dynamic,1)
+        for (int i = 0; i < n; ++i) {
+            if (exitAll.load(std::memory_order_acquire)) continue;
 
-                // ===================================
-                // EXPLICIT FIRST LEVEL OF COMPUTATION
-                // ===================================
-                
-                Board b1(board,sorted_pair[i].second);    
-                b1.ComputePossibleMoves();
-                
-                
-                // Sort variables
-                int innAct=b1.numAction;
-                vector<actionT> futureActs(b1.resAction,b1.resAction+innAct);
+            // Copy board at this split point (your Board copy ctor by move is used elsewhere; follow that)
+            Board b1(board, ordered[i].move);
+            b1.ComputePossibleMoves();
+            const int innAct = b1.numAction;
 
+            // Second-level ordering (cheap)
+            vector<actionT> innNext(innAct);
+            for(int i=0;i<innAct;++i)innNext[i]=b1.resAction[i];
+            std::vector<MoveScore> inner;
+            inner.reserve(innAct);
+            for (int q = 0; q < innAct; ++q) {
+                const actionT mv = innNext[q];
+                b1.applayAction(mv);
+                inner.push_back(MoveScore{mv, utility(b1)});
+                b1.undoAction();
+            }
+            std::sort(inner.begin(), inner.end());
 
-                vector<pair<double,actionT>> sorted_pairInn;
-                sorted_pairInn.reserve(innAct);
-                for(int q=0;q<innAct;q++){
-                    b1.applayAction(futureActs[q]);
-                    sorted_pairInn.emplace_back(utility(b1),futureActs[q]);
-                    b1.undoAction();
-                }
-                sort(sorted_pairInn.begin(),sorted_pairInn.end());
-                
+            // Local window using a snapshot of global alpha
+            double localAlpha = -beta;                 // note: negated window for child (negamax)
+            double localBeta  = -alphaAtomic.load(std::memory_order_acquire);
+            double best_local = MIN_EVAL;
 
-                double tempAlpha;
-                // First level search
-                for(int q=0;q<innAct;q++){
-                                     
-                    #pragma omp atomic read
-                    localExit=exitAll;
-                    if(localExit)
-                        break;
+            for (int q = 0; q < innAct; ++q) {
+                if (exitAll.load(std::memory_order_acquire) || is_time_up()) break;
 
-                    #pragma omp atomic read 
-                    tempAlpha=alpha;
-                    
-                    betaInn=min(-tempAlpha,betaInn);
+                const actionT mv = inner[q].move;
+                b1.applayAction(mv);
+                // jump two plies: we already applied one ply (root child), this is the second
+                const double score = -minmax2(b1, depth_remaining - 2, -localBeta, -localAlpha);
+                b1.undoAction();
 
-                    b1.applayAction(sorted_pairInn[q].second);
-                    double score=-minmax2(b1,depth_remaining-2,-betaInn,-alphaInn);
-                    b1.undoAction();
-                    best_valueInn=max(best_valueInn,score);
-                    alphaInn=max(alphaInn,score);
+                if (score > best_local) best_local = score;
+                if (best_local > localAlpha) localAlpha = best_local;
+                if (localAlpha >= localBeta) break;
 
-                    if(alphaInn>=betaInn){
-                        break;
-                    }
-                }
-                resUtil[i]=-best_valueInn;
+                // tighten local beta from global alpha (reduces work as global alpha rises)
+                const double snapA = alphaAtomic.load(std::memory_order_acquire);
+                if (-snapA < localBeta) localBeta = -snapA;
+            }
 
-                double localA;        
-                #pragma omp atomic read
-                localA=alpha;
+            resUtil[i] = -best_local; // back to parent perspective
 
-
-                   
-                if (localA<resUtil[i]) {
-                        #pragma omp atomic write
-                        alpha =resUtil[i];
-                }
-                if(localA>=beta){
-                        #pragma omp atomic write
-                        exitAll=true;
-                }
-                
+            // Try to raise global alpha if this move improved
+            double curA = alphaAtomic.load(std::memory_order_relaxed);
+            while (resUtil[i] > curA && !alphaAtomic.compare_exchange_weak(curA, resUtil[i],
+                                                                           std::memory_order_release,
+                                                                           std::memory_order_relaxed)) {
+                // curA updated with current value; loop until success/fail
+            }
+            // Cutoff?
+            if (alphaAtomic.load(std::memory_order_acquire) >= beta) {
+                exitAll.store(true, std::memory_order_release);
             }
         }
-        for(int i=0;i<n;i++)
-                best_value=max(best_value,resUtil[i]);
 
+        for (int i = 0; i < n; ++i) {
+            if (resUtil[i] > best_value) best_value = resUtil[i];
+            if (best_value > alpha) alpha = best_value;
+            if (alpha >= beta) break;
+        }
         return best_value;
     }
 
-
-    //========================================================
-    //      Non parallel case: execute all
-    //========================================================
-    
-    
-    for(int i=0;i<n;i++){
-        board.applayAction(sorted_pair[i].second);
-        double score=-minmax2(board,depth_remaining-1,-beta,-alpha);
+    // Regular (non-parallel) search
+    for (int i = 0; i < n; ++i) {
+        const actionT mv = ordered[i].move;
+        board.applayAction(mv);
+        const double v = -minmax2(board, depth_remaining - 1, -beta, -alpha);
         board.undoAction();
-        best_value=max(best_value,score);
-        alpha=max(alpha,score);
 
-        if(alpha>=beta){
-            return best_value;
-        }
+        if (v > best_value) best_value = v;
+        if (best_value > alpha) alpha = best_value;
+        if (alpha >= beta) break;
+
+        if (is_time_up()) break;
     }
     return best_value;
 }
 
-
-pair<actionT,double> MinimaxAgent::minimaxComplete(Board board,int d){
-    pair<actionT,double> ris=make_pair(0,MIN_EVAL);
-    
-    if(d==0){
-        return make_pair(0,utility(board));
+actionT MinimaxAgent::initiate_minimax_parallel(Board& board, int depth) {
+    // Terminal? (defensive; also keeps your early exit)
+    const GameState st = board.getGameState();
+    if (st == GameState::DRAW || st == GameState::WHITE_WIN || st == GameState::BLACK_WIN) {
+        return pass();
     }
+
+    double best_value = MIN_EVAL;
+    double alpha = MIN_EVAL, beta = MAX_EVAL;
+
     board.ComputePossibleMoves();
-    for(int i=0;i<board.numAction;i++){
-        Board b1(board,board.resAction[i]);
-        //b1.applayAction(board.resAction[i]);
-        double val=-minimaxComplete(b1,d-1).second;
-        if(val>ris.second){
-            ris=make_pair(board.resAction[i],val);
+    const int numAction = board.numAction;
+    if (numAction == 0) return pass();
+
+    // Root move ordering
+    std::vector<MoveScore> ordered;
+    ordered.reserve(numAction);
+    for (int i = 0; i < numAction; ++i) {
+        const actionT mv = board.resAction[i];
+        board.applayAction(mv);
+        ordered.push_back(MoveScore{mv, utility(board)});
+        board.undoAction();
+    }
+    std::sort(ordered.begin(), ordered.end());
+
+    actionT best_move = ordered[0].move;
+
+    for (int j = 0; j < numAction; ++j) {
+        if (is_time_up()) break;
+
+        const actionT move = ordered[j].move;
+        board.applayAction(move);
+        const double eval = -minmax2(board, depth - 1, -beta, -alpha);
+        board.undoAction();
+
+        if (eval > best_value) {
+            best_value = eval;
+            best_move  = move;
         }
+        if (eval > alpha) alpha = eval;
+        if (alpha >= beta) break;
     }
 
-    return ris;
+    std::clog << "Evaluated " << toale_evaled.load() << " boards, best " << best_move
+              << " value " << best_value << " depth " << depth << std::endl;
+    return best_move;
 }
 
-
-
-actionT MinimaxAgent::calculate_best_move(Board &board) {
-    toale_evaled.store(0);
-    time_up_flag.store(false);
+actionT MinimaxAgent::calculate_best_move(Board& board) {
+    toale_evaled.store(0, std::memory_order_relaxed);
     start_time = std::chrono::high_resolution_clock::now();
 
-
     if (board.currentTurn <= 2) {
-        clog<<"Suggested";
+        std::clog << "Suggested";
         return board.suggestInitialMove();
     }
 
-    board.ComputePossibleMoves();
-    actionT next_move=board.resAction[0];
 
+    actionT next_move;
+    int depth = 4;
+    while (!is_time_up() && depth < 15) {
+        toale_evaled.store(0, std::memory_order_relaxed);
+        // Keep your split depth; you can tune it per branching factor
+        SETUP_depth_pruning = 3;
 
-    int depth=4;
-  //  auto r1=minimaxComplete(board,1);cout<<"d =1 has action "<< r1.first<<" with va "<<r1.second<<" evalueted: "<<toale_evaled<<endl;toale_evaled=0;
-    
-//    auto r2=minimaxComplete(board,2);cout<<"d =2 has action "<< r2.first<<" with va "<<r2.second<<" evalueted: "<<toale_evaled<<endl;toale_evaled=0;
-    //auto r3=minimaxComplete(board,3);cout<<"d =3 has action "<< r3.first<<" with va "<<r3.second<<" evalueted: "<<toale_evaled<<endl;toale_evaled=0;    
-    //auto r4=minimaxComplete(board,4);cout<<"d =4 has action "<< r4.first<<" with va "<<r4.second<<endl;
-    
-    //omp_set_num_threads(10); // limit to 4 threads
-    while(!is_time_up() && depth <15){
-        toale_evaled=0;
-        SETUP_depth_pruning=3;
-        actionT ris =initiate_minimax_parallel(board,depth);
-        //SETUP_depth_pruning=-1;
-        //ris =  initiate_minimax_parallel(board,depth);
-      
-        if(!is_time_up()){
-            next_move=ris;
-            depth++;
-        }
+        const actionT candidate = initiate_minimax_parallel(board, depth);
+        if (is_time_up()) break;
+
+        next_move = candidate;
+        ++depth;
     }
-    HMP[board.currentTurn%10].clear();
-    HMP[(board.currentTurn+1)%10].clear();
-    
+
+    // Your HMP cleanup left intact (if you re-enable it)
+    //HMP[board.currentTurn % 10].clear();
+    //HMP[(board.currentTurn + 1) % 10].clear();
+
     return next_move;
 }
