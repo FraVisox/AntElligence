@@ -14,7 +14,7 @@ class BoardBitSet {
         alignas(64) uint64_t bv[16];
         alignas(64) __m512i hi,lo;
 
-        void printDBG();
+        void printDBG() const;
 
         BoardBitSet() ;
         BoardBitSet(const __m512i&,const __m512i&) ;
