@@ -26,7 +26,7 @@ int main(){
     MinimaxAgent a(5);
 
     //try{
-    srand(51);
+    //srand(13);
 
     Board board(GameType::Base_MLP);
     int i=0;
