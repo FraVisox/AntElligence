@@ -217,7 +217,7 @@ double DynEval::actionsScore(const Board & b)const {
     }
         */
 
-    for(int i=0;i<32;i++){
+    for(int i=1;i<=28;i++){
         if(actBug[i] == 0){
             score+=W.isPinnedWeight(kind(i));
         }
