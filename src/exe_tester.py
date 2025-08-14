@@ -24,12 +24,12 @@ if platform.system()=="Linux":
     }
 else:
     files_to_match = {
-        #"Minimax": "./cpp_minimax/main.exe",
+        "Minimax": "./cpp_minimax/main.exe",
+        #"Base": "./cpp_minimax/main_base.exe",
         #"Strong": "./comparison_weights.exe"
-        "Strong": "../dist/OurEngineStrong.exe",
+        #"Strong": "../dist/OurEngineStrong.exe",
         "Mzinga": "../dist/MzingaEngine.exe"
     }
-
 options_players = [
     None,
     None,
@@ -147,6 +147,9 @@ def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = No
 
         for match in range(1, matches + 1):
             print(f"Starting Match {match}")
+            print("Results so far: ", stats)
+            print("Player 1: ", str1)
+            print("Player 2: ", str2)
             # Start a new game
             player1.stdin.write(game_start)
             player2.stdin.write(game_start)
@@ -278,6 +281,8 @@ def test_players(files_to_match, options, file_results):
             pl1 = files_to_match[keys[i]]
             pl2 = files_to_match[keys[j]]
             results.extend(play_game(pl1, keys[i], pl2, keys[j], matches=number_of_matches, turns=number_of_turns_per_match, options1=options[i], options2=options[j]))
+            print(results)
+    print(results)
     write_results_to_csv(results, file_results)
 
 # Run the tests

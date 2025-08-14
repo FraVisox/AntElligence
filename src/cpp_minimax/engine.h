@@ -13,7 +13,7 @@ typedef uint16_t actionT;
 class Engine{
     public:
     //  Engine version
-    string VERSION="4.0";
+    string VERSION="5.0";
 
     // What I pass around
     Board board;

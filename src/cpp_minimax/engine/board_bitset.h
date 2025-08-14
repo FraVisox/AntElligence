@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BOARD_BITSET_H
+#define BOARD_BITSET_H
 using namespace std;
 
 #include <cassert>
@@ -51,3 +52,5 @@ BoardBitSet operator^(const BoardBitSet& a,const BoardBitSet& b);
 BoardBitSet operator~(const BoardBitSet& a);
 
 BoardBitSet operator<<(const BoardBitSet& a,const int x);
+
+#endif

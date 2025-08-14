@@ -4,6 +4,19 @@
 #include <fstream>
 using namespace std;
 
+// Integer-only version of startGame weights
+const int startGameInt[8][7] = {
+    { -78668, -40182,   3522,  96533,  24696, -38936,  -23840 }, // Spider
+    { -292118,  42682,   4481,  17665, -30118, -330519, -15571 }, // Beetle
+    { -62143, -37382,      6,      4,      5, -46514,  -29599 }, // Grasshopper
+    { 63558,  -16068, -10847, -27548, -58684,  6083,  -16777 }, // QueenBee
+    { 150335, -54347,   2181, -12190,  -2768, -24781, -124949 }, // SoldierAnt
+    { 147014,  -2891,    274,   7418,  -2217,   5877,   12195 }, // Mosquito
+    {  2403,   2403,      0,   -176, -11221,   2385,    1410 }, // Ladybug
+    {    -9,   1486,      0,   -176,   -132,     24,     851 }  // Pillbug
+};
+
+
 WeightsHelper::WeightsHelper(): placedOffset(0), isPinnedOffset(1), isCoveredOffset(2), noisyOffset(3), quietOffset(4), friendCloseOffset(5), enemyCloseOffset(6) {
 
   std::ifstream file("./cpp_minimax/weights.txt");
@@ -215,6 +228,36 @@ const int WeightsHelper::fasterMateBonus() const {
   return weightVector[71];
 }
 
+
+const int WeightsHelper::startPlacedWeight(BugType bt) const {
+    return startGameInt[bt][0];
+}
+
+const int WeightsHelper::startIsPinnedWeight(BugType bt) const {
+    return startGameInt[bt][1];
+}
+
+const int WeightsHelper::startIsCoveredWeight(BugType bt) const {
+    return startGameInt[bt][2];
+}
+
+const int WeightsHelper::startNoisyWeight(BugType bt) const {
+    return startGameInt[bt][3];
+}
+
+const int WeightsHelper::startQuietWeight(BugType bt) const {
+    return startGameInt[bt][4];
+}
+
+const int WeightsHelper::startFriendCloseWeight(BugType bt) const {
+    return startGameInt[bt][5];
+}
+
+const int WeightsHelper::startEnemyCloseWeight(BugType bt) const {
+    return startGameInt[bt][6];
+}
+
+/*
 double startGame[8][7]={
     {//QueenBee
     63558.424116300164,    //InPlayWeight
@@ -353,7 +396,6 @@ double endgame[8][7]={
       24.950130621306656,  //Pillbug.EnemyNeighborWeight>
 }};
 
-/*
 
 
     
@@ -388,7 +430,6 @@ double endgame[8][7]={
     {1,0,0,0, 0, 0   ,0 },
     {1,0,0,0, 0, 0   ,0 }
 };
-*/
 // InPlayWeight 0
 // IsPinnedWeight 1 
 // IsCoveredWeight 2
@@ -405,5 +446,6 @@ double getWeight(BugType type, int key,int gamekind) {
       v=endgame[type][key];
     return v;
 }
+*/
 
 

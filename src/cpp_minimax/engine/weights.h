@@ -9,6 +9,14 @@ class WeightsHelper{
         WeightsHelper();
         const void initDefaultWeights();
 
+        const  int startPlacedWeight(BugType) const;
+        const  int startIsPinnedWeight(BugType) const;
+        const  int startIsCoveredWeight(BugType) const;
+        const  int startNoisyWeight(BugType) const ;
+        const  int startQuietWeight(BugType) const ;
+        const  int startFriendCloseWeight(BugType)const;
+        const  int startEnemyCloseWeight(BugType)const;
+
         const  int placedWeight(BugType) const;
         const int placedOffset;
 
@@ -48,11 +56,13 @@ class WeightsHelper{
         const int fasterMateBonus() const;
 
 };
+/*
 extern double startGame[8][7];
 
 extern  double endgame[8][7];
 
 
 double getWeight(BugType bt,int,int=0);
+*/
 
 #endif

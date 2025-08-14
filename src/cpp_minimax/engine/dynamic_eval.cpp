@@ -4,6 +4,10 @@
 #include "enums.h"
 #include <chrono>
 
+// =====================================================
+// Utility functions
+// =====================================================
+
 bool isEnemyPiece(pieceT p, PlayerColor me) {
     if (me == PlayerColor::WHITE) return p >= 15 && p <= 28;
     else return p >= 1 && p <= 14;
@@ -13,13 +17,162 @@ bool isMyPiece(pieceT p, PlayerColor me) {
     return !isEnemyPiece(p, me);
 }
 
+inline bool isAdjacent(positionT a, positionT b) {
+    for (int i = 0; i < 6; i++) {
+        if (((a + dirDif[i]) & 1023) == (b & 1023)) return true;
+    }
+    return false;
+}
+
+int distanceToQueen(positionT a, positionT b) {
+    // Approximate distance on hex grid (valid since it's small)
+    int dx = ((a & 31) - (b & 31));
+    int dy = ((a >> 5) - (b >> 5));
+    return abs(dx) + abs(dy);
+}
+
+bool isGateFormationAroundQueen(const Board& b, positionT qPos) {
+    int gateCount = 0;
+    for (int i = 0; i < 6; i++) {
+        positionT p1 = (qPos + dirDif[i]) & 1023;
+        positionT p2 = (qPos + dirDif[(i+1)%6]) & 1023;
+        if (b.G.occupied.get_bit(p1) && b.G.occupied.get_bit(p2)) {
+            // Check if the space between them is not accessible (tight gap)
+            positionT target = (qPos + dirDif[i] + dirDif[(i+1)%6]) / 2; // approx
+            if (!b.G.occupied.get_bit(target)) {
+                gateCount++;
+            }
+        }
+    }
+    return gateCount >= 2; // 2 gates or more is generally defensive
+}
+
+int isQueenAlmostSurrounded(const Board &b, positionT qPos) {
+    int count = 0;
+    for (int i = 0; i < 6; i++) {
+        positionT n = (qPos + dirDif[i]) & 1023;
+        if (b.G.occupied.get_bit(n)) count++;
+    }
+    return count;
+}
+
+static bool detectRingFormation(const Board &b) {      // if all the position are free next to it
+
+    BoardBitSet isValid;
+    isValid=(~b.G.occupied);
+
+    for(int d=0;d<6;d++){
+        isValid.updateAnd(b.G.occupied.getRot(d));
+    }
+    return (!isValid.none());
+}
+
+bool isInsideRing(const Board &b, positionT p) {
+    if (!b.G.occupied.get_bit(p)) {
+        bool full = true;
+        for (int d = 0; d < 6; d++) {
+            if (!b.G.occupied.get_bit((p + dirDif[d]) & 1023)) {
+                full = false;
+                break;
+            }
+        }
+        if (full) return true;
+    }
+    return false;
+}
+
+// =====================================================
+// EVALUATION FUNCTIONS
+// =====================================================
+
+#include <immintrin.h>
+
+double DynEval::initialScore(const Board & b)const {
+    // Per ogni bug, valutiamo le azioni che può fare
+    pieceT myQueen=(b.currentColor()==PlayerColor::WHITE)?8:22;
+    positionT oppositeQueenPosition=b.G.getPosition(30-myQueen);
+    double score=0;
+    double actBug[32];
+    for(int i=0;i<32;i++){
+        actBug[i]=0;
+    }
+    for(int i=0;i<b.numAction;i++){
+        actionT action=b.resAction[i];
+        pieceT bug=action%32;
+        positionT destPos=action>>5;
+        actBug[bug]++;
+
+        if (isAdjacent(destPos, oppositeQueenPosition)) {
+            score += W.startNoisyWeight(kind(bug));
+        } else {
+            score += W.startQuietWeight(kind(bug));
+        }
+
+    }
+
+    for(int i=0;i<32;i++){
+        if(actBug[i] == 0){
+            score+=W.startIsPinnedWeight(kind(i));
+        }
+    }
+
+
+    // Valutiamo la posizione del bug, se è coperto, vicinato..
+    PlayerColor currentColor=b.currentColor();
+    PlayerColor oppositeColor=(currentColor==PlayerColor::WHITE?PlayerColor::BLACK:PlayerColor::WHITE);
+
+    alignas(64) uint8_t nS[1024];
+    for(int i=0;i<1024;i++) {
+        nS[i]=0;
+    }
+
+    int baseMy=(currentColor==PlayerColor::WHITE?1:15);
+    int baseOpp=16-baseMy;
+
+    for(int i=baseMy;i<=baseMy+13;i++){
+        if(b.G.isPlaced[i]){
+            positionT myPos=b.G.bugPosition[i];
+            for(int d=0;d<6;d++){
+                nS[(myPos+dirDif[d])&1023]+=1;
+            }
+        }
+    }
+    for(int i=baseOpp;i<=baseOpp+13;i++){
+        if(b.G.isPlaced[i]){
+            positionT myPos=b.G.bugPosition[i];
+            for(int d=0;d<6;d++){
+                nS[(myPos+dirDif[d])&1023]+=8;
+            }
+        }
+    }
+    double bugScore[32] = {0.0};
+    for(int p=1;p<=28;p++){
+        bugScore[p]=0;
+        if(b.G.isPlaced[p]){
+            bugScore[p] = W.startPlacedWeight(kind(p));
+            positionT currPos=b.G.getPosition(p);
+
+            if(b.G.topPiece(currPos)!=p){
+                bugScore[p]+=W.startIsCoveredWeight(kind(p));
+            }
+            
+            bugScore[p]+=((double)(nS[currPos]>>3))*W.startEnemyCloseWeight(kind(p))+
+                    ((double)((nS[currPos]>>3)+(nS[currPos]&7)))*W.startFriendCloseWeight(kind(p));
+        }
+    }
+    
+    for(int i=baseMy;i<=baseMy+13;i++)score+=bugScore[i];
+    for(int i=baseOpp;i<=baseOpp+13;i++)score-=bugScore[i];
+    
+    return score;
+}
+
 double DynEval::actionsScore(const Board & b)const {
     // Per ogni bug, valutiamo le azioni che può fare
     pieceT myQueen=(b.currentColor()==PlayerColor::WHITE)?8:22;
     positionT oppositeQueenPosition=b.G.getPosition(30-myQueen);
     double score=0;
-    double numQueenMove=0;
-    double actBug[32] = {0.0};
+    double actBug[32];
     for(int i=0;i<32;i++){
         actBug[i]=0;
     }
@@ -130,9 +283,8 @@ double DynEval::positionalScore(const Board &b)const {
     PlayerColor currentColor=b.currentColor();
     PlayerColor oppositeColor=(currentColor==PlayerColor::WHITE?PlayerColor::BLACK:PlayerColor::WHITE);
 
-    alignas(64) uint8_t nS[1024] = {0};
-    for(int i=0;i<1024;i++)
-    {
+    alignas(64) uint8_t nS[1024];
+    for(int i=0;i<1024;i++) {
         nS[i]=0;
     }
 
@@ -156,12 +308,10 @@ double DynEval::positionalScore(const Board &b)const {
         }
     }
     double bugScore[32] = {0.0};
-
-
     for(int p=1;p<=28;p++){
         bugScore[p]=0;
         if(b.G.isPlaced[p]){
-            bugScore[p]=W.placedWeight(kind(p));
+            bugScore[p] = W.placedWeight(kind(p));
             positionT currPos=b.G.getPosition(p);
 
             if(b.G.topPiece(currPos)!=p){
@@ -346,6 +496,11 @@ double DynEval::topologyScore(const Board &b) const {
         score += W.queenGateDefenseBonus();
     }
 
+    /*
+    if (detectRingFormation(b)) {
+        score -= W.ringPenalty();
+    }
+        */
 
     // TODO: Bonus for controlling gates leading to opponent’s Queen
     // Bonus if a ring formation frees your pieces while trapping opponent’s.
@@ -360,13 +515,23 @@ double DynEval::topologyScore(const Board &b) const {
 double DynEval::evalBoardCurrentPlayer(Board & b) const{
 
     if(b.getGameState()>1){// implement suicide
-        if (b.getGameState()==BLACK_WIN && b.currentColor()==PlayerColor::BLACK || b.getGameState()==WHITE_WIN && b.currentColor()==PlayerColor::WHITE){
+        if ((b.getGameState()==BLACK_WIN && b.currentColor()==PlayerColor::BLACK) || (b.getGameState()==WHITE_WIN && b.currentColor()==PlayerColor::WHITE)){
             return 1e10;
         } 
         if (b.getGameState() == DRAW) return 0;
         return -1e10; 
     }
     b.ComputePossibleMoves();
+
+    
+    /*
+    if (b.currentTurn <= 20) {
+        double score = initialScore(b);
+        score += strategicScore(b);
+        score += topologyScore(b);   // find if there are rings or other 
+        return score;
+    }
+    */
 
     double score=0;
     score += actionsScore(b);  // for each action, compute the utility of the action
