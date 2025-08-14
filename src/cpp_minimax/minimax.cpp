@@ -277,12 +277,6 @@ actionT MinimaxAgent::calculate_best_move(Board &board) {
     toale_evaled.store(0);
     start_time = std::chrono::high_resolution_clock::now();
 
-
-    if (board.currentTurn <= 2) {
-        clog<<"Suggested";
-        return board.suggestInitialMove();
-    }
-
     board.ComputePossibleMoves();
     actionT next_move=board.resAction[0];
 

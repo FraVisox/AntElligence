@@ -145,6 +145,7 @@ void Engine::bestmove(string param){
             cout << "wQ \\wL\n";
         }
     } else if (board.currentTurn == 4) {
+        //cout << actionToString(agent.calculate_best_move(board), board)<<"\n";
         // Extract where to put it based on the other placement of queen or other bug
         int len = actions[2].size();
         if (actions[2][len-1] == '/') {
@@ -190,7 +191,7 @@ void Engine::bestmove(string param){
             cout << "wM wL/\n";
         }
     } else if (board.currentTurn == 8) {
-
+        /*
         board.ComputePossibleMoves();
 
         bool isPossiblebMbP = false;
@@ -224,6 +225,8 @@ void Engine::bestmove(string param){
                 cout << actionToString(agent.calculate_best_move(board), board)<<"\n";
             }
         }
+            */
+        cout << actionToString(agent.calculate_best_move(board), board)<<"\n";
     } else {
         cout << actionToString(agent.calculate_best_move(board), board)<<"\n";
     }

@@ -1,0 +1,5 @@
+# Base+MLP;WhiteWins;Black[7];wL;bL -wL;wQ wL/;bQ /bL;wA1 wL\;bP -bQ;wM wL-;bM \bP;wA2 wA1-;bA1 bQ\;wM -wA1;bA2 -bL;wA2 -bA1
+# Base+MLP;WhiteWins;Black[7];wL;bL -wL;wQ wL/;bQ /bL;wA1 wL\;bP -bQ;wM wL-;bM \bP;wA2 wA1-;bA1 bQ\;wM -wA1;bA2 -bL;wA2 -bA1
+# Base+MLP;WhiteWins;White[9];wL;bL -wL;wQ wL/;bQ \bL;wA1 wL\;bQ -wQ;wM wL-;bQ \bL;wA2 /wA1;bQ -wQ;wM -bL;bA1 \bQ;wA2 -bA1;bG1 bA1/;wA1 \wQ;bG1 -bQ
+# Base+MLP;WhiteWins;Black[7];wL;bL -wL;wQ wL/;bQ /bL;wA1 wL\;bP -bQ;wA2 \wQ;bM \bP;wA1 bQ\;bA1 -bL;wA2 \bA1;bM wA1/;wA2 bP\ 
+# Base+MLP;WhiteWins;Black[7];wL;bL -wL;wQ wL/;bQ /bL;wA1 wL\;bP -bQ;wA2 wQ\;bA1 bQ\;wA2 bA1\;bA2 -bA1;wA1 /bA2;bG1 -bL;wA2 bL\
