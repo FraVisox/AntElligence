@@ -27,6 +27,7 @@ Board::Board(){
     prevMoved[1]=0;
     
     G.hasUpdatedArticulation=false;
+    stateCached=false;
 };    
 
 
@@ -62,6 +63,7 @@ Board::Board(const Board& b,const actionT a ): G(b.G){
     applayAction(a);
     this->hasUpdate=true;
     G.hasUpdatedArticulation=false;
+    this->stateCached=false;
 }
 
 
@@ -69,7 +71,9 @@ Board::Board(const Board& b,const actionT a ): G(b.G){
 
 
 Board::Board(GameType gt) : G(gt){
-    hasUpdate=true;
+    hasUpdate=true;    
+    stateCached=false;
+
     currentTurn=1;
     for(int i=1;i<12;i++){
         addPieceHand(i);
@@ -145,13 +149,16 @@ void Board::undoAction(){
     }
     currentTurn--;    
     hasUpdate=true;
-
+    stateCached=false;
     G.hasUpdatedArticulation=false;
     //clog<<"Ended undo"<<endl;
    
 }
 
-void Board::applayAction(actionT act){     
+void Board::applayAction(actionT act){  
+    stateCached=false;
+    G.hasUpdatedArticulation=false;
+    hasUpdate=true;   
     hisPM1[currentTurn]=prevMoved[0];
     hisPM2[currentTurn]=prevMoved[1];
     //confHistory[currentTurn]=G.toHash();
@@ -185,18 +192,20 @@ void Board::applayAction(actionT act){
         G.removePiece(p);
     }
 
-    G.hasUpdatedArticulation=false;
-    hasUpdate=true;
     G.addPiece(dest,p);
 }
 
 
 GameState Board::getGameState(){
-    if(currentTurn==0) return GameState::NOT_STARTED;
+    if(stateCached){
+        return cache_state;
+    }
+    stateCached=true;
+    if(currentTurn==0) return cache_state=GameState::NOT_STARTED;
     int bugWQ=0,bugBQ=0;
 
-    if(!G.isPlaced[8])return GameState::STARTED;
-    if(!G.isPlaced[22])return GameState::STARTED;
+    if(!G.isPlaced[8])return cache_state=GameState::STARTED;
+    if(!G.isPlaced[22])return cache_state=GameState::STARTED;
     
     positionT WQPos=G.getPosition(8);
     positionT BQPos=G.getPosition(22); 
@@ -204,9 +213,9 @@ GameState Board::getGameState(){
         if(!G.isFree(applayMove(WQPos,i)))bugWQ++;
         if(!G.isFree(applayMove(BQPos,i)))bugBQ++;
     }    
-    if(bugWQ==6 && bugBQ==6)return (GameState)(2+currentColor());
-    if(bugBQ==6)return GameState::WHITE_WIN;
-    if(bugWQ==6)return GameState::BLACK_WIN;
+    if(bugWQ==6 && bugBQ==6)return cache_state=((GameState)(2+currentColor()));
+    if(bugBQ==6)return cache_state=GameState::WHITE_WIN;
+    if(bugWQ==6)return cache_state=GameState::BLACK_WIN;
     
     
     int ne=0;
@@ -216,7 +225,7 @@ GameState Board::getGameState(){
     } */ 
     
     if(currentTurn>MAX_TURN_SIZE || ne>1)return GameState::DRAW;
-    return GameState::STARTED;
+    return cache_state=GameState::STARTED;
 }
 //bool isDBG=false;
 

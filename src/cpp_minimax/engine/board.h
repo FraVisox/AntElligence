@@ -67,6 +67,8 @@ class Board {
 
 
     bool hasUpdate;
+    bool stateCached=false;
+    GameState cache_state;
     //Current status
     PlayerColor currentColor() const;
     int currentPlayerTurn();
