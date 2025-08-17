@@ -1,0 +1,2 @@
+Player 1,Player 2,Player 1 Wins (White),Turns (White),Player 1 Wins (Black),Turns (Black),Player 2 Wins (White),Turns (White),Player 2 Wins (Black),Turns (Black),Draws,Turns (Draw),Average Time (White),Average Time (Black)
+Minimax,Strong,1,29.0,1,52.0,2,45.0,3,45.333333333333336,0,0,15.109263999121529,15.715590034212385

@@ -133,7 +133,7 @@ pieceT getCandidateForKind(BugType t,PlayerColor col){
     case BugType::SOLDIER_ANT: return inc+9; break;  // 9-10-11;
     case BugType::MOSQUITO:    return inc+12; break;  // 12
     case BugType::LADYBUG:     return inc+13; break;  // 13
-    case BugType::PILLBUG:     return inc+14; break;  // 14
+    return inc+14; break;  // 14
     //default:std::cerr<<"Error in piece, in getCandidate"<<std::endl;
     // throw "NOT VALID BUG TYPE";
     }

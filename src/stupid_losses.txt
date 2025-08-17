@@ -10,3 +10,4 @@ SE GIOCHIAMO CONTRO NOI STESSI LE PERDIAMO SEMPRE COSI' DA NERI:
 Base+MLP;WhiteWins;Black[7];wL;bL -wL;wQ wL/;bQ /bL;wA1 wL\;bP -bQ;wM wL-;bA1 -bL;wM bQ\;bA2 /bP;wA1 \bA1;bA2 wM/;wA1 -wM
 Base+MLP;WhiteWins;Black[8];wL;bL -wL;wQ wL/;bQ /bL;wA1 wL\;bP -bQ;wM wL-;bA1 -bP;wA2 wA1-;bA2 bQ\;wA2 bA2\;bA3 -bL;wM \bA3;bM -bA2;wA1 bA2/
 Base+MLP;WhiteWins;Black[7];wL;bL -wL;wQ wL/;bQ /bL;wA1 wL\;bP -bQ;wM wL-;bA1 -bP;wA2 wA1-;bA2 bQ\;wM -wA1;bM -bA2;wA2 -bL
+Base+MLP;WhiteWins;Black[9];wL;bL -wL;wQ wL/;bQ /bL;wA1 wL\;bP -bQ;wM wL-;bB1 -bL;wA1 bQ\;bS1 \bL;wP wM/;bA1 -bP;wA2 \wP;bA2 bA1\;wA2 -wA1;bS2 -bA2;wM wA1/

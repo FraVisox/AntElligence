@@ -35,7 +35,7 @@ const void WeightsHelper::initDefaultWeights() {
 
   // NEW DEFAULT:
 
-  int hv[72] = {
+  int hv[61] = {
   // InPlayWeight
   25436,
   -47942,
@@ -111,19 +111,7 @@ const void WeightsHelper::initDefaultWeights() {
   10000, //mosquitoNearStrongBugBonus
   10000, //spiderDistancePenalty
   40000, //queenGateDefenseBonus
-  30000, //ringPenalty
-
-  0, //queenCanEscape
-  0, //beetleOnKeyBonus
-  0, //blockingQueenSpotBonus
-  0, //unpinnedAntBonus
-  0, //spiderElbowBonus
-  0, //hopperEscapeBonus
-  0, //ladybugPocketBonus
-  0, //movedAwayFromQueenWeight
-  0, //ringFreeTrapBonus
-  0, //mosquitoNearPillbugNearQueenBonus
-  0, //fasterMateBonus
+  0, //ringPenalty
   /*
   20000, //queenCanEscape
   40000, //beetleOnKeyBonus
@@ -190,72 +178,6 @@ const int WeightsHelper::ringPenalty() const {
   return weightVector[60];
 }
 
-const int WeightsHelper::queenCanEscape() const {
-  return weightVector[61];
-}
-const int WeightsHelper::beetleOnKeyBonus() const {
-  return weightVector[62];
-}
-const int WeightsHelper::blockingQueenSpotBonus() const {
-  return weightVector[63];
-}
-const int WeightsHelper::unpinnedAntBonus() const {
-  return weightVector[64];
-}
-const int WeightsHelper::spiderElbowBonus() const {
-  return weightVector[65];
-}
-const int WeightsHelper::hopperEscapeBonus() const {
-  return weightVector[66];
-}
-const int WeightsHelper::ladybugPocketBonus() const {
-  return weightVector[67];
-}
-  
-const int WeightsHelper::movedAwayFromQueenWeight() const {
-  return weightVector[68];
-}
-
-const int WeightsHelper::ringFreeTrapBonus() const {
-  return weightVector[69];
-}
-
-const int WeightsHelper::mosquitoNearPillbugNearQueenBonus() const {
-  return weightVector[70];
-}
-
-const int WeightsHelper::fasterMateBonus() const {
-  return weightVector[71];
-}
-
-
-const int WeightsHelper::startPlacedWeight(BugType bt) const {
-    return startGameInt[bt][0];
-}
-
-const int WeightsHelper::startIsPinnedWeight(BugType bt) const {
-    return startGameInt[bt][1];
-}
-
-const int WeightsHelper::startIsCoveredWeight(BugType bt) const {
-    return startGameInt[bt][2];
-}
-
-const int WeightsHelper::startNoisyWeight(BugType bt) const {
-    return startGameInt[bt][3];
-}
-
-const int WeightsHelper::startQuietWeight(BugType bt) const {
-    return startGameInt[bt][4];
-}
-
-const int WeightsHelper::startFriendCloseWeight(BugType bt) const {
-    return startGameInt[bt][5];
-}
-
-const int WeightsHelper::startEnemyCloseWeight(BugType bt) const {
-    return startGameInt[bt][6];
-}
 
 /*
 double startGame[8][7]={
@@ -439,7 +361,7 @@ double endgame[8][7]={
 // EnemyNeighborWeight 6
 
 
-double getWeight(BugType type, int key,int gamekind) {
+double getWeight(BugType type, double key,int gamekind) {
     double v=0;
       v=startGame[type][key];
     return v;

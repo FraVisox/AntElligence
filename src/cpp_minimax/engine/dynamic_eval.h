@@ -8,7 +8,6 @@ class DynEval{
     double strategicScore(const Board &) const;
     double positionalScore(const Board &) const;
     double actionsScore(const Board &) const;
-    double initialScore(const Board &) const;
 
 public:
 
