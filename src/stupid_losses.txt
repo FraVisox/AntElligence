@@ -3,3 +3,10 @@
 # Base+MLP;WhiteWins;White[9];wL;bL -wL;wQ wL/;bQ \bL;wA1 wL\;bQ -wQ;wM wL-;bQ \bL;wA2 /wA1;bQ -wQ;wM -bL;bA1 \bQ;wA2 -bA1;bG1 bA1/;wA1 \wQ;bG1 -bQ
 # Base+MLP;WhiteWins;Black[7];wL;bL -wL;wQ wL/;bQ /bL;wA1 wL\;bP -bQ;wA2 \wQ;bM \bP;wA1 bQ\;bA1 -bL;wA2 \bA1;bM wA1/;wA2 bP\ 
 # Base+MLP;WhiteWins;Black[7];wL;bL -wL;wQ wL/;bQ /bL;wA1 wL\;bP -bQ;wA2 wQ\;bA1 bQ\;wA2 bA1\;bA2 -bA1;wA1 /bA2;bG1 -bL;wA2 bL\
+
+
+SE GIOCHIAMO CONTRO NOI STESSI LE PERDIAMO SEMPRE COSI' DA NERI:
+
+Base+MLP;WhiteWins;Black[7];wL;bL -wL;wQ wL/;bQ /bL;wA1 wL\;bP -bQ;wM wL-;bA1 -bL;wM bQ\;bA2 /bP;wA1 \bA1;bA2 wM/;wA1 -wM
+Base+MLP;WhiteWins;Black[8];wL;bL -wL;wQ wL/;bQ /bL;wA1 wL\;bP -bQ;wM wL-;bA1 -bP;wA2 wA1-;bA2 bQ\;wA2 bA2\;bA3 -bL;wM \bA3;bM -bA2;wA1 bA2/
+Base+MLP;WhiteWins;Black[7];wL;bL -wL;wQ wL/;bQ /bL;wA1 wL\;bP -bQ;wM wL-;bA1 -bP;wA2 wA1-;bA2 bQ\;wM -wA1;bM -bA2;wA2 -bL

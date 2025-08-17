@@ -24,8 +24,8 @@ if platform.system()=="Linux":
     }
 else:
     files_to_match = {
-        "Minimax": "./cpp_minimax/main.exe",
-        #"Base": "./cpp_minimax/main_base.exe",
+        "Minimax": "./intScore.exe",
+        #"Base": "./base.exe",
         #"Strong": "./comparison_weights.exe"
         #"Strong": "../dist/OurEngineStrong.exe",
         "Mzinga": "../dist/MzingaEngine.exe"
