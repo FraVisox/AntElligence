@@ -1,2 +1,0 @@
-Player 1,Player 2,Player 1 Wins (White),Turns (White),Player 1 Wins (Black),Turns (Black),Player 2 Wins (White),Turns (White),Player 2 Wins (Black),Turns (Black),Draws,Turns (Draw),Average Time (White),Average Time (Black)
-Minimax,Base,4,20.0,0,0,3,51.0,0,0,0,0,2.8642147268567766,3.5788539477757046
