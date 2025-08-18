@@ -19,7 +19,6 @@
 #include <atomic>
 #include <mutex>
 
-std::atomic<long> toale_evaled{0};
 int SETUP_depth_pruning;
 
 bool MinimaxAgent::is_time_up() const {
@@ -29,7 +28,6 @@ bool MinimaxAgent::is_time_up() const {
 
 
 double MinimaxAgent::utility(Board &board) const {
-    toale_evaled.fetch_add(1, std::memory_order_relaxed);
     return ev.evalBoardCurrentPlayer(board);
 }
 
@@ -82,7 +80,6 @@ actionT MinimaxAgent::initiate_minimax_parallel(Board &board,int depth) {
         }
     }
 
-    clog<<"Evalueted "<<toale_evaled<<" board, found solution "<<best_move<<" with value "<<best_value<<" and depth "<<depth<<endl;
     return best_move;
 }
 
@@ -274,7 +271,6 @@ pair<actionT,double> MinimaxAgent::minimaxComplete(Board board,int d){
 
 
 actionT MinimaxAgent::calculate_best_move(Board &board) {
-    toale_evaled.store(0);
     start_time = std::chrono::high_resolution_clock::now();
 
     board.ComputePossibleMoves();
@@ -283,15 +279,7 @@ actionT MinimaxAgent::calculate_best_move(Board &board) {
 
     int depth=3;
   
-  //  auto r1=minimaxComplete(board,1);cout<<"d =1 has action "<< r1.first<<" with va "<<r1.second<<" evalueted: "<<toale_evaled<<endl;toale_evaled=0;    
-    //auto r2=minimaxComplete(board,2);cout<<"d =2 has action "<< r2.first<<" with va "<<r2.second<<" evalueted: "<<toale_evaled<<endl;toale_evaled=0;
-    //auto r3=minimaxComplete(board,3);cout<<"d =3 has action "<< r3.first<<" with va "<<r3.second<<" evalueted: "<<toale_evaled<<endl;toale_evaled=0;    
-    //auto r4=minimaxComplete(board,4);cout<<"d =4 has action "<< r4.first<<" with va "<<r4.second<<endl;
-    
-    //omp_set_num_threads(10); // limit to 4 threads
-
     while (!is_time_up() && depth < 15) {
-        toale_evaled.store(0, std::memory_order_relaxed);
         // Keep your split depth; you can tune it per branching factor
         SETUP_depth_pruning = depth-1;
 

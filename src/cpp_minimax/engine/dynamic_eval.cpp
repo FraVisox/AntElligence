@@ -162,6 +162,8 @@ double DynEval::positionalScore(const Board &b)const {
 
             if(b.G.topPiece(currPos)!=p){
                 bugScore[p]+=W.isCoveredWeight(kind(p));
+            } else {
+                bugScore[p]+=W.isOnTopWeight(kind(p));
             }
             
             bugScore[p]+=((double)(nS[currPos]>>3))*W.enemyCloseWeight(kind(p))+
@@ -218,15 +220,79 @@ double DynEval::topologyScore(const Board &b) const {
     PlayerColor color = b.currentColor();
     int myQueen = (color == PlayerColor::WHITE) ? 8 : 22;
     positionT queenPos = b.G.getPosition(myQueen);
+    int otherQueen = (color == PlayerColor::WHITE) ? 22 : 8;
+    positionT otherQueenPos = b.G.getPosition(otherQueen);
 
     int surrounding = isQueenAlmostSurrounded(b, queenPos);
-    score -= pow(10.0, surrounding);
+    score -= pow(W.toExponentiate, surrounding);
+
+    int surroundingEnemy = isQueenAlmostSurrounded(b, otherQueenPos);
+    score += pow(W.toExponentiate, surroundingEnemy);
 
     if (isGateFormationAroundQueen(b, queenPos)) {
         score += W.queenGateDefenseBonus();
     }
 
+    // TEMPO: 
+    int baseMy=(color==PlayerColor::WHITE?1:15);
+    int baseOpp=16-baseMy;
+    for(int i=baseMy;i<=baseMy+13;i++) {
+        if (distanceToQueen(b.G.getPosition(i), queenPos) < 3) {
+            score += W.defensiveWeight(kind(i));
+        }
+        if (distanceToQueen(b.G.getPosition(i), otherQueenPos) < 3) {
+            score += W.offensiveWeight(kind(i));
+        }
+    }
+    for(int i=baseOpp;i<=baseOpp+13;i++) {
+        if (distanceToQueen(b.G.getPosition(i), otherQueenPos) < 3) {
+            score -= W.defensiveWeight(kind(i));
+        }
+        if (distanceToQueen(b.G.getPosition(i), queenPos) < 3) {
+            score -= W.offensiveWeight(kind(i));
+        }
+    }
+
     return score;
+}
+
+double computePhase(const Board &b) {
+    // ------------------------------
+    // 1. Turn-based baseline
+    // ------------------------------
+    // Normalize by a "reasonable max turn" (Hive games rarely exceed 80 turns)
+    double turnPhase = std::min(1.0, b.currentTurn / 80.0);
+
+    // ------------------------------
+    // 2. Piece placement fraction
+    // ------------------------------
+    int placed = 0;
+    int totalPieces = 28; // 14 per player
+    for (int i = 1; i <= 28; i++) {
+        if (b.G.isPlaced[i]) placed++;
+    }
+    double placementPhase = (double)placed / totalPieces; // 0 = nothing, 1 = all out
+
+    // ------------------------------
+    // 3. Queen pressure
+    // ------------------------------
+    int whiteQueen = 8;
+    int blackQueen = 22;
+    int whiteSur = isQueenAlmostSurrounded(b, b.G.getPosition(whiteQueen));
+    int blackSur = isQueenAlmostSurrounded(b, b.G.getPosition(blackQueen));
+    int maxSur = std::max(whiteSur, blackSur);
+
+    // Map [0..6] neighbors -> [0..1] danger level
+    double queenPressurePhase = (double)maxSur / 6.0;
+
+    // ------------------------------
+    // Blend all signals
+    // ------------------------------
+    // Weighted blend: placement dominates early, queen pressure dominates late
+    double phase = 0.4 * placementPhase + 0.4 * turnPhase + 0.2 * queenPressurePhase;
+
+    // Clamp to [0,1]
+    return std::min(1.0, std::max(0.0, phase));
 }
 
 
@@ -243,6 +309,14 @@ double DynEval::evalBoardCurrentPlayer(Board & b) const{
     b.ComputePossibleMoves();
 
     double score=0;
+    /*
+    double phase = computePhase(b); // 0 = opening, 1 = endgame
+    double earlyPart = positionalScore(b) + strategicScore(b);
+    double latePart  = actionsScore(b) + topologyScore(b);
+
+    return (1.0 - phase) * earlyPart + phase * latePart;
+    */
+
     score += actionsScore(b);  // for each action, compute the utility of the action
     score += positionalScore(b);  // for each piece, compute the utility based on neighbor
     score += strategicScore(b);   // for some piece, if they are close to the queen can be helpful

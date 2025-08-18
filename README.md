@@ -3,6 +3,8 @@ Hive game engine developed by Francesco Visona' and Matteo Canton.
 
 # TODO:
 - Change weights
+- OTHER OPENINGS: A+M+Q (for white)
+
 - Use a mix of start/end weights (see board_eval better)
 - Put a weight on "is on top"
 - Add tempo advantage

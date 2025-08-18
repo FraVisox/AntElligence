@@ -3,37 +3,29 @@
 #define WEIGHTS_HELP_H
 class WeightsHelper{
     public:
-        const int numberOfWeights=60;
-        alignas(32) int weightVector[60];
+        const int numberOfWeights=84;
+        alignas(32) int weightVector[84];
      
         WeightsHelper();
         const void initDefaultWeights();
 
         const  int placedWeight(BugType) const;
-        const int placedOffset;
-
         const  int isPinnedWeight(BugType) const;
-        const int isPinnedOffset;
-
         const  int isCoveredWeight(BugType) const;
-        const int isCoveredOffset;
-
         const  int noisyWeight(BugType) const ;
-        const int noisyOffset;
-
         const  int quietWeight(BugType) const ;
-        const int quietOffset;
-
         const  int friendCloseWeight(BugType)const;
-        const int friendCloseOffset;
-
         const  int enemyCloseWeight(BugType)const;
-        const int enemyCloseOffset;
+        const int isOnTopWeight(BugType) const ;
+        const int offensiveWeight(BugType) const ;
+        const int defensiveWeight(BugType) const ;
 
         const int pillbugNearQueenBonus() const;
         const int mosquitoNearStrongBugBonus() const;
         const int spiderDistancePenalty() const;
         const int queenGateDefenseBonus() const;
+
+        const double toExponentiate = 12.0;
 
 };
 

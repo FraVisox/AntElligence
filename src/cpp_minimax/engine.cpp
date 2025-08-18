@@ -124,13 +124,14 @@ void Engine::validmoves(){
 
 void Engine::bestmove(string param){
     if (board.currentTurn == 1) {
-        //agent.calculate_best_move(board);
         cout << "wL\n";
     } else if (board.currentTurn == 2) {
-        //agent.calculate_best_move(board);
-        cout << "bL -"+actions[0]+"\n";
+        if (actions[0] == "wP") {
+            cout << "bM -"+actions[0]+"\n";
+        } else {
+            cout << "bL -"+actions[0]+"\n";
+        }
     } else if (board.currentTurn == 3) {
-        //agent.calculate_best_move(board);
         // Extract action from the other, here we assume it's -wL
         int len = actions[1].size();
         string where = actions[1].substr(len-3);
@@ -148,20 +149,18 @@ void Engine::bestmove(string param){
             cout << "wQ \\wL\n";
         }
     } else if (board.currentTurn == 4) {
-        //agent.calculate_best_move(board);
-        //cout << actionToString(agent.calculate_best_move(board), board)<<"\n";
         // Extract where to put it based on the other placement of queen or other bug
+        string first = actions[0];
         int len = actions[2].size();
         if (actions[2][len-1] == '/') {
-            cout << "bQ /bL\n";
+            cout << "bQ /"+first+"\n";
         } else if (actions[2][len-1] == '-') {
-            cout << "bQ /bL\n"; //TODO: what to do in case of an inline placement
+            cout << "bQ /"+first+"\n"; 
         } else {
-            cout << "bQ \\bL\n";
+            cout << "bQ \\"+first+"\n";
         }
     } else if (board.currentTurn == 5) {
         // Put the ant on the other end of the ladybug
-        //agent.calculate_best_move(board);
         int len = actions[1].size();
         string where = actions[1].substr(len-3);
         if (where == "-wL") {
@@ -178,18 +177,15 @@ void Engine::bestmove(string param){
             cout << "wA1 wL-\n";
         }
     } else if (board.currentTurn == 6) {
-        //agent.calculate_best_move(board);
         int len = actions[2].size();
         if (actions[2][len-1] == '/') {
-            cout << "bA1 \\bL\n";
+            cout << "bA1 \\"+actions[0]+"\n";
         } else if (actions[2][len-1] == '-') {
-            cout << "bA1 \\bL\n"; //TODO: what to do in case of an inline placement
+            cout << "bA1 \\"+actions[0]+"\n";
         } else {
-            cout << "bA1 /bL\n";
+            cout << "bA1 /"+actions[0]+"\n";
         }
-        //cout << "bP -bQ\n";
     } else if (board.currentTurn == 7) {
-        //agent.calculate_best_move(board);
         int len = actions[1].size();
         string where = actions[1].substr(len-3);
         if (where == "-wL") {

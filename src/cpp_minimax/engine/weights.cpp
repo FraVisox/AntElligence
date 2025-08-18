@@ -5,13 +5,21 @@
 using namespace std;
 
 
-WeightsHelper::WeightsHelper(): placedOffset(0), isPinnedOffset(1), isCoveredOffset(2), noisyOffset(3), quietOffset(4), friendCloseOffset(5), enemyCloseOffset(6) {
-    initDefaultWeights();
+WeightsHelper::WeightsHelper() {
+    fstream file;
+    file.open("weights.txt", ios::in);
+    if (file.is_open()) {
+        for (int i = 0; i < 84; i++) {
+            file >> weightVector[i];
+        }
+    } else {
+        initDefaultWeights();
+    }
 }
 
 const void WeightsHelper::initDefaultWeights() {
 
-  int hv[60] = {
+  int hv[84] = {
   // InPlayWeight
   25436,
   -47942,
@@ -82,11 +90,41 @@ const void WeightsHelper::initDefaultWeights() {
   0,
   25,
 
-  // Others
+  // IsOnTopWeight
+  0,
+  50000,
+  0,
+  90000,
+  120000,
+  45000,
+  0,
+  25,
+
+  // OffensiveWeight
+  50000,
+  100000,
+  30000,
+  -45,
+  3000,
+  45000,
+  70000,
+  25,
+
+  // DefensiveWeight
+  5000,
+  50000,
+  43000,
+  0,
+  3400,
+  100000,
+  56000,
+  250000,
+
+    // Others
   1500, //pillbugNearQueenBonus
   1000, //mosquitoNearStrongBugBonus
   1000, //spiderDistancePenalty
-  40000 //queenGateDefenseBonus
+  40000, //queenGateDefenseBonus
   }; 
 
   for(int i=0;i<numberOfWeights;i++){
@@ -119,18 +157,30 @@ const int WeightsHelper::enemyCloseWeight(BugType bt) const{
   return weightVector[48+bt];
 }
 
+const int WeightsHelper::isOnTopWeight(BugType bt) const {
+  return weightVector[56+bt];
+}
+
+const int WeightsHelper::offensiveWeight(BugType bt) const {
+  return weightVector[64+bt];
+}
+
+const int WeightsHelper::defensiveWeight(BugType bt) const {
+  return weightVector[72+bt];
+}
+
 const int WeightsHelper::pillbugNearQueenBonus() const {
-  return weightVector[56];
+  return weightVector[80];
 }
 
 const int WeightsHelper::mosquitoNearStrongBugBonus() const {
-  return weightVector[57];
+  return weightVector[81];
 }
 
 const int WeightsHelper::spiderDistancePenalty() const {
-  return weightVector[58];
+  return weightVector[82];
 }
 
 const int WeightsHelper::queenGateDefenseBonus() const {
-  return weightVector[59];
+  return weightVector[83];
 }

@@ -5,7 +5,7 @@ import time
 
 # To set
 file_results = "../results/game_results.csv"
-number_of_matches = 7
+number_of_matches = 16
 number_of_turns_per_match = 200
 number_moves_log = 1
 
@@ -13,13 +13,6 @@ number_moves_log = 1
 game_start = "newgame Base+MLP\n"
 ending_sequence = "ok"
 bestmove = "bestmove time 00:00:05\n"
-#bestmove = "bestmove depth 5\n" # Empirically, the minimax remains under 5 seconds only if depth <= 2. But this doesn't help at all, too few states
-
-
-# Base+MLP;WhiteWins;Black[8];wA1;bL -wA1;wQ wA1/;bQ /bL;wA2 wA1\;bP -bQ;wA2 bQ\;bA1 \bL;wL wA1\;bA2 \bP;wA3 wA2\;bB1 -bL;wS1 wA3\;bA2 -wA2;wL bL\
-# Base+MLP;WhiteWins;Black[9];wL;bL -wL;wQ wL/;bQ /bL;wA1 wL\;bP -bQ;wM wL-;bM -bL;wP wM/;bA1 bP\;wA2 \wP;bA2 -bM;wA3 wA1-;bA3 -bP;wA3 bA1-;bA3 wA3-;wM -wA1
-# Base+MLP;WhiteWins;Black[8];wL;bL -wL;wQ wL/;bQ /bL;wA1 wL\;bP -bQ;wM wL-;bA1 -bL;wA2 wA1-;bA2 bQ\;wA2 bA2\;bA3 -bA1;wM \bA1;bM -bA2;wA1 bA2/
-# Base+MLP;BlackWins;White[13];wL;bL wL\;wQ -wL;bQ /bL;wA1 wL/;bA1 bL\;wM \wL;bA1 -wQ;wM /bQ;bS1 -bA1;wA1 -bQ;bS1 \wL;wA2 -wM;bA2 bL-;wB1 -wA1;bG1 \bA1;wA2 bG1/;bM bL\;wB1 wA1;bA3 -bG1;wB1 -bL;bL wA2\;wA2 bA2-;bA3 bA1\
 
 if platform.system()=="Linux":
     files_to_match = {
@@ -28,8 +21,13 @@ if platform.system()=="Linux":
         "Mzinga": "../dist/MzingaEngine"
     }
 else:
+
+    # NEW_W fa 9 a 7 contro mzinga
+    #
     files_to_match = {
-        "Base": "./cpp_minimax/main_new_w.exe",
+        #"Minimax": "./cpp_minimax/main.exe",
+        "NONLINEAR": "./cpp_minimax/main_non_linear.exe",
+        #"Base": "./cpp_minimax/base.exe",
         #"Minimax": "./cpp_minimax/main.exe",
         #"Base": "./base.exe",
         #"Strong": "../dist/OurEngineStrong.exe",
