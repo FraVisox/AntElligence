@@ -16,6 +16,11 @@ bestmove = "bestmove time 00:00:05\n"
 #bestmove = "bestmove depth 5\n" # Empirically, the minimax remains under 5 seconds only if depth <= 2. But this doesn't help at all, too few states
 
 
+# Base+MLP;WhiteWins;Black[8];wA1;bL -wA1;wQ wA1/;bQ /bL;wA2 wA1\;bP -bQ;wA2 bQ\;bA1 \bL;wL wA1\;bA2 \bP;wA3 wA2\;bB1 -bL;wS1 wA3\;bA2 -wA2;wL bL\
+# Base+MLP;WhiteWins;Black[9];wL;bL -wL;wQ wL/;bQ /bL;wA1 wL\;bP -bQ;wM wL-;bM -bL;wP wM/;bA1 bP\;wA2 \wP;bA2 -bM;wA3 wA1-;bA3 -bP;wA3 bA1-;bA3 wA3-;wM -wA1
+# Base+MLP;WhiteWins;Black[8];wL;bL -wL;wQ wL/;bQ /bL;wA1 wL\;bP -bQ;wM wL-;bA1 -bL;wA2 wA1-;bA2 bQ\;wA2 bA2\;bA3 -bA1;wM \bA1;bM -bA2;wA1 bA2/
+# Base+MLP;BlackWins;White[13];wL;bL wL\;wQ -wL;bQ /bL;wA1 wL/;bA1 bL\;wM \wL;bA1 -wQ;wM /bQ;bS1 -bA1;wA1 -bQ;bS1 \wL;wA2 -wM;bA2 bL-;wB1 -wA1;bG1 \bA1;wA2 bG1/;bM bL\;wB1 wA1;bA3 -bG1;wB1 -bL;bL wA2\;wA2 bA2-;bA3 bA1\
+
 if platform.system()=="Linux":
     files_to_match = {
         #"Random": "../dist/AntElligenceEngine",
@@ -24,7 +29,8 @@ if platform.system()=="Linux":
     }
 else:
     files_to_match = {
-        "Minimax": "./cpp_minimax/main.exe",
+        "Base": "./cpp_minimax/main_new_w.exe",
+        #"Minimax": "./cpp_minimax/main.exe",
         #"Base": "./base.exe",
         #"Strong": "../dist/OurEngineStrong.exe",
         "Mzinga": "../dist/MzingaEngine.exe"
@@ -37,6 +43,8 @@ options_players = [
     None
 ]
 
+# ISTANZA EC2 -> CREA NUOVA ISTANZA -> PRENDINE UNA CHE NON COSTI TROPPO MA CON 48 CORE -> CHIAVI SSH PER CONNETTERTI, SCARICHI IL FILE
+# QUANDO HAI FINITO CANCELLA TUTTO
 
 def write_results_to_csv(results, filename):
     """
@@ -209,23 +217,23 @@ def play_game(pl1_path, name1, pl2_path, name2, matches, turns=-1, options1 = No
                 # Check for game end
                 if "WhiteWins" in response:
                     if player1_is_white: # White is player 1
-                        stats["pl1_wins_white" if match % 2 == 1 else "pl1_wins_black"] += 1
-                        stats["pl1_turns_white" if match % 2 == 1 else "pl1_turns_black"] += turn
+                        stats["pl1_wins_white"] += 1
+                        stats["pl1_turns_white"] += turn
                         print("Player 1 wins:", str1)
 
                     else:
-                        stats["pl2_wins_white" if match % 2 == 1 else "pl2_wins_black"] += 1
-                        stats["pl2_turns_white" if match % 2 == 1 else "pl2_turns_black"] += turn
+                        stats["pl2_wins_white"] += 1
+                        stats["pl2_turns_white"] += turn
                         print("Player 2 wins:", str2)
                     break
                 elif "BlackWins" in response:
                     if not player1_is_white: #Black is player 1
-                        stats["pl1_wins_black" if match % 2 == 0 else "pl1_wins_white"] += 1
-                        stats["pl1_turns_black" if match % 2 == 0 else "pl1_turns_white"] += turn
+                        stats["pl1_wins_black"] += 1
+                        stats["pl1_turns_black"] += turn
                         print("Player 1 wins:", str1)
                     else:
-                        stats["pl2_wins_black" if match % 2 == 0 else "pl2_wins_white"] += 1
-                        stats["pl2_turns_black" if match % 2 == 0 else "pl2_turns_white"] += turn
+                        stats["pl2_wins_black"] += 1
+                        stats["pl2_turns_black"] += turn
                         print("Player 2 wins:", str2)
                     break
                 elif "Draw" in response:

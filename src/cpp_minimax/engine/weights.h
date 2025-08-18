@@ -3,19 +3,11 @@
 #define WEIGHTS_HELP_H
 class WeightsHelper{
     public:
-        const int numberOfWeights=61;
-        alignas(32) int weightVector[61];
+        const int numberOfWeights=60;
+        alignas(32) int weightVector[60];
      
         WeightsHelper();
         const void initDefaultWeights();
-
-        const  int startPlacedWeight(BugType) const;
-        const  int startIsPinnedWeight(BugType) const;
-        const  int startIsCoveredWeight(BugType) const;
-        const  int startNoisyWeight(BugType) const ;
-        const  int startQuietWeight(BugType) const ;
-        const  int startFriendCloseWeight(BugType)const;
-        const  int startEnemyCloseWeight(BugType)const;
 
         const  int placedWeight(BugType) const;
         const int placedOffset;
@@ -42,16 +34,7 @@ class WeightsHelper{
         const int mosquitoNearStrongBugBonus() const;
         const int spiderDistancePenalty() const;
         const int queenGateDefenseBonus() const;
-        const int ringPenalty() const;
 
 };
-/*
-extern double startGame[8][7];
-
-extern  double endgame[8][7];
-
-
-double getWeight(BugType bt,double,double=0);
-*/
 
 #endif

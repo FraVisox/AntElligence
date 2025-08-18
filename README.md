@@ -2,6 +2,22 @@
 Hive game engine developed by Francesco Visona' and Matteo Canton.
 
 # TODO:
+- Change weights
+- Use a mix of start/end weights (see board_eval better)
+- Put a weight on "is on top"
+- Add tempo advantage
+int tempo_score(const Board& board, const Player& me) {
+    int score = 0;
+    Coord enemy_queen = board.enemy_queen(me);
+    for (auto& bug : board.get_bugs(me)) {
+        if (bug.can_move() && bug.distance_to(enemy_queen) <= 2)
+            score += 6;
+    }
+    return score;
+}
+
+
+# TODO:
 Manual implementation:
 - Use perft to check the validity of moves
 - Improve efficiency of C++ code

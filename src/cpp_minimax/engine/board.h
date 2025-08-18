@@ -1,7 +1,7 @@
 #ifndef BOARD_H
 #define BOARD_H
 
-#define MAX_TURN_SIZE 1000
+#define MAX_TURN_SIZE 205
 #include <bitset>
 #include "gameboard.h"
 #include "action.h"
@@ -9,51 +9,6 @@
 #include <cmath>
 #include <algorithm>
 #include "weights.h"
-
-// =============================================================================
-// ADVANCED EVALUATION STRUCTURES
-// =============================================================================
-
-struct BugMetrics {
-    bool InPlay = false;
-    bool IsPinned = false;
-    bool IsCovered = false;
-    bool IsOnTop = false;
-    bool AdjacentToAntOrBeetle = false;
-    bool NearOwnQueen = false;
-    bool CanReachQueenHole = false;
-
-    double NoisyMoves = 0;      // Moves that threaten or capture
-    double QuietMoves = 0;      // Positional moves
-    double FriendlyNeighbors = 0;
-    double EnemyNeighbors = 0;
-};
-
-
-
-struct BoardMetrics {
-    BugMetrics pieceMetrics[29];
-    int PiecesInPlay = 0;
-    int PiecesInHand = 0;
-
-    int MyQueenSurround = 0;
-    int TheirQueenSurround = 0;
-
-    int MyQueenEscape = 0;      // Number of free spaces around my queen
-    int TheirQueenEscape = 0;   // Number of free spaces around their queen
-
-    int MyPinCount = 0;
-    int TheirPinCount = 0;
-
-    bool CanWinThisTurn = false;
-    bool OpponentCanWinNextTurn = false;
-
-    bool EnemyQueenPinned = false;
-    bool MyQueenPinned = false;
-
-    bool CanPlaceToWin = false;
-    bool OpponentCanPlaceToWin = false;
-};
 
 //extern uint8_t isValidMoveBitmask[1575];
 //extern actionT associatedAction[1575];
@@ -98,43 +53,13 @@ class Board {
 
     string toString();
     actionT suggestInitialMove();
-    bitset<285> simple_hash();
     size_t getHash() const;
 
-    double getScore();
     double getScoreBug(pieceT p);
-    int surround_score();
-    int mobility_score();
     int isPinned(pieceT bug);
     int isCovered(pieceT bug);
     int friendlyNeighbour(pieceT bug);
     int enemyNeighbour(pieceT bug);
-
-    // Helper methods
-    pieceT getQueenForColor(PlayerColor color);
-    pieceT getOpposingQueen();
-    pieceT getMyQueen();
-    bool bothQueensPlaced();
-    bool isAdjacent(positionT pos1, positionT pos2);
-    int getHexDistance(positionT pos1, positionT pos2);
-
-    // Scoring methods  
-    int countMovesNearOpposingQueen();
-    int pin_score();
-    int near_moves_score();
-    int tempo_score();
-    int control_score();
-    int bug_utility_score();
-
-    // Advanced evaluation helpers
-    std::string pieceToString(pieceT piece);
-    BugMetrics calculatePieceMetrics(pieceT piece);
-    BoardMetrics calculateBoardMetrics();
-    double calculateEarlyGamePositionalScore();
-    double calculateLateGameThreatScore();
-
-    // Advanced evaluation function
-    double evaluateAdvanced();
 
     short idxStartActions[32];
     // returns the actions

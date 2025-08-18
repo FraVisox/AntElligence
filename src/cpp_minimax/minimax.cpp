@@ -293,7 +293,7 @@ actionT MinimaxAgent::calculate_best_move(Board &board) {
     while (!is_time_up() && depth < 15) {
         toale_evaled.store(0, std::memory_order_relaxed);
         // Keep your split depth; you can tune it per branching factor
-        SETUP_depth_pruning = 3;
+        SETUP_depth_pruning = depth-1;
 
         const actionT candidate = initiate_minimax_parallel(board, depth);
         if (is_time_up()) break;

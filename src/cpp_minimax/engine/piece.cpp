@@ -137,6 +137,7 @@ pieceT getCandidateForKind(BugType t,PlayerColor col){
     //default:std::cerr<<"Error in piece, in getCandidate"<<std::endl;
     // throw "NOT VALID BUG TYPE";
     }
+    return inc+14;
 }
 
 pieceT buildPiece(enum BugType k,PlayerColor c,int numIncr){

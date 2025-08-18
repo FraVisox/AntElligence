@@ -4,38 +4,14 @@
 #include <fstream>
 using namespace std;
 
-// Integer-only version of startGame weights
-const int startGameInt[8][7] = {
-    { -78668, -40182,   3522,  96533,  24696, -38936,  -23840 }, // Spider
-    { -292118,  42682,   4481,  17665, -30118, -330519, -15571 }, // Beetle
-    { -62143, -37382,      6,      4,      5, -46514,  -29599 }, // Grasshopper
-    { 63558,  -16068, -10847, -27548, -58684,  6083,  -16777 }, // QueenBee
-    { 150335, -54347,   2181, -12190,  -2768, -24781, -124949 }, // SoldierAnt
-    { 147014,  -2891,    274,   7418,  -2217,   5877,   12195 }, // Mosquito
-    {  2403,   2403,      0,   -176, -11221,   2385,    1410 }, // Ladybug
-    {    -9,   1486,      0,   -176,   -132,     24,     851 }  // Pillbug
-};
-
 
 WeightsHelper::WeightsHelper(): placedOffset(0), isPinnedOffset(1), isCoveredOffset(2), noisyOffset(3), quietOffset(4), friendCloseOffset(5), enemyCloseOffset(6) {
-
-  std::ifstream file("./cpp_minimax/weights.txt");
-  if (file) {
-      for(int i = 0; i < 72; i++) {
-          file >> weightVector[i];
-      }
-  } else {
-      // fallback to default weights
-      initDefaultWeights();
-  }
+    initDefaultWeights();
 }
 
 const void WeightsHelper::initDefaultWeights() {
 
-
-  // NEW DEFAULT:
-
-  int hv[61] = {
+  int hv[60] = {
   // InPlayWeight
   25436,
   -47942,
@@ -107,25 +83,10 @@ const void WeightsHelper::initDefaultWeights() {
   25,
 
   // Others
-  150000, //pillbugNearQueenBonus
-  10000, //mosquitoNearStrongBugBonus
-  10000, //spiderDistancePenalty
-  40000, //queenGateDefenseBonus
-  0, //ringPenalty
-  /*
-  20000, //queenCanEscape
-  40000, //beetleOnKeyBonus
-  10000, //blockingQueenSpotBonus
-  60000, //unpinnedAntBonus
-  60000, //spiderElbowBonus
-  20000, //hopperEscapeBonus
-  50000, //ladybugPocketBonus
-  20000, //movedAwayFromQueenWeight
-  10000, //ringFreeTrapBonus
-  70000, //mosquitoNearPillbugNearQueenBonus
-  100000, //fasterMateBonus
-
-  */
+  1500, //pillbugNearQueenBonus
+  1000, //mosquitoNearStrongBugBonus
+  1000, //spiderDistancePenalty
+  40000 //queenGateDefenseBonus
   }; 
 
   for(int i=0;i<numberOfWeights;i++){
@@ -173,201 +134,3 @@ const int WeightsHelper::spiderDistancePenalty() const {
 const int WeightsHelper::queenGateDefenseBonus() const {
   return weightVector[59];
 }
-
-const int WeightsHelper::ringPenalty() const {
-  return weightVector[60];
-}
-
-
-/*
-double startGame[8][7]={
-    {//QueenBee
-    63558.424116300164,    //InPlayWeight
-    -16068.975008474492,   //IsPinnedWeight
-    -10847.56765389993,    //IsCoveredWeight
-    -27548.36384306823,    //NoisyMoveWeight
-    -58684.53995399401,    //QuietMoveWeight
-    6083.816305341258,     //FriendlyNeighborWeight
-    -16777.90671222724,    //EnemyNeighborWeight
-    },
-  {//Spider
-    -78668.57111290144,     //InPlayWeight
-    -40182.83585644461,     //IsPinnedWeight
-    3522.4688484300345,     //IsCoveredWeight
-    96533.76080639324,      //NoisyMoveWeight
-    24696.29074524807,      //QuietMoveWeight
-    -38936.63081162773,     //FriendlyNeighborWeight
-    -23840.635072629706,    //EnemyNeighborWeight
-  },
-  {//Beetle
-    -292118.4826934236,     //InPlayWeight
-    42682.09004360313,      //IsPinnedWeight
-    4481.178845826221,      //IsCoveredWeight
-    17665.014704305027,     //NoisyMoveWeight
-    -30118.546365364382,    //QuietMoveWeight
-    -330519.2236168998,     //FriendlyNeighborWeight
-    -15571.384868146333,    //EnemyNeighborWeight
-  },{//Grasshopper
-    -62143.66709528388,     //InPlayWeight>
-    -37382.75816433833,     //IsPinnedWeight>
-    6.7071386644275,        //IsCoveredWeight>
-    4.27711240177,          //NoisyMoveWeight>
-    5.887177023414,         //QuietMoveWeight>
-    -46514.16457826511,     //FriendlyNeighborWeight>
-    -29599.124484381024,    //EnemyNeighborWeight>
-  },{//SoldierAnt
-    150335.73123164993,     //InPlayWeight
-    -54347.58400587852,     //IsPinnedWeight
-    2181.3845855769014,     //IsCoveredWeight
-    -12190.782082844375,    //NoisyMoveWeight
-    -2768.31388448452,      //QuietMoveWeight
-    -24781.768062011586,    //FriendlyNeighborWeight
-    -124949.7080146349,     //EnemyNeighborWeight
-  },{
-      147014.737145555,    // Mosquito.InPlayWeight>
-      -2891.0586433755066,    // Mosquito.IsPinnedWeight>
-      274.477890120718,    // Mosquito.IsCoveredWeight>
-      7418.816073993939,    // Mosquito.NoisyMoveWeight>
-      -2217.07900807487,    // Mosquito.QuietMoveWeight>
-      5877.374514571279,    // Mosquito.FriendlyNeighborWeight>
-      12195.85956817655,    // Mosquito.EnemyNeighborWeight>
-},{//Ladybug
-    2403.5193930400983,     //InPlayWeight
-    2403.5193930400983,     //IsPinnedWeight
-    0.12466972517998409,   //Pillbug.IsCoveredWeight>
-    -176.46003344968662,   //Pillbug.NoisyMoveWeight>
-    -11221.051806351792,    //QuietMoveWeight
-    2385.4588234124367,     //FriendlyNeighborWeight
-    1410.332157926724,      //EnemyNeighborWeight
-    },{
-      -9.113687271307544,   //Pillbug.InPlayWeight>
-      1486.6262842915492,   //Pillbug.IsPinnedWeight>
-      0.12466972517998409,   //Pillbug.IsCoveredWeight>
-      -176.46003344968662,   //Pillbug.NoisyMoveWeight>
-      -132.41559439730622,   //Pillbug.QuietMoveWeight>
-      24.673845413636343,   //Pillbug.FriendlyNeighborWeight>
-      851.9075292842033,   //Pillbug.EnemyNeighborWeight>
-    }
-      
-};
-
-double endgame[8][7]={
-    {
-  25435.882238354585,        //Spider.InPlayWeight
-  -46539.05096879799,        //Spider.IsPinnedWeight
-  7318.062445533153,         //Spider.IsCoveredWeight
-  139756.22020687832,        //Spider.NoisyMoveWeight
-  -20695.847798165196,       //Spider.QuietMoveWeight
-  21040.37841289118,         //Spider.FriendlyNeighborWeight
-  47143.13584635398,         //Spider.EnemyNeighborWeight
-},{
-  -47942.30787762037,        //Beetle.InPlayWeight
-  -48021.26522496219,        //Beetle.IsPinnedWeight
-  9325.20680229596,          //Beetle.IsCoveredWeight
-  142117.44307757894,        //Beetle.NoisyMoveWeight
-  11689.30208954932,         //Beetle.QuietMoveWeight
-  36462.79568546643,         //Beetle.FriendlyNeighborWeight
-  63931.69017718444,         //Beetle.EnemyNeighborWeight
-},{
-  62698.37281422093,         //Grasshopper.InPlayWeight
-  -82598.03083886552,        //Grasshopper.IsPinnedWeight
-  24024.225201639405,        //Grasshopper.IsCoveredWeight
-  105510.87832342245,        //Grasshopper.NoisyMoveWeight
-  -12497.189426607008,       //Grasshopper.QuietMoveWeight
-  13656.02929100097,         //Grasshopper.FriendlyNeighborWeight
-  24316.040387962978,        //Grasshopper.EnemyNeighborWeight
-},{
-  13432.951885680533,        //QueenBee.InPlayWeight
-  -129954.41883899852,       //QueenBee.IsPinnedWeight
-  -20359.393475776742,       //QueenBee.IsCoveredWeight
-  72291.27947098055,         //QueenBee.NoisyMoveWeight
-  95774.84135111222,         //QueenBee.QuietMoveWeight
-  -317466.59939896787,       //QueenBee.FriendlyNeighborWeight
-  -538148.8342704792,        //QueenBee.EnemyNeighborWeight
-},{
-  132380.04004659085,        //SoldierAnt.InPlayWeight
-  -51035.8531595224,         //SoldierAnt.IsPinnedWeight
-  -1515.3280863367781,       //SoldierAnt.IsCoveredWeight
-  53866.8750489757,          //SoldierAnt.NoisyMoveWeight
-  4129.437215966653,         //SoldierAnt.QuietMoveWeight
-  14307.12578295306,         //SoldierAnt.FriendlyNeighborWeight
-  21240.12696300159,         //SoldierAnt.EnemyNeighborWeight
-},{
-      35702.098965012,  //Mosquito.InPlayWeight>
-      -47853.25550138967,  //Mosquito.IsPinnedWeight>
-      -5471.658340342187,  //Mosquito.IsCoveredWeight>
-      34855.368897836735,  //Mosquito.NoisyMoveWeight>
-      3658.3069258791934,  //Mosquito.QuietMoveWeight>
-      9198.549211028952,  //Mosquito.FriendlyNeighborWeight>
-      20205.426928489276,  //Mosquito.EnemyNeighborWeight>
-},{
-  428.1203911929252,         //Ladybug.InPlayWeight
-  428.1203911929252,         //Ladybug.IsPinnedWeight
-      1.0348840069979819,  //Pillbug.IsCoveredWeight>
-      -327.45214315771926,  //Pillbug.NoisyMoveWeight>
-  -2037.2972162731394,       //Ladybug.QuietMoveWeight
-  426.07017642756523,        //Ladybug.FriendlyNeighborWeight
-  0
-},{
-      -2.92230300211222,  //Pillbug.InPlayWeight>
-      36.14230688121976,  //Pillbug.IsPinnedWeight>
-      1.0348840069979819,  //Pillbug.IsCoveredWeight>
-      -327.45214315771926,  //Pillbug.NoisyMoveWeight>
-      -4.7686213002021525,  //Pillbug.QuietMoveWeight>
-      0.7586273420223163,  //Pillbug.FriendlyNeighborWeight>
-      24.950130621306656,  //Pillbug.EnemyNeighborWeight>
-}};
-
-
-
-    
-double startGame[8][7]={
-    {1,0,0,0, 0, 0   ,0 },    // SPIDER=0,
-    {1,0,0,0, 0, 0   ,0 },    //  BEETLE=1,
-    {1,0,0,0, 0, 0   ,0 },    //  GRASSHOPPER=2,
-    {1,0,0,0, 0, -10 ,-10},    //  QUEEN=3,
-    {1,0,0,0, 0, 0   ,0 },    //  SOLDIER_ANT=4,
-    {1,0,0,0, 0, 0   ,0 },    //  MOSQUITO=5,
-    {1,0,0,0, 0, 0   ,0 },    //  LADYBUG=6,
-    {1,0,0,0, 0, 0   ,0 }     // PILLBUG=7
-  // 0 1 2 3  4  5    6
-};
-
-double endgame[8][7]={
-
-    {
-    0,    //InPlayWeight
-    0,   //IsPinnedWeight
-    0,    //IsCoveredWeight
-    0,    //NoisyMoveWeight
-    0,    //QuietMoveWeight
-    -0.8,     //FriendlyNeighborWeight
-    -1,    //EnemyNeighborWeight
-    },
-    {1,0,0,0, 0, 0   ,0 },
-    {1,0,0,0, 0, 0   ,0 },
-    {1,0,0,0, 0, -8   ,-10},
-    {1,0,0,0, 0, 0   ,0 },
-    {1,0,0,0, 0, 0   ,0 },
-    {1,0,0,0, 0, 0   ,0 },
-    {1,0,0,0, 0, 0   ,0 }
-};
-// InPlayWeight 0
-// IsPinnedWeight 1 
-// IsCoveredWeight 2
-// NoisyMoveWeight 3
-// QuietMoveWeight 4
-// FriendlyNeighborWeight 5
-// EnemyNeighborWeight 6
-
-
-double getWeight(BugType type, double key,int gamekind) {
-    double v=0;
-      v=startGame[type][key];
-    return v;
-      v=endgame[type][key];
-    return v;
-}
-*/
-
-

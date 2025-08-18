@@ -157,10 +157,10 @@ void Board::undoAction(){
 
 void Board::applayAction(actionT act){  
     stateCached=false;
-    G.hasUpdatedArticulation=false;
-    hasUpdate=true;   
     hisPM1[currentTurn]=prevMoved[0];
     hisPM2[currentTurn]=prevMoved[1];
+    G.hasUpdatedArticulation=false;
+    hasUpdate=true;
     //confHistory[currentTurn]=G.toHash();
     if(act==0){
         prevBug[currentTurn]=0;
@@ -193,6 +193,8 @@ void Board::applayAction(actionT act){
     }
 
     G.addPiece(dest,p);
+    G.hasUpdatedArticulation=false;
+    hasUpdate=true;
 }
 
 
