@@ -26,16 +26,41 @@ else:
     MZINGA_ENGINE = "../dist/MzingaEngine.exe"
 
 def write_weights_file(weights_dict, filename=WEIGHTS_FILE):
-    """Write weights to the structured text file."""
+    """Write weights to the structured text file in the engine's required format."""
+
+    # Fixed weights (from weights.cpp defaults)
+    fixed_weights = {
+        # InPlayWeight
+        'inPlay': [25436, -47942, 62698, 13433, 132380, 35702, 428, -3],
+        # IsPinnedWeight
+        'isPinned': [-46539, -48021, -82598, -129954, -51036, -47853, 428, 36],
+        # IsCoveredWeight
+        'isCovered': [7318, 9325, 24024, -20359, -1515, -5471, 1, 1],
+        # NoisyMoveWeight
+        'noisyWeight': [139756, 142117, 105511, 72291, 53867, 34855, -327, -327],
+        # QuietMoveWeight
+        'quietWeight': [-20696, 11689, -12497, 95775, 4129, 3658, -2037, -5],
+        # FriendlyNeighborWeight
+        'friendlyNeighbor': [21040, 36463, 13656, -317467, 14307, 9199, 426, 1],
+        # EnemyNeighborWeight
+        'enemyNeighbor': [47143, 63937, 24316, -538149, 21240, 20205, 0, 25],
+    }
+
     with open(filename, 'w') as f:
-        # Write array weights
-        for weight_name in ['inPlay', 'isPinned', 'isCovered', 'noisyWeight', 'quietWeight', 'friendlyNeighbor', 
-                           'enemyNeighbor']:
-            weights_str = ' '.join([str(weights_dict[f'{weight_name}_{i}']) for i in range(8)])
-            f.write(f"{weights_str} ")
-    
-        # Write single value weights
-        f.write(f"{weights_dict['pillbugNearQ']} {weights_dict['mosquitoNearStrong']} {weights_dict['spiderDistance']} {weights_dict['queenGate']} {weights_dict['ringPenalty']}")
+        # Write fixed weights first
+        for group in ['inPlay','isPinned','isCovered','noisyWeight','quietWeight','friendlyNeighbor','enemyNeighbor']:
+            f.write(" ".join(map(str, fixed_weights[group])) + " ")
+
+        # Write Optuna-optimized weights
+        for group in ['onTop','offensive','defensive']:
+            values = [weights_dict[f'{group}_{i}'] for i in range(8)]
+            f.write(" ".join(map(str, values)) + " ")
+
+        # Write the 4 scalar weights
+        f.write(f"{weights_dict['pillbugNearQ']} "
+                f"{weights_dict['mosquitoNearStrong']} "
+                f"{weights_dict['spiderDistance']} "
+                f"{weights_dict['queenGate']}")
 
 def play_single_game(pl1_path, pl2_path, matches=NUMBER_OF_MATCHES):
     """
@@ -201,40 +226,25 @@ def evaluate_weights(weights_dict):
 
 
 def objective(trial):
-    """Optuna objective function."""
-    
-    # Define parameter ranges based on your current weights
     weights = {}
-    
-    # Single value parameters
+
+    # Array parameters
+    for group in ['onTop','offensive','defensive']:
+        for i in range(8):
+            weights[f'{group}_{i}'] = trial.suggest_int(f'{group}_{i}', -600000, 600000)
+
+    # Scalar parameters
     weights['pillbugNearQ'] = trial.suggest_int('pillbugNearQ', 1000, 600000)
     weights['mosquitoNearStrong'] = trial.suggest_int('mosquitoNearStrong', 1000, 600000)
     weights['spiderDistance'] = trial.suggest_int('spiderDistance', 1000, 600000)
     weights['queenGate'] = trial.suggest_int('queenGate', 1000, 600000)
-    weights['ringPenalty'] = trial.suggest_int('ringPenalty', 1000, 600000)
-    
-    # Array parameters (8 pieces each: S, B, G, Q, A, M, L, P)
-    weight_categories = [
-        ('inPlay', -600000, 600000),
-        ('isPinned', -600000, 600000),
-        ('isCovered', -600000, 600000),
-        ('noisyWeight', -600000, 600000),
-        ('quietWeight', -600000, 600000),
-        ('friendlyNeighbor', -600000, 600000), 
-        ('enemyNeighbor', -600000, 600000)
-    ]
-    
-    for category, min_val, max_val in weight_categories:
-        for i in range(8):
-            weights[f'{category}_{i}'] = trial.suggest_int(f'{category}_{i}', min_val, max_val)
-    
+
     # Evaluate these weights
     fitness = evaluate_weights(weights)
-    
-    # Store additional info in trial
     trial.set_user_attr('weights', weights)
-    
+
     return fitness
+
 
 def save_optimization_results(study, filename=RESULTS_FILE):
     """Save optimization results to CSV."""
@@ -283,39 +293,20 @@ def main():
     # Add initial trial with current best weights (optional)
     initial_weights = {
         # InPlayWeight
-        'inPlay_0': 25436, 'inPlay_1': -47942, 'inPlay_2': 62698, 'inPlay_3': 13433,
-        'inPlay_4': 132380, 'inPlay_5': 35702, 'inPlay_6': 428, 'inPlay_7': -3,
+        'onTop_0': 30000, 'onTop_1': 50000, 'onTop_2': 0, 'onTop_3': 90000,
+        'onTop_4': 120000, 'onTop_5': 45000, 'onTop_6': 0, 'onTop_7': 25,
 
-        # IsPinnedWeight
-        'isPinned_0': -46539, 'isPinned_1': -48021, 'isPinned_2': -82598, 'isPinned_3': -129954,
-        'isPinned_4': -51036, 'isPinned_5': -47853, 'isPinned_6': 428, 'isPinned_7': 36,
+        'offensive_0': 50000, 'offensive_1': 100000, 'offensive_2': 30000, 'offensive_3': -45,
+        'offensive_4': 3000, 'offensive_5': 45000, 'offensive_6': 70000, 'offensive_7': 25,
 
-        # IsCoveredWeight
-        'isCovered_0': 7318, 'isCovered_1': 9325, 'isCovered_2': 24024, 'isCovered_3': -20359,
-        'isCovered_4': -1515, 'isCovered_5': -5471, 'isCovered_6': 1, 'isCovered_7': 1,
-
-        # NoisyMoveWeight
-        'noisyWeight_0': 139756, 'noisyWeight_1': 142117, 'noisyWeight_2': 105511, 'noisyWeight_3': 72291,
-        'noisyWeight_4': 53867, 'noisyWeight_5': 34855, 'noisyWeight_6': -327, 'noisyWeight_7': -327,
-
-        # QuietMoveWeight
-        'quietWeight_0': -20696, 'quietWeight_1': 11689, 'quietWeight_2': -12497, 'quietWeight_3': 95775,
-        'quietWeight_4': 4129, 'quietWeight_5': 3658, 'quietWeight_6': -2037, 'quietWeight_7': -5,
-
-        # FriendlyNeighborWeight
-        'friendlyNeighbor_0': 21040, 'friendlyNeighbor_1': 36463, 'friendlyNeighbor_2': 13656, 'friendlyNeighbor_3': -317467,
-        'friendlyNeighbor_4': 14307, 'friendlyNeighbor_5': 9199, 'friendlyNeighbor_6': 426, 'friendlyNeighbor_7': 1,
-
-        # EnemyNeighborWeight
-        'enemyNeighbor_0': 47143, 'enemyNeighbor_1': 63937, 'enemyNeighbor_2': 24316, 'enemyNeighbor_3': -538149,
-        'enemyNeighbor_4': 21240, 'enemyNeighbor_5': 20205, 'enemyNeighbor_6': 0, 'enemyNeighbor_7': 25,
+        'defensive_0': 5000, 'defensive_1': 50000, 'defensive_2': 43000, 'defensive_3': 0,
+        'defensive_4': 3400, 'defensive_5': 100000, 'defensive_6': 56000, 'defensive_7': 250000,
 
         # Single value weights
-        'pillbugNearQ': 15000,
+        'pillbugNearQ': 1500,
         'mosquitoNearStrong': 10000,
         'spiderDistance': 10000,
-        'queenGate': 40000,
-        'ringPenalty': 30000
+        'queenGate': 40000
     }
 
     

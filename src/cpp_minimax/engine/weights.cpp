@@ -91,7 +91,7 @@ const void WeightsHelper::initDefaultWeights() {
   25,
 
   // IsOnTopWeight
-  0,
+  30000,
   50000,
   0,
   90000,
@@ -121,9 +121,9 @@ const void WeightsHelper::initDefaultWeights() {
   250000,
 
     // Others
-  1500, //pillbugNearQueenBonus
-  1000, //mosquitoNearStrongBugBonus
-  1000, //spiderDistancePenalty
+  15000, //pillbugNearQueenBonus
+  10000, //mosquitoNearStrongBugBonus
+  10000, //spiderDistancePenalty
   40000, //queenGateDefenseBonus
   }; 
 

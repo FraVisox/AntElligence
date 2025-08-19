@@ -150,7 +150,7 @@ void Engine::bestmove(string param){
         }
     } else if (board.currentTurn == 4) {
         // Extract where to put it based on the other placement of queen or other bug
-        string first = actions[0];
+        string first = actions[1].substr(0,2);
         int len = actions[2].size();
         if (actions[2][len-1] == '/') {
             cout << "bQ /"+first+"\n";
@@ -177,13 +177,14 @@ void Engine::bestmove(string param){
             cout << "wA1 wL-\n";
         }
     } else if (board.currentTurn == 6) {
+        string first = actions[1].substr(0,2);
         int len = actions[2].size();
         if (actions[2][len-1] == '/') {
-            cout << "bA1 \\"+actions[0]+"\n";
+            cout << "bA1 \\"+first+"\n";
         } else if (actions[2][len-1] == '-') {
-            cout << "bA1 \\"+actions[0]+"\n";
+            cout << "bA1 \\"+first+"\n";
         } else {
-            cout << "bA1 /"+actions[0]+"\n";
+            cout << "bA1 /"+first+"\n";
         }
     } else if (board.currentTurn == 7) {
         int len = actions[1].size();

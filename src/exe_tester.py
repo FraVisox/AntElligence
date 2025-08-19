@@ -23,11 +23,13 @@ if platform.system()=="Linux":
 else:
 
     # NEW_W fa 9 a 7 contro mzinga
-    #
+    # MAIN fa 6 a 10
+    # NONLINEAR fa 7 a 9
+    # BASE fa 11 a 3
     files_to_match = {
-        #"Minimax": "./cpp_minimax/main.exe",
-        "NONLINEAR": "./cpp_minimax/main_non_linear.exe",
-        #"Base": "./cpp_minimax/base.exe",
+        #"Base": "./cpp_minimax/main_new_w.exe",
+        #"NONLINEAR": "./cpp_minimax/main_non_linear.exe",
+        "New": "./cpp_minimax/main.exe",
         #"Minimax": "./cpp_minimax/main.exe",
         #"Base": "./base.exe",
         #"Strong": "../dist/OurEngineStrong.exe",
