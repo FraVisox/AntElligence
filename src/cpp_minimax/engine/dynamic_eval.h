@@ -4,10 +4,10 @@
 class DynEval{
     private:
     WeightsHelper W;
-    double topologyScore(const Board &) const;
-    double strategicScore(const Board &) const;
-    double positionalScore(const Board &) const;
-    double actionsScore(const Board &) const;
+    double topologyScore(const Board &, PlayerColor color, positionT queenPos, positionT otherQueenPos) const;
+    double strategicScore(const Board &, PlayerColor color, positionT queenPos) const;
+    double positionalScore(const Board &, PlayerColor currentColor, PlayerColor oppositeColor) const;
+    double actionsScore(const Board &, pieceT myQueen, positionT oppositeQueenPosition) const;
 
 public:
 

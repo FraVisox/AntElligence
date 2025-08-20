@@ -8,14 +8,14 @@
 // Utility functions
 // =====================================================
 
-inline bool isAdjacent(positionT a, positionT b) {
+constexpr inline bool isAdjacent(positionT a, positionT b) {
     for (int i = 0; i < 6; i++) {
         if (((a + dirDif[i]) & 1023) == (b & 1023)) return true;
     }
     return false;
 }
 
-int distanceToQueen(positionT a, positionT b) {
+constexpr inline int distanceToQueen(positionT a, positionT b) {
     // Approximate distance on hex grid (valid since it's small)
     int dx = ((a & 31) - (b & 31));
     int dy = ((a >> 5) - (b >> 5));
@@ -38,11 +38,11 @@ bool isGateFormationAroundQueen(const Board& b, positionT qPos) {
     return gateCount >= 2; // 2 gates or more is generally defensive
 }
 
-int isQueenAlmostSurrounded(const Board &b, positionT qPos) {
+constexpr inline int isQueenAlmostSurrounded(const Board &b, positionT qPos) {
     int count = 0;
     for (int i = 0; i < 6; i++) {
         positionT n = (qPos + dirDif[i]) & 1023;
-        if (b.G.occupied.get_bit(n)) count++;
+         count += b.G.occupied.get_bit(n);
     }
     return count;
 }
@@ -78,15 +78,10 @@ bool isInsideRing(const Board &b, positionT p) {
 
 #include <immintrin.h>
 
-double DynEval::actionsScore(const Board & b)const {
+double DynEval::actionsScore(const Board & b, pieceT myQueen, positionT oppositeQueenPosition)const {
     // Per ogni bug, valutiamo le azioni che può fare
-    pieceT myQueen=(b.currentColor()==PlayerColor::WHITE)?8:22;
-    positionT oppositeQueenPosition=b.G.getPosition(30-myQueen);
-
     int numberOfAroundQueen = isQueenAlmostSurrounded(b, oppositeQueenPosition);
-
     bool canWinInOneMove = (numberOfAroundQueen == 5);
-
     double score=0;
     double actBug[32];
     for(int i=0;i<32;i++){
@@ -119,15 +114,11 @@ double DynEval::actionsScore(const Board & b)const {
 
     return score;
 }
-#include <immintrin.h>
 
 
-double DynEval::positionalScore(const Board &b)const {
+double DynEval::positionalScore(const Board &b, PlayerColor currentColor, PlayerColor oppositeColor)const {
     // Valutiamo la posizione del bug, se è coperto, vicinato..
     double score=0;
-
-    PlayerColor currentColor=b.currentColor();
-    PlayerColor oppositeColor=(currentColor==PlayerColor::WHITE?PlayerColor::BLACK:PlayerColor::WHITE);
 
     alignas(64) uint8_t nS[1024];
     for(int i=0;i<1024;i++) {
@@ -177,12 +168,9 @@ double DynEval::positionalScore(const Board &b)const {
     return score;
 }
 
-double DynEval::strategicScore(const Board &b) const {
+double DynEval::strategicScore(const Board &b, PlayerColor color, positionT queenPos) const {
     double score = 0;
-    PlayerColor color = b.currentColor();
     int base = (color == PlayerColor::WHITE) ? 1 : 15;
-    positionT queenPos = b.G.getPosition(base + 7); // Queen index is 8 or 22
-
 
     for (int i = base; i <= base + 13; i++) {
         if (!b.G.isPlaced[i]) continue;
@@ -215,13 +203,8 @@ double DynEval::strategicScore(const Board &b) const {
     return score;
 }
 
-double DynEval::topologyScore(const Board &b) const {
+double DynEval::topologyScore(const Board &b, PlayerColor color, positionT queenPos, positionT otherQueenPos) const {
     double score = 0;
-    PlayerColor color = b.currentColor();
-    int myQueen = (color == PlayerColor::WHITE) ? 8 : 22;
-    positionT queenPos = b.G.getPosition(myQueen);
-    int otherQueen = (color == PlayerColor::WHITE) ? 22 : 8;
-    positionT otherQueenPos = b.G.getPosition(otherQueen);
 
     int surrounding = isQueenAlmostSurrounded(b, queenPos);
     score -= pow(W.toExponentiate, surrounding);
@@ -256,47 +239,6 @@ double DynEval::topologyScore(const Board &b) const {
     return score;
 }
 
-double computePhase(const Board &b) {
-    // ------------------------------
-    // 1. Turn-based baseline
-    // ------------------------------
-    // Normalize by a "reasonable max turn" (Hive games rarely exceed 80 turns)
-    double turnPhase = std::min(1.0, b.currentTurn / 80.0);
-
-    // ------------------------------
-    // 2. Piece placement fraction
-    // ------------------------------
-    int placed = 0;
-    int totalPieces = 28; // 14 per player
-    for (int i = 1; i <= 28; i++) {
-        if (b.G.isPlaced[i]) placed++;
-    }
-    double placementPhase = (double)placed / totalPieces; // 0 = nothing, 1 = all out
-
-    // ------------------------------
-    // 3. Queen pressure
-    // ------------------------------
-    int whiteQueen = 8;
-    int blackQueen = 22;
-    int whiteSur = isQueenAlmostSurrounded(b, b.G.getPosition(whiteQueen));
-    int blackSur = isQueenAlmostSurrounded(b, b.G.getPosition(blackQueen));
-    int maxSur = std::max(whiteSur, blackSur);
-
-    // Map [0..6] neighbors -> [0..1] danger level
-    double queenPressurePhase = (double)maxSur / 6.0;
-
-    // ------------------------------
-    // Blend all signals
-    // ------------------------------
-    // Weighted blend: placement dominates early, queen pressure dominates late
-    double phase = 0.4 * placementPhase + 0.4 * turnPhase + 0.2 * queenPressurePhase;
-
-    // Clamp to [0,1]
-    return std::min(1.0, std::max(0.0, phase));
-}
-
-
-
 double DynEval::evalBoardCurrentPlayer(Board & b) const{
 
     if(b.getGameState()>1){// implement suicide
@@ -308,19 +250,18 @@ double DynEval::evalBoardCurrentPlayer(Board & b) const{
     }
     b.ComputePossibleMoves();
 
+    PlayerColor color = b.currentColor();
+    PlayerColor otherColor = (color == PlayerColor::WHITE) ? PlayerColor::BLACK : PlayerColor::WHITE;
+    int myQueen = (color == PlayerColor::WHITE) ? 8 : 22;
+    positionT queenPos = b.G.getPosition(myQueen);
+    int otherQueen = (color == PlayerColor::WHITE) ? 22 : 8;
+    positionT otherQueenPos = b.G.getPosition(otherQueen);
+
     double score=0;
-    /*
-    double phase = computePhase(b); // 0 = opening, 1 = endgame
-    double earlyPart = positionalScore(b) + strategicScore(b);
-    double latePart  = actionsScore(b) + topologyScore(b);
-
-    return (1.0 - phase) * earlyPart + phase * latePart;
-    */
-
-    score += actionsScore(b);  // for each action, compute the utility of the action
-    score += positionalScore(b);  // for each piece, compute the utility based on neighbor
-    score += strategicScore(b);   // for some piece, if they are close to the queen can be helpful
-    score += topologyScore(b);   // find if there are rings or other 
+    score += actionsScore(b, myQueen, otherQueenPos);  // for each action, compute the utility of the action
+    score += positionalScore(b, color, otherColor);  // for each piece, compute the utility based on neighbor
+    score += strategicScore(b, color, queenPos);   // for some piece, if they are close to the queen can be helpful
+    score += topologyScore(b, color, queenPos, otherQueenPos);   // find if there are rings or other 
 
     return score;
 }

@@ -24,11 +24,11 @@ else:
     files_to_match = {
         #"NONLINEAR": "./cpp_minimax/main_non_linear.exe",
         #"Base": "./cpp_minimax/main_new.exe",
-        "New": "./cpp_minimax/main_new_29.exe",
+        "New": "./cpp_minimax/main.exe",
         #"Minimax": "./cpp_minimax/main.exe",
         #"Base": "./base.exe",
-        "Strong": "../dist/OurEngineStrong.exe",
-        #"Mzinga": "../dist/MzingaEngine.exe"
+        #"Strong": "../dist/OurEngineStrong.exe",
+        "Mzinga": "../dist/MzingaEngine.exe"
     }
 options_players = [
     None,

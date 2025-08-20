@@ -1,5 +1,5 @@
 # Compiler and flags
-CXX = g++ -Ofast    -fopenmp -funroll-loops -fomit-frame-pointer -fno-rtti -mavx512bw # -mavx512vbmi2  -march=native -flto #  -fno-exceptions 
+CXX = g++ -Ofast    -fopenmp -funroll-loops -fomit-frame-pointer -fno-rtti -mavx512bw -march=native -flto -fno-exceptions # -mavx512vbmi2    
 
 #-fsanitize=address
 OUT_DIR = out
