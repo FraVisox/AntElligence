@@ -207,7 +207,17 @@ void Engine::bestmove(string param){
     }
 }
 
+string trim(const string& s) {
+    string result = s;
+    // remove trailing whitespace
+    result.erase(find_if(result.rbegin(), result.rend(),
+                         [](unsigned char ch) { return !isspace(ch); }).base(),
+                 result.end());
+    return result;
+}
+
 void Engine::play(string move){
+    move = trim(move);
     board.applayAction(stringToAction(board, move));
     actions.push_back(move);
     printBoard();

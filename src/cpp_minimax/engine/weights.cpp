@@ -1,20 +1,10 @@
 #include "weights.h"
 #include "piece.h"
-#include <iostream>
-#include <fstream>
 using namespace std;
 
 
 WeightsHelper::WeightsHelper() {
-    fstream file;
-    file.open("weights.txt", ios::in);
-    if (file.is_open()) {
-        for (int i = 0; i < 84; i++) {
-            file >> weightVector[i];
-        }
-    } else {
-        initDefaultWeights();
-    }
+    initDefaultWeights();
 }
 
 const void WeightsHelper::initDefaultWeights() {
@@ -121,7 +111,7 @@ const void WeightsHelper::initDefaultWeights() {
   250000,
 
     // Others
-  15000, //pillbugNearQueenBonus
+  1500, //pillbugNearQueenBonus
   10000, //mosquitoNearStrongBugBonus
   10000, //spiderDistancePenalty
   40000, //queenGateDefenseBonus
