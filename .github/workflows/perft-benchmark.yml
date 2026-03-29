@@ -29,7 +29,7 @@ jobs:
 
       - name: Build cpp_minimax perft
         working-directory: src/cpp_minimax
-        run: mkdir -p out && make perft
+        run: make perft
 
       - name: Run cpp_minimax perft
         working-directory: src/cpp_minimax

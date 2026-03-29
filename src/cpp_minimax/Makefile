@@ -47,11 +47,14 @@ main : main.cpp $(ALL_OJB)
 self_play : self_play.cpp $(ALL_OJB)
 	$(CXX) $(CXXFLAGS) self_play.cpp $(ALL_OJB) -o self_play
 
-perft : perft.cpp $(ALL_OJB)
-	$(CXX) $(CXXFLAGS) perft.cpp $(ALL_OJB) -o perft
+# Perft uses a portable build: the compat/ shim shadows <immintrin.h> with
+# pure-C++ equivalents, so no AVX-512 hardware is required at runtime.
+# Only the engine sources are linked (minimax/TT/engine are not needed).
+CXX_PERFT  = g++ -O3 -std=c++17 -I./compat
+PERFT_SRCS = $(ENGINE_CPPS)
 
-perft-parallel : perft.cpp $(ALL_OJB)
-	$(CXX) $(CXXFLAGS) perft.cpp $(ALL_OJB) -o perft-parallel
+perft : perft.cpp $(PERFT_SRCS) $(ENGINE_H) compat/immintrin.h
+	$(CXX_PERFT) perft.cpp $(PERFT_SRCS) -o perft
 
 
 
