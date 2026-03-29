@@ -1,0 +1,16 @@
+FROM --platform=linux/amd64 ubuntu:22.04
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends g++ make libgomp1 && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src
+COPY . .
+
+# Build the perft binary (and its engine deps).
+# The Makefile's CXX already includes -fopenmp and AVX512 flags,
+# which work fine on the emulated x86 image.
+RUN mkdir -p out && make perft
+
+ENTRYPOINT ["./perft"]
+CMD ["Base", "6"]

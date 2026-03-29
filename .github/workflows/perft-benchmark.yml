@@ -1,0 +1,53 @@
+name: Perft Benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      depth:
+        description: 'Perft depth'
+        required: false
+        default: '7'
+      game_type:
+        description: 'Game type (Base, Base+MLP, etc.)'
+        required: false
+        default: 'Base+MLP'
+
+jobs:
+  perft:
+    runs-on: ubuntu-latest  # x86_64 — both engines run natively
+
+    steps:
+      - name: Checkout AntElligence
+        uses: actions/checkout@v4
+
+      - name: Clone nokamute
+        run: git clone https://github.com/edre/nokamute.git /tmp/nokamute
+
+      # ── cpp_minimax (AntElligence) ─────────────────────────────────────────
+      - name: Install g++ and OpenMP
+        run: sudo apt-get install -y g++ libgomp1
+
+      - name: Build cpp_minimax perft
+        working-directory: src/cpp_minimax
+        run: mkdir -p out && make perft
+
+      - name: Run cpp_minimax perft
+        working-directory: src/cpp_minimax
+        run: |
+          echo "=== cpp_minimax perft ==="
+          ./perft ${{ github.event.inputs.game_type }} ${{ github.event.inputs.depth }}
+
+      # ── nokamute ──────────────────────────────────────────────────────────
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build nokamute
+        working-directory: /tmp/nokamute
+        run: cargo build --release
+
+      - name: Run nokamute perft
+        working-directory: /tmp/nokamute
+        run: |
+          echo "=== nokamute perft ==="
+          ./target/release/nokamute perft ${{ github.event.inputs.game_type }}
+        timeout-minutes: 2
