@@ -35,7 +35,7 @@ jobs:
         working-directory: src/cpp_minimax
         run: |
           echo "=== cpp_minimax perft ==="
-          ./perft ${{ github.event.inputs.game_type }} ${{ github.event.inputs.depth }}
+          ./perft ${{ github.event.inputs.game_type }} ${{ github.event.inputs.depth }} --parallel
 
       # ── nokamute ──────────────────────────────────────────────────────────
       - name: Install Rust
@@ -49,5 +49,5 @@ jobs:
         working-directory: /tmp/nokamute
         run: |
           echo "=== nokamute perft ==="
-          ./target/release/nokamute perft ${{ github.event.inputs.game_type }}
+          ./target/release/nokamute perft --parallel ${{ github.event.inputs.game_type }}
         timeout-minutes: 2
