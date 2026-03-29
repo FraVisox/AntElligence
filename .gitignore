@@ -17,3 +17,9 @@ dist/*.xml
 lib
 
 referhive
+
+src/cpp_minimax/perft
+src/cpp_minimax/perft-parallel
+src/cpp_minimax/main
+src/cpp_minimax/self_play
+src/cpp_minimax/out/
